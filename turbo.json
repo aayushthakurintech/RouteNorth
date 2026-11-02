@@ -3,7 +3,7 @@
   "tasks": {
     "build": { "dependsOn": ["^build"], "outputs": ["dist/**", ".next/**"] },
     "typecheck": { "dependsOn": ["^build"] },
-    "lint": {},
+    "lint": { "dependsOn": ["^build"] },
     "test": { "dependsOn": ["^build"], "env": ["DATABASE_URL"], "passThroughEnv": ["DATABASE_URL"] }
   }
 }
