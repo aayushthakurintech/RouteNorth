@@ -24,3 +24,15 @@ describe("isValidPosition", () => {
   it("rejects NaN", () =>
     expect(isValidPosition({ lat: NaN, lng: 0, speed: 0 })).toBe(false));
 });
+
+import { LOCALES, messages } from "./i18n.js";
+
+describe("i18n", () => {
+  it("has the same keys in every locale", () => {
+    const keys = Object.keys(messages.en).sort();
+    for (const l of LOCALES) expect(Object.keys(messages[l]).sort()).toEqual(keys);
+  });
+  it("has no empty translations", () => {
+    for (const l of LOCALES) for (const v of Object.values(messages[l])) expect(v.trim()).not.toBe("");
+  });
+});
