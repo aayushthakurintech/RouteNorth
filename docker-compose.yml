@@ -1,0 +1,35 @@
+# Local dev infrastructure. Start with: pnpm infra:up
+services:
+  db:
+    image: timescale/timescaledb-ha:pg17
+    environment:
+      POSTGRES_USER: routenorth
+      POSTGRES_PASSWORD: routenorth
+      POSTGRES_DB: routenorth
+    ports: ["5432:5432"]
+    volumes:
+      - dbdata:/home/postgres/pgdata/data
+      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U routenorth"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  traccar:
+    image: traccar/traccar:6
+    depends_on: [db]
+    ports:
+      - "8082:8082"   # web UI / REST
+      - "5055:5055"   # OsmAnd protocol (used by the simulator)
+      - "5027:5027"   # Teltonika (Codec 8)
+    volumes:
+      - ./infra/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro
+      - traccardata:/opt/traccar/data
+
+volumes:
+  dbdata:
+  traccardata:
