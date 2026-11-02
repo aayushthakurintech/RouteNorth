@@ -6,6 +6,7 @@ export const WS_URL = API_URL.replace(/^http/, "ws");
 export interface StoredSession {
   token: string;
   locale: Locale;
+  role?: string;
 }
 
 const KEY = "routenorth.session";

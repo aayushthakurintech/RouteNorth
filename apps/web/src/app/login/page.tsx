@@ -23,9 +23,9 @@ export default function LoginPage() {
       });
       if (!res.ok) throw new Error(String(res.status));
       const { token, user } = await res.json();
-      saveSession({ token, locale: user.locale });
+      saveSession({ token, locale: user.locale, role: user.role });
       setLocale(user.locale);
-      router.replace("/");
+      router.replace(user.role === "driver" ? "/driver" : "/");
     } catch {
       setError(true);
     } finally {
