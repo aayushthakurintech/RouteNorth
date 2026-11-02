@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { pg } from "@routenorth/db";
 import { Redis } from "ioredis";
 import { normalizeTraccar, type TraccarForward } from "./traccar.js";
+import { updateRouteProgress } from "./progress.js";
 import { storeFix } from "./store.js";
 
 const pool = new pg.Pool({ connectionString: process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL });
@@ -31,6 +32,10 @@ const server = createServer(async (req, res) => {
     if (stored && redis) {
       // The API subscribes per organization and fans out over WebSockets (step 3).
       await redis.publish(`positions:${stored.orgId}`, JSON.stringify(stored));
+    }
+    if (stored) {
+      // Route progress must never block or fail position storage.
+      await updateRouteProgress(pool, stored).catch((err) => console.error("route progress error", err));
     }
     res.writeHead(stored ? 200 : 202).end(stored ? "stored" : "ignored");
   } catch (err) {

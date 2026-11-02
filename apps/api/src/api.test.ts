@@ -328,6 +328,38 @@ suite("API", () => {
       expect((await call("get", `/routes/${route.id}`, planner)).body.name).toBe("Secret");
     });
 
+    it("reports planned vs actual per stop", async () => {
+      const route = (await call("post", "/routes", planner, {
+        name: "Report", date: "2026-11-09",
+        stops: [
+          stop("On time", 43.65, -79.38, { windowStart: "2026-11-09T14:00:00Z", windowEnd: "2026-11-09T15:00:00Z" }),
+          stop("Late", 43.66, -79.38, { windowStart: "2026-11-09T14:00:00Z", windowEnd: "2026-11-09T15:00:00Z" }),
+          stop("No window", 43.67, -79.38),
+          stop("Failed", 43.68, -79.38),
+          stop("Pending", 43.69, -79.38),
+        ],
+      })).body;
+      const set = (i: number, status: string, arrived: string | null, departed: string | null) =>
+        admin.query("UPDATE stops SET status=$2, arrived_at=$3, departed_at=$4 WHERE id=$1", [route.stops[i].id, status, arrived, departed]);
+      await set(0, "done", "2026-11-09T14:30:00Z", "2026-11-09T14:40:00Z");
+      await set(1, "done", "2026-11-09T15:20:00Z", "2026-11-09T15:25:00Z");
+      await set(2, "done", "2026-11-09T16:00:00Z", "2026-11-09T16:03:00Z");
+      await set(3, "failed", null, null);
+
+      const res = await call("get", `/routes/${route.id}/report`, planner);
+      expect(res.status).toBe(200);
+      expect(res.body.stops.map((s: { outcome: string }) => s.outcome)).toEqual(["on_time", "late", "no_window", "missed", "pending"]);
+      expect(res.body.stops[0].dwellS).toBe(600);
+      expect(res.body.stops[1].lateByS).toBe(1200);
+      expect(res.body.summary).toMatchObject({ total: 5, done: 3, failed: 1, pending: 1, onTime: 1, late: 1, noWindow: 1, onTimePct: 50 });
+    });
+
+    it("does not show another organization's report", async () => {
+      const route = (await call("post", "/routes", planner, { name: "R", date: "2026-11-10", stops: [] })).body;
+      const other = await as("dispatch-b@example.com");
+      expect((await call("get", `/routes/${route.id}/report`, other)).status).toBe(404);
+    });
+
     it("cannot be pointed at another organization even by the database", async () => {
       const bVehicle = (await admin.query("SELECT id FROM vehicles WHERE org_id = $1", [orgB])).rows[0].id;
       await expect(

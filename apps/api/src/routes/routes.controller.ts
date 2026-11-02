@@ -3,6 +3,7 @@ import {
   Param, Patch, Post, Put, Query, Req, UseGuards,
 } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
+import { classifyStop, type StopOutcome, type StopStatus } from "@routenorth/shared";
 import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
 import { PG_POOL } from "../tokens.js";
 import { parseUuid } from "../history/range.js";
@@ -67,6 +68,44 @@ export class RoutesController {
       ),
     );
     return rows.rows;
+  }
+
+  /** Planned vs actual: how each stop went against its time window. */
+  @Get(":id/report")
+  async report(@Req() req: AuthedRequest, @Param("id") id: string) {
+    const route = await withOrg(this.pool, req.session!.orgId, (c) => this.load(c, parseUuid(id)));
+    if (!route) throw new NotFoundException();
+    const iso = (d: Date | string | null) => (d ? new Date(d).toISOString() : null);
+    const stops = route.stops.map((s: Record<string, any>) => {
+      const arrivedAt = iso(s.arrivedAt);
+      const departedAt = iso(s.departedAt);
+      const outcome: StopOutcome = classifyStop({
+        status: s.status as StopStatus, windowStart: iso(s.windowStart), windowEnd: iso(s.windowEnd), arrivedAt,
+      });
+      const lateByS = outcome === "late" ? Math.round((new Date(arrivedAt!).getTime() - new Date(iso(s.windowEnd)!).getTime()) / 1000) : 0;
+      return {
+        sequence: s.sequence, id: s.id, name: s.name, status: s.status, failureReason: s.failureReason,
+        windowStart: iso(s.windowStart), windowEnd: iso(s.windowEnd), eta: iso(s.eta), arrivedAt, departedAt,
+        dwellS: arrivedAt && departedAt ? Math.round((new Date(departedAt).getTime() - new Date(arrivedAt).getTime()) / 1000) : null,
+        outcome, lateByS,
+      };
+    });
+    const count = (o: StopOutcome) => stops.filter((s: { outcome: StopOutcome }) => s.outcome === o).length;
+    const judged = count("on_time") + count("late") + count("early");
+    return {
+      route: { id: route.id, name: route.name, date: route.date, status: route.status, startedAt: iso(route.startedAt), completedAt: iso(route.completedAt) },
+      summary: {
+        total: stops.length,
+        done: stops.filter((s: { status: string }) => s.status === "done").length,
+        failed: stops.filter((s: { status: string }) => s.status === "failed").length,
+        skipped: stops.filter((s: { status: string }) => s.status === "skipped").length,
+        pending: stops.filter((s: { status: string }) => s.status === "pending" || s.status === "arrived").length,
+        onTime: count("on_time"), early: count("early"), late: count("late"), noWindow: count("no_window"),
+        // Early arrivals count as on time: the driver was there when the customer needed them.
+        onTimePct: judged === 0 ? null : Math.round(((count("on_time") + count("early")) / judged) * 100),
+      },
+      stops,
+    };
   }
 
   @Get(":id")
@@ -265,7 +304,8 @@ export class RoutesController {
   private async load(c: pg.PoolClient, routeId: string) {
     const route = (
       await c.query(
-        `SELECT id, name, route_date::text AS date, status, vehicle_id AS "vehicleId", driver_id AS "driverId" FROM routes WHERE id = $1`,
+        `SELECT id, name, route_date::text AS date, status, vehicle_id AS "vehicleId", driver_id AS "driverId",
+                started_at AS "startedAt", completed_at AS "completedAt" FROM routes WHERE id = $1`,
         [routeId],
       )
     ).rows[0];
