@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE properties SYSTEM 'http://java.sun.com/dtd/properties.dtd'>
+<properties>
+  <!-- Traccar keeps its own device registry in its embedded H2 database for dev. -->
+  <entry key='database.driver'>org.h2.Driver</entry>
+  <entry key='database.url'>jdbc:h2:/opt/traccar/data/database</entry>
+  <entry key='database.user'>sa</entry>
+  <entry key='database.password'></entry>
+  <!-- Only enable the protocols we use so unused ports stay closed. -->
+  <entry key='osmand.port'>5055</entry>
+  <entry key='teltonika.port'>5027</entry>
+  <!-- Forward every position to the RouteNorth normalizer (added in step 2). -->
+  <entry key='forward.enable'>true</entry>
+  <entry key='forward.url'>http://host.docker.internal:4100/ingest/traccar</entry>
+  <entry key='forward.json'>true</entry>
+</properties>
