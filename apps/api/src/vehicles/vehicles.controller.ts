@@ -23,6 +23,13 @@ export interface LiveVehicle {
 export class VehiclesController {
   constructor(@Inject(PG_POOL) private readonly pool: pg.Pool) {}
 
+  /** Every vehicle in the organization, for pickers (not just those with a position). */
+  @Get()
+  async list(@Req() req: AuthedRequest): Promise<{ id: string; name: string; kind: string }[]> {
+    const rows = await withOrg(this.pool, req.session!.orgId, (c) => c.query("SELECT id, name, kind FROM vehicles ORDER BY name"));
+    return rows.rows;
+  }
+
   /** Latest known position of every device in the caller's organization. */
   @Get("live")
   async live(@Req() req: AuthedRequest): Promise<LiveVehicle[]> {
