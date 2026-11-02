@@ -48,6 +48,7 @@ export default function LivePage() {
           <strong>{t("appName")}</strong>
           <span className={connected ? "pill ok" : "pill warn"}>{connected ? t("connected") : t("reconnecting")}</span>
           <LanguageToggle />
+          <Link href="/routes" className="link">{t("routes")}</Link>
           <Link href="/reports" className="link">{t("reports")}</Link>
           <button type="button" className="link" onClick={() => { saveSession(null); router.replace("/login"); }}>
             {t("signOut")}

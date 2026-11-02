@@ -1,4 +1,4 @@
-:root { --bg:#f8fafc; --fg:#0f172a; --muted:#64748b; --line:#e2e8f0; --brand:#1e3a8a; --ok:#1a9850; --warn:#f2a900; }
+:root { color-scheme: light dark; --bg:#f8fafc; --fg:#0f172a; --muted:#64748b; --line:#e2e8f0; --brand:#1e3a8a; --ok:#1a9850; --warn:#f2a900; }
 @media (prefers-color-scheme: dark) {
   :root { --bg:#0b1220; --fg:#e5e7eb; --muted:#94a3b8; --line:#1f2a44; --brand:#60a5fa; }
 }
@@ -51,3 +51,24 @@ table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
 th { color: var(--muted); font-weight: 600; }
 .vehicles .meta { color: var(--muted); }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.card-link { display: flex; flex-direction: column; gap: 4px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; color: inherit; text-decoration: none; }
+.card-link progress { width: 100%; }
+.stoplist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.stoplist li { border: 1px solid var(--line); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.stop-head { display: flex; align-items: center; gap: 8px; }
+.stop-head .meta { margin-left: auto; }
+.num { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 12px; }
+.actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.actions button { padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: transparent; }
+.actions button:disabled { opacity: .4; cursor: default; }
+.actions .danger { color: #c0392b; }
+.summary { display: flex; flex-direction: column; gap: 2px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; }
+.meta { color: var(--muted); font-size: 13px; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+button, a, input, select { touch-action: manipulation; }
+.meta, .num, .detail dd, .vehicles .meta, td { font-variant-numeric: tabular-nums; }
+.stop-head strong, .vehicles .name, .card-link strong { min-width: 0; overflow-wrap: anywhere; }
+.card-link:hover, .vehicles button:hover, .cards button:hover, .actions button:hover:not(:disabled) { border-color: var(--brand); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
