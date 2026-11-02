@@ -1,5 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { LanguageToggle } from "@/components/LanguageToggle";
@@ -47,6 +48,7 @@ export default function LivePage() {
           <strong>{t("appName")}</strong>
           <span className={connected ? "pill ok" : "pill warn"}>{connected ? t("connected") : t("reconnecting")}</span>
           <LanguageToggle />
+          <Link href="/reports" className="link">{t("reports")}</Link>
           <button type="button" className="link" onClick={() => { saveSession(null); router.replace("/login"); }}>
             {t("signOut")}
           </button>
@@ -82,9 +84,12 @@ export default function LivePage() {
               <dt>{t("heading")}</dt><dd>{Math.round(selected.heading)}°</dd>
               <dt>{t("lastUpdate")}</dt><dd>{time(selected.time)}</dd>
             </dl>
-            <button type="button" onClick={() => setFollow((f) => !f)}>
-              {follow ? t("stopFollowing") : t("follow")}
-            </button>
+            <div className="row">
+              <button type="button" onClick={() => setFollow((f) => !f)}>
+                {follow ? t("stopFollowing") : t("follow")}
+              </button>
+              <Link href={`/history/${selected.deviceId}`} className="btn">{t("history")}</Link>
+            </div>
           </section>
         )}
       </aside>

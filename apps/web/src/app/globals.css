@@ -36,3 +36,18 @@ button { cursor: pointer; }
   .shell { grid-template-columns: 1fr; grid-template-rows: 45vh 1fr; }
   .panel { border-right: 0; border-bottom: 1px solid var(--line); }
 }
+.panel header .link + .link { margin-left: auto; }
+.h { margin: 0; font-size: 18px; } h2 { font-size: 15px; margin: 8px 0 4px; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.field input, select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: transparent; }
+.row > button, .btn { padding: 8px 14px; border-radius: 8px; border: 0; background: var(--brand); color: #fff; text-decoration: none; display: inline-block; }
+.replay input[type=range] { width: 100%; margin-top: 8px; }
+.cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.cards button, .cards .static { width: 100%; display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: transparent; }
+.cards .meta { color: var(--muted); font-size: 13px; }
+.page { max-width: 980px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; }
+.vehicles .meta { color: var(--muted); }

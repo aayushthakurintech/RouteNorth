@@ -22,6 +22,7 @@ suite("API", () => {
   let port = 0;
   let orgA = "";
   let orgB = "";
+  const devices: Record<string, string> = {};
 
   const login = async (email: string, password = "pw-correct-horse") =>
     request(nest.getHttpServer()).post("/auth/login").send({ email, password });
@@ -52,10 +53,27 @@ suite("API", () => {
       await withOrg(app, org, async (c) => {
         const v = (await c.query("INSERT INTO vehicles (org_id, name, kind) VALUES ($1,$2,'truck') RETURNING id", [org, name])).rows[0].id;
         const d = (await c.query("INSERT INTO devices (org_id, vehicle_id, source, external_id) VALUES ($1,$2,'simulator',$3) RETURNING id", [org, v, ext])).rows[0].id;
+        devices[ext] = d;
         await c.query(
           "INSERT INTO latest_positions (device_id, org_id, time, lat, lng, speed, heading, ignition) VALUES ($1,$2,now(),43.65,-79.38,50,90,true)",
           [d, org],
         );
+      });
+    }
+
+    // History for org A's device: 10 min driving east at 60 km/h, 20 min idling, 5 min driving, then parked.
+    {
+      let ms = Date.parse("2026-10-15T12:00:00Z");
+      let lng = -79.5;
+      const rows: unknown[][] = [];
+      const add = (speed: number, ign: boolean) => rows.push([new Date(ms).toISOString(), orgA, devices["dev-a"], 43.65, lng, speed, ign]);
+      const drive = (min: number) => { for (let s = 0; s < min * 60; s += 10) { lng += (60 / 3.6) * 10 / 80_500; ms += 10_000; add(60, true); } };
+      const park = (min: number, ign: boolean) => { for (let s = 0; s < min * 60; s += 10) { ms += 10_000; add(0, ign); } };
+      drive(10); park(20, true); drive(5); park(15, false);
+      await withOrg(app, orgA, async (c) => {
+        for (const r of rows) {
+          await c.query("INSERT INTO positions (time, org_id, device_id, lat, lng, speed, ignition) VALUES ($1,$2,$3,$4,$5,$6,$7)", r);
+        }
       });
     }
 
@@ -141,5 +159,67 @@ suite("API", () => {
       ws.on("close", (c) => resolve(c));
     });
     expect(code).toBe(4401);
+  });
+
+  describe("history and reports", () => {
+    const Q = "from=2026-10-15T00:00:00Z&to=2026-10-16T00:00:00Z";
+    const get = async (path: string, email = "a@example.com") => {
+      const { token } = (await login(email)).body;
+      return request(nest.getHttpServer()).get(path).set("Authorization", `Bearer ${token}`);
+    };
+
+    it("detects two trips and two stops", async () => {
+      const res = await get(`/vehicles/${devices["dev-a"]}/trips?${Q}`);
+      expect(res.status).toBe(200);
+      expect(res.body.trips).toHaveLength(2);
+      expect(res.body.trips[0].distanceM).toBeGreaterThan(9_800);
+      expect(res.body.trips[0].distanceM).toBeLessThan(10_200);
+      expect(res.body.stops.map((s: { idling: boolean }) => s.idling)).toEqual([true, false]);
+    });
+
+    it("returns the replay track in time order", async () => {
+      const res = await get(`/vehicles/${devices["dev-a"]}/track?${Q}`);
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(300);
+      const times = res.body.map((p: { time: string }) => p.time);
+      expect([...times].sort()).toEqual(times);
+    });
+
+    it("reports daily distance and idle time", async () => {
+      const res = await get(`/reports/daily?${Q}&tz=America/Toronto`);
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].name).toBe("Truck A1");
+      expect(res.body[0].date).toBe("2026-10-15");
+      expect(res.body[0].distanceM).toBeGreaterThan(14_500);
+      expect(res.body[0].idleS).toBeGreaterThan(19 * 60);
+    });
+
+    it("reports idle stops", async () => {
+      const res = await get(`/reports/idle?${Q}`);
+      expect(res.body[0].name).toBe("Truck A1");
+      expect(res.body[0].idleStops).toHaveLength(1);
+      expect(res.body[0].idleStops[0].durationS).toBeGreaterThan(19 * 60);
+    });
+
+    it("does not leak another organization's history", async () => {
+      // Org B asks for org A's device: it does not exist from B's point of view.
+      expect((await get(`/vehicles/${devices["dev-a"]}/trips?${Q}`, "b@example.com")).status).toBe(404);
+      expect((await get(`/vehicles/${devices["dev-a"]}/track?${Q}`, "b@example.com")).status).toBe(404);
+      const report = await get(`/reports/daily?${Q}`, "b@example.com");
+      expect(report.body).toEqual([]);
+    });
+
+    it("validates inputs", async () => {
+      expect((await get(`/vehicles/not-a-uuid/trips?${Q}`)).status).toBe(400);
+      expect((await get(`/vehicles/${devices["dev-a"]}/trips?from=nope`)).status).toBe(400);
+      expect((await get(`/vehicles/${devices["dev-a"]}/trips?from=2026-10-16T00:00:00Z&to=2026-10-15T00:00:00Z`)).status).toBe(400);
+      expect((await get(`/reports/daily?from=2026-01-01T00:00:00Z&to=2026-06-01T00:00:00Z`)).status).toBe(400);
+      expect((await get(`/reports/daily?${Q}&tz=Mars/Base`)).status).toBe(400);
+    });
+
+    it("requires login", async () => {
+      expect((await request(nest.getHttpServer()).get(`/reports/idle?${Q}`)).status).toBe(401);
+    });
   });
 });
