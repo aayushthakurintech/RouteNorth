@@ -222,4 +222,117 @@ suite("API", () => {
       expect((await request(nest.getHttpServer()).get(`/reports/idle?${Q}`)).status).toBe(401);
     });
   });
+
+  describe("routes and stops", () => {
+    let planner = "";
+    const as = async (email: string) => (await login(email)).body.token as string;
+    const call = async (method: "get" | "post" | "put" | "patch" | "delete", path: string, token: string, body?: object) => {
+      const r = request(nest.getHttpServer())[method](path).set("Authorization", `Bearer ${token}`);
+      return body ? r.send(body) : r;
+    };
+    const stop = (name: string, lat = 43.65, lng = -79.38, extra: object = {}) => ({ name, lat, lng, ...extra });
+
+    beforeAll(async () => {
+      planner = await as("a@example.com");
+      await admin.query(
+        "INSERT INTO users (org_id, email, password_hash, role) VALUES ($1,'dispatch-b@example.com',(SELECT password_hash FROM users WHERE email='a@example.com'),'dispatcher')",
+        [orgB],
+      );
+    });
+
+    it("creates a route with ordered stops and lists it", async () => {
+      const res = await call("post", "/routes", planner, {
+        name: "Morning run", date: "2026-11-03", vehicleId: undefined,
+        stops: [stop("A", 43.65, -79.38, { packages: 3 }), stop("B", 43.66, -79.39), stop("C", 43.67, -79.4, { radiusM: 120 })],
+      });
+      expect(res.status).toBe(201);
+      expect(res.body.stops.map((s: { name: string; sequence: number }) => [s.name, s.sequence])).toEqual([["A", 1], ["B", 2], ["C", 3]]);
+      expect(res.body.stops[0].status).toBe("pending");
+      expect(res.body.stops[2].radiusM).toBe(120);
+      expect(res.body.stops[1].radiusM).toBe(75);
+
+      const list = await call("get", "/routes?date=2026-11-03", planner);
+      expect(list.body).toEqual([expect.objectContaining({ name: "Morning run", stopCount: 3, finishedCount: 0 })]);
+    });
+
+    it("assigns a vehicle and driver", async () => {
+      const veh = (await call("get", "/vehicles/live", planner)).body[0].vehicleId;
+      const driver = (await admin.query("SELECT id FROM users WHERE email='a@example.com'")).rows[0].id;
+      const res = await call("post", "/routes", planner, { name: "Assigned", date: "2026-11-04", vehicleId: veh, driverId: driver, stops: [] });
+      expect(res.status).toBe(201);
+      expect(res.body.vehicleId).toBe(veh);
+      expect(res.body.driverId).toBe(driver);
+    });
+
+    it("imports stops from CSV, including quoted commas", async () => {
+      const route = (await call("post", "/routes", planner, { name: "Import", date: "2026-11-05", stops: [] })).body;
+      const csv = 'name,address,lat,lng,window_start,window_end,packages\n"Smith, J.","1 Main St, Toronto",43.7,-79.4,2026-11-05T14:00:00Z,2026-11-05T15:00:00Z,4\nWarehouse,,43.6,-79.5,,,0\n';
+      const res = await call("post", `/routes/${route.id}/stops/import`, planner, { csv });
+      expect(res.status).toBe(201);
+      expect(res.body.stops).toHaveLength(2);
+      expect(res.body.stops[0]).toMatchObject({ name: "Smith, J.", address: "1 Main St, Toronto", packages: 4, sequence: 1 });
+      expect(res.body.stops[0].windowEnd).toBe("2026-11-05T15:00:00.000Z");
+    });
+
+    it("reports which CSV row is wrong", async () => {
+      const route = (await call("post", "/routes", planner, { name: "Bad import", date: "2026-11-05", stops: [] })).body;
+      const res = await call("post", `/routes/${route.id}/stops/import`, planner, { csv: "name,lat,lng\nOK,43,-79\nBad,99,-79\n" });
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain("row 3");
+    });
+
+    it("reorders stops, edits a stop, and resequences after a delete", async () => {
+      const route = (await call("post", "/routes", planner, { name: "Reorder", date: "2026-11-06", stops: [stop("A"), stop("B"), stop("C")] })).body;
+      const [a, b, c] = route.stops.map((s: { id: string }) => s.id);
+      const re = await call("put", `/routes/${route.id}/stops/order`, planner, { stopIds: [c, a, b] });
+      expect(re.body.stops.map((s: { name: string }) => s.name)).toEqual(["C", "A", "B"]);
+
+      const edited = await call("patch", `/routes/${route.id}/stops/${a}`, planner, { name: "A2", status: "done" });
+      expect(edited.body.stops.find((s: { id: string }) => s.id === a)).toMatchObject({ name: "A2", status: "done" });
+
+      const del = await call("delete", `/routes/${route.id}/stops/${c}`, planner);
+      expect(del.body.stops.map((s: { name: string; sequence: number }) => [s.name, s.sequence])).toEqual([["A2", 1], ["B", 2]]);
+
+      const bad = await call("put", `/routes/${route.id}/stops/order`, planner, { stopIds: [a] });
+      expect(bad.status).toBe(400);
+    });
+
+    it("validates input", async () => {
+      expect((await call("post", "/routes", planner, { name: "", date: "2026-11-03", stops: [] })).status).toBe(400);
+      expect((await call("post", "/routes", planner, { name: "x", date: "11/03/2026", stops: [] })).status).toBe(400);
+      expect((await call("post", "/routes", planner, { name: "x", date: "2026-11-03", stops: [stop("A", 120, 0)] })).status).toBe(400);
+      const win = stop("W", 43, -79, { windowStart: "2026-11-03T15:00:00Z", windowEnd: "2026-11-03T14:00:00Z" });
+      expect((await call("post", "/routes", planner, { name: "x", date: "2026-11-03", stops: [win] })).status).toBe(400);
+      expect((await call("post", "/routes", planner, { name: "x", date: "2026-11-03", stops: [stop("R", 43, -79, { radiusM: 5 })] })).status).toBe(400);
+    });
+
+    it("only planners can change routes", async () => {
+      const viewer = await as("b@example.com");
+      expect((await call("post", "/routes", viewer, { name: "x", date: "2026-11-03", stops: [] })).status).toBe(403);
+      // Viewers can still read their own organization's routes.
+      expect((await call("get", "/routes?date=2026-11-03", viewer)).status).toBe(200);
+    });
+
+    it("keeps organizations apart", async () => {
+      const route = (await call("post", "/routes", planner, { name: "Secret", date: "2026-11-07", stops: [stop("S")] })).body;
+      const otherPlanner = await as("dispatch-b@example.com");
+      expect((await call("get", `/routes/${route.id}`, otherPlanner)).status).toBe(404);
+      expect((await call("get", "/routes?date=2026-11-07", otherPlanner)).body).toEqual([]);
+      expect((await call("patch", `/routes/${route.id}`, otherPlanner, { name: "hijack" })).status).toBe(404);
+      expect((await call("post", `/routes/${route.id}/stops`, otherPlanner, { stops: [stop("X")] })).status).toBe(404);
+      expect((await call("delete", `/routes/${route.id}`, otherPlanner)).status).toBe(404);
+      // And cannot assign org A's vehicle to its own route.
+      const aVehicle = (await call("get", "/vehicles/live", planner)).body[0].vehicleId;
+      expect((await call("post", "/routes", otherPlanner, { name: "x", date: "2026-11-07", vehicleId: aVehicle, stops: [] })).status).toBe(400);
+      // The route is untouched.
+      expect((await call("get", `/routes/${route.id}`, planner)).body.name).toBe("Secret");
+    });
+
+    it("cannot be pointed at another organization even by the database", async () => {
+      const bVehicle = (await admin.query("SELECT id FROM vehicles WHERE org_id = $1", [orgB])).rows[0].id;
+      await expect(
+        admin.query("INSERT INTO routes (org_id, name, route_date, vehicle_id) VALUES ($1,'x','2026-11-08',$2)", [orgA, bVehicle]),
+      ).rejects.toThrow(/foreign key/);
+    });
+  });
 });
