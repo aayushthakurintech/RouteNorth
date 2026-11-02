@@ -38,6 +38,9 @@ importers:
       '@routenorth/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      express:
+        specifier: ^5.1.0
+        version: 5.2.1
       ioredis:
         specifier: ^5.6.0
         version: 5.11.1
