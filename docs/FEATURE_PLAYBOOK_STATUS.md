@@ -4,11 +4,11 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | Status | Count |
 | --- | ---: |
-| ✅ Done | 44 |
-| 🟡 Partly built | 9 |
-| 🔌 Needs outside accounts or hardware | 0 |
+| ✅ Done | 79 |
+| 🟡 Partly built | 15 |
+| 🔌 Needs outside accounts or hardware | 4 |
 | ➖ Chosen not to build | 1 |
-| ⬜ Not started | 266 |
+| ⬜ Not started | 221 |
 
 - **Done**: built, with tests or a manual run behind it.
 - **Partly built**: the useful core works; the note says what is missing.
@@ -109,66 +109,66 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Multi-stop route builder with drag-and-drop stop order | ⬜ Not started |  |
-| 2 | One-click route optimization (shortest time or shortest distance) | ⬜ Not started |  |
-| 3 | Time windows per stop ("deliver between 2 and 4 pm") | ⬜ Not started |  |
-| 4 | Vehicle limits: weight, volume, number of items | ⬜ Not started |  |
-| 5 | Driver shift limits and mandatory break rules | ⬜ Not started |  |
-| 6 | Traffic-aware ETAs, live and predicted | ⬜ Not started |  |
-| 7 | Avoid options: tolls, highways, ferries, unpaved roads | ⬜ Not started |  |
-| 8 | Truck and heavy-vehicle routing (height, weight, hazmat limits) | ⬜ Not started |  |
-| 9 | Electric vehicle routing with charging stops | ⬜ Not started |  |
-| 10 | Route templates for repeat jobs | ⬜ Not started |  |
-| 11 | Recurring routes (daily, weekly, custom) | ⬜ Not started |  |
-| 12 | Bulk import of stops from CSV or Excel | ⬜ Not started |  |
-| 13 | Address auto-complete and geocoding with fix suggestions | ⬜ Not started |  |
-| 14 | Scenario compare: "Plan A vs Plan B" with cost and time side by side | ⬜ Not started |  |
-| 15 | What-if mode: add a stop and see the effect before saving | ⬜ Not started |  |
+| 1 | Multi-stop route builder with drag-and-drop stop order | ✅ Done | Drag stops to reorder on the route page (keyboard works too). apps/web/src/app/(app)/routes/[id]. |
+| 2 | One-click route optimization (shortest time or shortest distance) | ✅ Done | Optimizer for shortest time or distance (cheapest insertion + 2-opt/or-opt), unit-tested. Uses real road times when a routing engine is set (ROUTING_URL); otherwise straight-line estimates, and the screen says so. |
+| 3 | Time windows per stop ("deliver between 2 and 4 pm") | ✅ Done | Time windows per stop, treated as hard limits by the optimizer and flagged when late. |
+| 4 | Vehicle limits: weight, volume, number of items | ✅ Done | Weight, volume and item limits per vehicle; over-capacity is flagged on the board and respected by auto-assign. |
+| 5 | Driver shift limits and mandatory break rules | ✅ Done | Max shift length and mandatory breaks per driver; the optimizer inserts breaks. |
+| 6 | Traffic-aware ETAs, live and predicted | 🟡 Partly built | Predicted ETAs use hourly speed patterns learned from your own vehicles' positions. Live traffic needs an outside traffic data source. |
+| 7 | Avoid options: tolls, highways, ferries, unpaved roads | 🔌 Needs outside accounts or hardware | Avoid tolls, highways, ferries and unpaved roads are sent to the routing engine (OSRM or Valhalla). Enforcing them needs a routing engine; not run in the sandbox. |
+| 8 | Truck and heavy-vehicle routing (height, weight, hazmat limits) | 🔌 Needs outside accounts or hardware | Height, weight and hazmat limits are sent to Valhalla's truck profile. Needs a Valhalla server; tested only against a stub. |
+| 9 | Electric vehicle routing with charging stops | 🟡 Partly built | Planner tracks battery range and adds charging stops. Real charger locations need an outside data source, so charge points are entered by you. |
+| 10 | Route templates for repeat jobs | ✅ Done | Save any route as a template; create routes from templates. |
+| 11 | Recurring routes (daily, weekly, custom) | ✅ Done | Daily, weekly and custom repeats; the scheduler creates each day's routes once (no duplicates). |
+| 12 | Bulk import of stops from CSV or Excel | 🟡 Partly built | CSV import of jobs, with errors listed by row. Excel files are not read directly: save as CSV first. |
+| 13 | Address auto-complete and geocoding with fix suggestions | 🔌 Needs outside accounts or hardware | Address search with saved places and 'did you mean' fixes. Live address lookup needs a geocoding service (Nominatim or similar); tested only against a stub. |
+| 14 | Scenario compare: "Plan A vs Plan B" with cost and time side by side | ✅ Done | Current order vs optimized order shown side by side with cost, time and late stops. |
+| 15 | What-if mode: add a stop and see the effect before saving | ✅ Done | Drop a pin and see where an extra stop fits and what becomes late, before saving. |
 
 ### Dispatch and jobs
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Drag-and-drop dispatch board (like a calendar for drivers) | ⬜ Not started |  |
-| 2 | Auto-assign jobs to the best driver | ⬜ Not started |  |
-| 3 | Job types: pickup, delivery, service call, inspection | ⬜ Not started |  |
-| 4 | Priority levels and urgent job insertion | ⬜ Not started |  |
-| 5 | Reassign jobs live when plans change | ⬜ Not started |  |
-| 6 | Job status flow: assigned, started, arrived, done, failed | ⬜ Not started |  |
-| 7 | Proof of delivery: photo, signature, barcode scan | ⬜ Not started |  |
-| 8 | Notes, tags, and attachments on every job | ⬜ Not started |  |
-| 9 | Cancel and reschedule with reason codes | ⬜ Not started |  |
-| 10 | Split and merge routes | ⬜ Not started |  |
+| 1 | Drag-and-drop dispatch board (like a calendar for drivers) | ✅ Done | Dispatch board: unassigned jobs and one lane per driver; drag a job onto a lane or use the menu. |
+| 2 | Auto-assign jobs to the best driver | ✅ Done | Auto-assign suggests the best driver by skills, capacity, shift and distance, then applies on one click. |
+| 3 | Job types: pickup, delivery, service call, inspection | ✅ Done | Pickup, delivery, service call and inspection jobs. |
+| 4 | Priority levels and urgent job insertion | ✅ Done | Low to urgent priority; the rush button inserts an urgent job and says what it delays. |
+| 5 | Reassign jobs live when plans change | ✅ Done | Reassign from the board or the job panel; the driver's route updates and the change is logged. |
+| 6 | Job status flow: assigned, started, arrived, done, failed | ✅ Done | Unassigned, assigned, started, arrived, done, failed; stop changes update the job automatically. |
+| 7 | Proof of delivery: photo, signature, barcode scan | ✅ Done | Photo and signature (earlier milestone) plus package-code scans. Camera scanning needs a browser with BarcodeDetector (Chrome on Android); typing the code works everywhere. Not tried on a real phone. |
+| 8 | Notes, tags, and attachments on every job | ✅ Done | Notes, tags and file attachments on jobs. |
+| 9 | Cancel and reschedule with reason codes | ✅ Done | Cancel and reschedule ask for a reason code; history is kept. |
+| 10 | Split and merge routes | ✅ Done | Select stops to split onto a new route, or merge another route in. |
 
 ### Live tracking
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Live map with all vehicles and drivers | ⬜ Not started |  |
-| 2 | Breadcrumb trail and trip replay (play back any past day) | ⬜ Not started |  |
-| 3 | Geofences with enter and exit alerts | ⬜ Not started |  |
-| 4 | Live ETA updates as traffic changes | ⬜ Not started |  |
-| 5 | Status colors on markers (moving, idle, stopped, offline) | ⬜ Not started |  |
-| 6 | Cluster markers when zoomed out | ⬜ Not started |  |
-| 7 | Heat layers: stops, delays, speeding | ⬜ Not started |  |
-| 8 | Street view and satellite toggle | ⬜ Not started |  |
-| 9 | Weather layer along the route | ⬜ Not started |  |
-| 10 | Share a live tracking link with anyone | ⬜ Not started |  |
+| 1 | Live map with all vehicles and drivers | ✅ Done | Live map with every vehicle. |
+| 2 | Breadcrumb trail and trip replay (play back any past day) | ✅ Done | Trail on the map and day-by-day replay (milestone 3). |
+| 3 | Geofences with enter and exit alerts | 🟡 Partly built | Draw circle or polygon zones on a map; enter and exit events are recorded as vehicles move. Sending them out as alerts comes with Phase 4 alerts. |
+| 4 | Live ETA updates as traffic changes | 🟡 Partly built | ETAs refresh as vehicles move. They react to real traffic only once a live traffic source is connected. |
+| 5 | Status colors on markers (moving, idle, stopped, offline) | ✅ Done | Moving, idle, stopped and offline colours. |
+| 6 | Cluster markers when zoomed out | ✅ Done | Markers cluster when zoomed out. |
+| 7 | Heat layers: stops, delays, speeding | ✅ Done | Heat layers for stops, late deliveries and speeding on the live map. |
+| 8 | Street view and satellite toggle | ✅ Done | Street and satellite switch, plus a Street View link. |
+| 9 | Weather layer along the route | 🔌 Needs outside accounts or hardware | Weather at a vehicle and at each stop's arrival time, from Open-Meteo. Needs internet access to that service; tested only against a stub. |
+| 10 | Share a live tracking link with anyone | ✅ Done | Expiring, revocable share links with a public tracking page. It shows no driver name or plate and is rate-limited. |
 
 ### Fleet and assets
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Vehicle profiles with photos, plate, VIN, capacity | ⬜ Not started |  |
-| 2 | Driver profiles with license, training, and documents | ⬜ Not started |  |
-| 3 | Document expiry reminders (license, insurance, inspection) | ⬜ Not started |  |
-| 4 | Maintenance schedule by date or by kilometers | ⬜ Not started |  |
-| 5 | Fuel logs and fuel card import | ⬜ Not started |  |
-| 6 | Trailer and equipment tracking | ⬜ Not started |  |
-| 7 | Vehicle check-in and check-out with a digital inspection checklist | ⬜ Not started |  |
-| 8 | Accident and incident reports with photos | ⬜ Not started |  |
-| 9 | Parking and depot management | ⬜ Not started |  |
-| 10 | Trip logs for tax and mileage claims | ⬜ Not started |  |
+| 1 | Vehicle profiles with photos, plate, VIN, capacity | ✅ Done | Vehicle records with photo, plate, VIN, capacity, fuel type, EV range and more. |
+| 2 | Driver profiles with license, training, and documents | ✅ Done | Driver profiles: licence, emergency contact, shift limits, skills, training; documents attach to drivers too. |
+| 3 | Document expiry reminders (license, insurance, inspection) | ✅ Done | Document and licence expiry reminders on the Maintenance page. Emailing them out comes with Phase 4 alerts. |
+| 4 | Maintenance schedule by date or by kilometers | ✅ Done | Maintenance plans by days or kilometres, due and overdue state, mark-done history. |
+| 5 | Fuel logs and fuel card import | ✅ Done | Fuel logs, fuel economy per vehicle and CSV import of fuel-card statements. Live feeds from card companies need their accounts. |
+| 6 | Trailer and equipment tracking | ✅ Done | Trailers and equipment with status and assignment. |
+| 7 | Vehicle check-in and check-out with a digital inspection checklist | ✅ Done | Check-out and check-in checklist in the driver app; a failed item records a defect and shows in reminders. |
+| 8 | Accident and incident reports with photos | ✅ Done | Incident reports from the driver app with location and photos, tracked from open to closed on the office side. |
+| 9 | Parking and depot management | 🟡 Partly built | Depot records with parking spots; live occupancy is calculated by the API but not shown in the screens yet. |
+| 10 | Trip logs for tax and mileage claims | ✅ Done | Trip log from vehicle movement with business or personal tags and CSV export. |
 
 ## Reporting and analytics
 

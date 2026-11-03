@@ -234,5 +234,185 @@
  "theme.7": {
   "s": "partial",
   "note": "The palette exists; route lines on maps adopt it in Phase 2."
+ },
+ "route.1": {
+  "s": "done",
+  "note": "Drag stops to reorder on the route page (keyboard works too). apps/web/src/app/(app)/routes/[id]."
+ },
+ "route.2": {
+  "s": "done",
+  "note": "Optimizer for shortest time or distance (cheapest insertion + 2-opt/or-opt), unit-tested. Uses real road times when a routing engine is set (ROUTING_URL); otherwise straight-line estimates, and the screen says so."
+ },
+ "route.3": {
+  "s": "done",
+  "note": "Time windows per stop, treated as hard limits by the optimizer and flagged when late."
+ },
+ "route.4": {
+  "s": "done",
+  "note": "Weight, volume and item limits per vehicle; over-capacity is flagged on the board and respected by auto-assign."
+ },
+ "route.5": {
+  "s": "done",
+  "note": "Max shift length and mandatory breaks per driver; the optimizer inserts breaks."
+ },
+ "route.6": {
+  "s": "partial",
+  "note": "Predicted ETAs use hourly speed patterns learned from your own vehicles' positions. Live traffic needs an outside traffic data source."
+ },
+ "route.7": {
+  "s": "external",
+  "note": "Avoid tolls, highways, ferries and unpaved roads are sent to the routing engine (OSRM or Valhalla). Enforcing them needs a routing engine; not run in the sandbox."
+ },
+ "route.8": {
+  "s": "external",
+  "note": "Height, weight and hazmat limits are sent to Valhalla's truck profile. Needs a Valhalla server; tested only against a stub."
+ },
+ "route.9": {
+  "s": "partial",
+  "note": "Planner tracks battery range and adds charging stops. Real charger locations need an outside data source, so charge points are entered by you."
+ },
+ "route.10": {
+  "s": "done",
+  "note": "Save any route as a template; create routes from templates."
+ },
+ "route.11": {
+  "s": "done",
+  "note": "Daily, weekly and custom repeats; the scheduler creates each day's routes once (no duplicates)."
+ },
+ "route.12": {
+  "s": "partial",
+  "note": "CSV import of jobs, with errors listed by row. Excel files are not read directly: save as CSV first."
+ },
+ "route.13": {
+  "s": "external",
+  "note": "Address search with saved places and 'did you mean' fixes. Live address lookup needs a geocoding service (Nominatim or similar); tested only against a stub."
+ },
+ "route.14": {
+  "s": "done",
+  "note": "Current order vs optimized order shown side by side with cost, time and late stops."
+ },
+ "route.15": {
+  "s": "done",
+  "note": "Drop a pin and see where an extra stop fits and what becomes late, before saving."
+ },
+ "dispatch.1": {
+  "s": "done",
+  "note": "Dispatch board: unassigned jobs and one lane per driver; drag a job onto a lane or use the menu."
+ },
+ "dispatch.2": {
+  "s": "done",
+  "note": "Auto-assign suggests the best driver by skills, capacity, shift and distance, then applies on one click."
+ },
+ "dispatch.3": {
+  "s": "done",
+  "note": "Pickup, delivery, service call and inspection jobs."
+ },
+ "dispatch.4": {
+  "s": "done",
+  "note": "Low to urgent priority; the rush button inserts an urgent job and says what it delays."
+ },
+ "dispatch.5": {
+  "s": "done",
+  "note": "Reassign from the board or the job panel; the driver's route updates and the change is logged."
+ },
+ "dispatch.6": {
+  "s": "done",
+  "note": "Unassigned, assigned, started, arrived, done, failed; stop changes update the job automatically."
+ },
+ "dispatch.7": {
+  "s": "done",
+  "note": "Photo and signature (earlier milestone) plus package-code scans. Camera scanning needs a browser with BarcodeDetector (Chrome on Android); typing the code works everywhere. Not tried on a real phone."
+ },
+ "dispatch.8": {
+  "s": "done",
+  "note": "Notes, tags and file attachments on jobs."
+ },
+ "dispatch.9": {
+  "s": "done",
+  "note": "Cancel and reschedule ask for a reason code; history is kept."
+ },
+ "dispatch.10": {
+  "s": "done",
+  "note": "Select stops to split onto a new route, or merge another route in."
+ },
+ "live.1": {
+  "s": "done",
+  "note": "Live map with every vehicle."
+ },
+ "live.2": {
+  "s": "done",
+  "note": "Trail on the map and day-by-day replay (milestone 3)."
+ },
+ "live.3": {
+  "s": "partial",
+  "note": "Draw circle or polygon zones on a map; enter and exit events are recorded as vehicles move. Sending them out as alerts comes with Phase 4 alerts."
+ },
+ "live.4": {
+  "s": "partial",
+  "note": "ETAs refresh as vehicles move. They react to real traffic only once a live traffic source is connected."
+ },
+ "live.5": {
+  "s": "done",
+  "note": "Moving, idle, stopped and offline colours."
+ },
+ "live.6": {
+  "s": "done",
+  "note": "Markers cluster when zoomed out."
+ },
+ "live.7": {
+  "s": "done",
+  "note": "Heat layers for stops, late deliveries and speeding on the live map."
+ },
+ "live.8": {
+  "s": "done",
+  "note": "Street and satellite switch, plus a Street View link."
+ },
+ "live.9": {
+  "s": "external",
+  "note": "Weather at a vehicle and at each stop's arrival time, from Open-Meteo. Needs internet access to that service; tested only against a stub."
+ },
+ "live.10": {
+  "s": "done",
+  "note": "Expiring, revocable share links with a public tracking page. It shows no driver name or plate and is rate-limited."
+ },
+ "fleet.1": {
+  "s": "done",
+  "note": "Vehicle records with photo, plate, VIN, capacity, fuel type, EV range and more."
+ },
+ "fleet.2": {
+  "s": "done",
+  "note": "Driver profiles: licence, emergency contact, shift limits, skills, training; documents attach to drivers too."
+ },
+ "fleet.3": {
+  "s": "done",
+  "note": "Document and licence expiry reminders on the Maintenance page. Emailing them out comes with Phase 4 alerts."
+ },
+ "fleet.4": {
+  "s": "done",
+  "note": "Maintenance plans by days or kilometres, due and overdue state, mark-done history."
+ },
+ "fleet.5": {
+  "s": "done",
+  "note": "Fuel logs, fuel economy per vehicle and CSV import of fuel-card statements. Live feeds from card companies need their accounts."
+ },
+ "fleet.6": {
+  "s": "done",
+  "note": "Trailers and equipment with status and assignment."
+ },
+ "fleet.7": {
+  "s": "done",
+  "note": "Check-out and check-in checklist in the driver app; a failed item records a defect and shows in reminders."
+ },
+ "fleet.8": {
+  "s": "done",
+  "note": "Incident reports from the driver app with location and photos, tracked from open to closed on the office side."
+ },
+ "fleet.9": {
+  "s": "partial",
+  "note": "Depot records with parking spots; live occupancy is calculated by the API but not shown in the screens yet."
+ },
+ "fleet.10": {
+  "s": "done",
+  "note": "Trip log from vehicle movement with business or personal tags and CSV export."
  }
 }
