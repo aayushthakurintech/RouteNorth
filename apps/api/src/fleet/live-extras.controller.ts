@@ -96,6 +96,37 @@ export class PublicTrackController {
   }
 }
 
+/** Customers rate the delivery from the tracking page: satisfaction 1 to 5, likelihood to recommend 0 to 10, and a comment. */
+@Controller("public")
+export class PublicFeedbackController {
+  constructor(@Inject(PG_POOL) private readonly pool: pg.Pool) {}
+
+  @Post("track/:token/feedback")
+  async submit(@Req() req: AuthedRequest, @Param("token") token: string, @Body() body: { csat?: unknown; nps?: unknown; comment?: unknown }) {
+    limit(`fb:${req.ip ?? "?"}`, 10);
+    if (!/^[A-Za-z0-9_-]{20,64}$/.test(token)) throw new NotFoundException();
+    const link = (await this.pool.query("SELECT org_id, route_id FROM resolve_share($1)", [sha(token)])).rows[0];
+    if (!link) throw new NotFoundException();
+    const score = (v: unknown, lo: number, hi: number, what: string) => {
+      if (v == null || v === "") return null;
+      const x = Number(v);
+      if (!Number.isInteger(x) || x < lo || x > hi) throw new BadRequestException(`${what} must be a whole number from ${lo} to ${hi}`);
+      return x;
+    };
+    const csat = score(body?.csat, 1, 5, "csat"), nps = score(body?.nps, 0, 10, "nps");
+    if (csat == null && nps == null) throw new BadRequestException("give a satisfaction score (1 to 5) or a recommend score (0 to 10)");
+    const comment = typeof body?.comment === "string" && body.comment.trim() ? body.comment.trim().slice(0, 2000) : null;
+    return withOrg(this.pool, link.org_id, async (c) => {
+      // One link cannot be used to flood the ratings.
+      const recent = (await c.query("SELECT count(*)::int AS n FROM feedback WHERE source = 'link' AND route_id IS NOT DISTINCT FROM $1 AND created_at > now() - interval '1 day'", [link.route_id])).rows[0].n;
+      if (recent >= 20) throw new HttpException("thank you, we already have your feedback", 429);
+      const driver = link.route_id ? (await c.query("SELECT driver_id FROM routes WHERE id = $1", [link.route_id])).rows[0]?.driver_id ?? null : null;
+      await c.query("INSERT INTO feedback (org_id, route_id, driver_id, csat, nps, comment, source) VALUES ($1,$2,$3,$4,$5,$6,'link')", [link.org_id, link.route_id, driver, csat, nps, comment]);
+      return { ok: true };
+    });
+  }
+}
+
 /** Heat layers (where vehicles stop, where trips run late, where speeding happens) and weather. */
 @Controller()
 @UseGuards(AuthGuard)

@@ -7,6 +7,10 @@ import { runScheduledTasks } from "./dispatch/scheduler.js";
 import { geocoderFromEnv } from "./dispatch/geocoder.js";
 import { weatherFromEnv } from "./weather/provider.js";
 import { providerFromEnv } from "./plan/providers.js";
+import { AnalyticsService } from "./analytics/analytics.service.js";
+import { runAlertTick } from "./alerts/engine.js";
+import { providersFromEnv } from "./notify/notifier.js";
+import { runDueReports } from "./reports/scheduler.js";
 import { MemoryPositionBus, RedisPositionBus } from "./live/position-bus.js";
 
 const databaseUrl = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL;
@@ -22,6 +26,7 @@ const app = await NestFactory.create(
     routing: providerFromEnv(),
     geocoder: geocoderFromEnv(),
     weather: weatherFromEnv(),
+    notify: providersFromEnv(),
   }),
 );
 configureApp(app);
@@ -33,3 +38,17 @@ const schedulerPool = new pg.Pool({ connectionString: databaseUrl, max: 2 });
 const tick = () => void runScheduledTasks(schedulerPool, (m) => console.log(m)).catch((e) => console.error("scheduler", e));
 tick();
 setInterval(tick, 15 * 60_000).unref();
+// Alerts: check the rules every minute. Scheduled reports go out when their hour comes (checked every minute too).
+const notify = providersFromEnv();
+const analytics = app.get(AnalyticsService);
+let busy = false;
+const minute = () => {
+  if (busy) return; // a slow pass must not overlap the next one
+  busy = true;
+  void (async () => {
+    await runAlertTick(schedulerPool, analytics, notify, (m) => console.log(m)).catch((e) => console.error("alerts", e));
+    await runDueReports(schedulerPool, analytics, notify, (m) => console.log(m)).catch((e) => console.error("report schedules", e));
+  })().finally(() => { busy = false; });
+};
+setTimeout(minute, 20_000).unref();
+setInterval(minute, 60_000).unref();

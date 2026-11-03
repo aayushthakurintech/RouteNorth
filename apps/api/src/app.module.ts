@@ -24,11 +24,12 @@ import { AttachmentsController, RoutePlanningController } from "./dispatch/dispa
 import { GeocodeController } from "./dispatch/geocode.controller.js";
 import type { Geocoder } from "./dispatch/geocoder.js";
 import { FleetController } from "./fleet/fleet.controller.js";
-import { LiveExtrasController, PublicTrackController, ShareController } from "./fleet/live-extras.controller.js";
+import { LiveExtrasController, PublicFeedbackController, PublicTrackController, ShareController } from "./fleet/live-extras.controller.js";
 import type { WeatherProvider } from "./weather/provider.js";
 import type { Providers } from "./notify/notifier.js";
 import { NOTIFY, GEOCODER, WEATHER, JWT_SECRET, PG_POOL, POSITION_BUS, ROUTING_PROVIDER } from "./tokens.js";
 import { AnalyticsController } from "./analytics/analytics.controller.js";
+import { AlertsController } from "./alerts/alerts.controller.js";
 import { PublicReportController, ReportsController } from "./reports/reports.controller.js";
 import { AnalyticsService } from "./analytics/analytics.service.js";
 import { VehiclesController } from "./vehicles/vehicles.controller.js";
@@ -52,7 +53,7 @@ export class AppModule {
   static register(opts: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController],
+      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController],
       providers: [
         { provide: PG_POOL, useValue: opts.pool },
         { provide: POSITION_BUS, useValue: opts.bus },

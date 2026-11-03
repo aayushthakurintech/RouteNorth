@@ -175,6 +175,11 @@ export const RESOURCES: readonly ResourceDef[] = [
     ],
   },
   {
+    name: "feedback", table: "feedback", view: ["reports.view"], write: "customers.manage", order: "created_at DESC", search: ["comment"],
+    fields: [ref("driverId", "driver_id", "drivers"), ref("routeId", "route_id", "@routes"), i("csat", "csat", { min: 1, max: 5 }), i("nps", "nps", { min: 0, max: 10 }), t("comment", "comment", { max: 2000 }), en("source", "source", ["link", "portal", "office"])],
+    check: (v) => { if (v.csat == null && v.nps == null) throw new Error("give a satisfaction score (1 to 5) or a recommend score (0 to 10)"); },
+  },
+  {
     name: "notification-endpoints", table: "notification_endpoints", view: ["alerts.manage", "reports.manage"], write: "alerts.manage", order: "label", search: ["label"],
     fields: [en("kind", "kind", ["email", "slack", "teams", "sms", "webhook"], { required: true }), t("label", "label", { required: true, max: 80 }), t("target", "target", { required: true, max: 500 }), b("enabled", "enabled")],
     check: (v) => { const bad = checkTarget(v.kind as EndpointKind, String(v.target ?? "")); if (bad) throw new Error(bad); },
