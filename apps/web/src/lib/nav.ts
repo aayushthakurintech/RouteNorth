@@ -1,7 +1,7 @@
 import type { Permission } from "@routenorth/shared";
 import type { MessageKey } from "@routenorth/shared";
 import {
-  Activity, AlertTriangle, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
+  Activity, AlertTriangle, BarChart3, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
   ScrollText, Settings, Truck, UsersRound, Warehouse, Wrench, type LucideIcon,
 } from "lucide-react";
 
@@ -22,6 +22,9 @@ export const NAV: NavItem[] = [
   { href: "/routes", label: "navRoutes", icon: Route, perms: ["routes.view"], group: "main", keywords: "stops plan itinéraires" },
   { href: "/dispatch", label: "navDispatch", icon: KanbanSquare, perms: ["routes.view"], group: "main", keywords: "board assign drivers répartition tableau" },
   { href: "/jobs", label: "navJobs", icon: ClipboardList, perms: ["routes.view"], group: "main", keywords: "orders deliveries pickups tâches commandes" },
+  { href: "/analytics", label: "navAnalytics", icon: LayoutDashboard, perms: ["reports.view", "driver.app"], group: "main", keywords: "dashboard kpi goals insights tableau de bord indicateurs" },
+  { href: "/analytics/reports", label: "navReportBuilder", icon: BarChart3, perms: ["reports.view"], group: "main", keywords: "report builder charts pivot export scheduled constructeur de rapports" },
+  { href: "/alerts", label: "navAlerts", icon: BellRing, perms: ["alerts.view"], group: "main", keywords: "alerts rules notifications slack teams alertes règles" },
   { href: "/reports", label: "navReports", icon: FileText, perms: ["reports.view"], group: "main", keywords: "distance idle export rapports" },
   { href: "/fleet/vehicles", label: "navFleetVehicles", icon: Truck, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "trucks buses vans camions autobus" },
   { href: "/drivers", label: "navDrivers", icon: IdCard, perms: ["users.view", "routes.view"], group: "fleet", keywords: "licence license skills chauffeurs" },
@@ -51,6 +54,7 @@ export function visibleNav(can: (...p: Permission[]) => boolean): NavItem[] {
 export function isActive(href: string, pathname: string): boolean {
   if (href === "/") return pathname === "/";
   if (href === "/settings") return pathname === "/settings";
+  if (href === "/analytics") return pathname === "/analytics" || pathname.startsWith("/analytics/goals");
   if (href === "/jobs") return pathname === "/jobs" || pathname.startsWith("/jobs/");
   return pathname === href || pathname.startsWith(`${href}/`);
 }

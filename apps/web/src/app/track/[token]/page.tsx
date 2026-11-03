@@ -17,6 +17,40 @@ interface Track extends TrackData {
   stops: { name: string; lat: number; lng: number; status: string; eta: string | null; sequence: number }[];
 }
 
+/** After the last stop, the customer can rate the delivery: 1 to 5 stars and how likely they are to recommend (0 to 10). */
+function Feedback({ token }: { token: string }) {
+  const { t } = useI18n();
+  const [csat, setCsat] = useState(0);
+  const [nps, setNps] = useState<number | null>(null);
+  const [comment, setComment] = useState("");
+  const [state, setState] = useState<"form" | "sent" | "error">("form");
+  async function send(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      const r = await fetch(`${API_URL}/public/track/${encodeURIComponent(token)}/feedback`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ csat: csat || undefined, nps: nps ?? undefined, comment }) });
+      setState(r.ok ? "sent" : "error");
+    } catch { setState("error"); }
+  }
+  if (state === "sent") return <p className="track-note" role="status">{t("fb_thanks")}</p>;
+  return (
+    <form onSubmit={send} className="feedback-form" aria-label={t("fb_title")}>
+      <h2>{t("fb_title")}</h2>
+      <fieldset><legend>{t("fb_howWas")}</legend>
+        <div className="stars" role="radiogroup" aria-label={t("fb_howWas")}>
+          {[1, 2, 3, 4, 5].map((n) => <button type="button" key={n} role="radio" aria-checked={csat === n} aria-label={t("fb_stars", { n })} className={csat >= n ? "on" : ""} onClick={() => setCsat(n)}>★</button>)}
+        </div>
+      </fieldset>
+      <fieldset><legend>{t("fb_recommend")}</legend>
+        <div className="nps" role="radiogroup" aria-label={t("fb_recommend")}>{Array.from({ length: 11 }, (_, n) => <button type="button" key={n} role="radio" aria-checked={nps === n} className={nps === n ? "on" : ""} onClick={() => setNps(n)}>{n}</button>)}</div>
+        <div className="nps-ends meta"><span>{t("fb_notLikely")}</span><span>{t("fb_veryLikely")}</span></div>
+      </fieldset>
+      <label className="field">{t("fb_comment")}<textarea rows={3} maxLength={2000} value={comment} onChange={(e) => setComment(e.target.value)} /></label>
+      {state === "error" && <p className="error" role="alert">{t("fb_error")}</p>}
+      <button className="btn primary" disabled={!csat && nps == null}>{t("fb_send")}</button>
+    </form>
+  );
+}
+
 /** The page a customer opens from a tracking link. No sign-in, no driver name, no plate. */
 export default function TrackPage() {
   const { token } = useParams<{ token: string }>();
@@ -72,6 +106,7 @@ export default function TrackPage() {
                 ))}
               </ol>
             )}
+            {data.stops.length > 0 && !next && <Feedback token={token} />}
             <p className="meta">{t("track_expires", { time: new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(data.expiresAt)) })}</p>
           </section>
         </div>
