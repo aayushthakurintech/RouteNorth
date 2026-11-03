@@ -1,1 +1,238 @@
-{}
+{
+ "ds.1": {
+  "s": "done",
+  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+ },
+ "ds.10": {
+  "s": "done",
+  "note": "One radius family (--r-sm, --r, --r-lg)."
+ },
+ "ds.2": {
+  "s": "done",
+  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+ },
+ "ds.3": {
+  "s": "done",
+  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+ },
+ "ds.4": {
+  "s": "done",
+  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+ },
+ "ds.5": {
+  "s": "done",
+  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+ },
+ "ds.6": {
+  "s": "done",
+  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+ },
+ "ds.7": {
+  "s": "done",
+  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+ },
+ "ds.8": {
+  "s": "done",
+  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+ },
+ "ds.9": {
+  "s": "partial",
+  "note": "A living style guide page at /styleguide. Storybook itself was not added."
+ },
+ "motion.1": {
+  "s": "done",
+  "note": "Skeleton loaders on every list and table."
+ },
+ "motion.10": {
+  "s": "done",
+  "note": "Account menu has Follow device / Reduce motion / Full motion; it also respects the device setting."
+ },
+ "motion.2": {
+  "s": "partial",
+  "note": "Short fade and slide transitions on dialogs, toasts and panels. No full page transitions."
+ },
+ "motion.3": {
+  "s": "todo",
+  "note": "Planned with the route map in Phase 2."
+ },
+ "motion.4": {
+  "s": "done",
+  "note": "Vehicle markers glide to each new fix (lib/glide.ts)."
+ },
+ "motion.5": {
+  "s": "done",
+  "note": "KPI numbers count up."
+ },
+ "motion.6": {
+  "s": "done",
+  "note": "Buttons press, switches slide, menus fade."
+ },
+ "motion.7": {
+  "s": "done",
+  "note": "Check-mark animation component (SuccessMark)."
+ },
+ "motion.8": {
+  "s": "todo",
+  "note": "Planned with the driver app in Phase 4."
+ },
+ "motion.9": {
+  "s": "todo",
+  "note": "Planned with the dispatch board in Phase 2."
+ },
+ "nav.1": {
+  "s": "done",
+  "note": "Collapsible side menu; becomes a drawer on phones."
+ },
+ "nav.10": {
+  "s": "todo",
+  "note": "Home dashboard with drag-and-drop widgets arrives with dashboards in Phase 3."
+ },
+ "nav.2": {
+  "s": "done",
+  "note": "Ctrl/Cmd+K, or /."
+ },
+ "nav.3": {
+  "s": "partial",
+  "note": "Searches vehicles, drivers, routes and stops. Customers join when customer records are added."
+ },
+ "nav.4": {
+  "s": "done",
+  "note": "Breadcrumbs in the top bar."
+ },
+ "nav.5": {
+  "s": "done",
+  "note": "History and route pages: list on the left, map on the right."
+ },
+ "nav.6": {
+  "s": "done",
+  "note": "Drag the divider (or use the arrow keys); the width is remembered."
+ },
+ "nav.7": {
+  "s": "done",
+  "note": "Pin any page; pins show in the menu and in the palette."
+ },
+ "nav.8": {
+  "s": "done",
+  "note": "? opens the cheat sheet; g then l/r/p jumps; T switches theme; [ collapses the menu."
+ },
+ "nav.9": {
+  "s": "partial",
+  "note": "Tables save named views (sort, filters, columns, grouping). Custom tabs are not built."
+ },
+ "polish.1": {
+  "s": "done",
+  "note": "Empty states say what to do next."
+ },
+ "polish.10": {
+  "s": "done",
+  "note": "Five-step product tour and a getting-started checklist for owners and admins."
+ },
+ "polish.11": {
+  "s": "done",
+  "note": "Tooltips and a What's new panel."
+ },
+ "polish.2": {
+  "s": "done",
+  "note": "Plain-language error states with a retry button and a separate \"no access\" state."
+ },
+ "polish.3": {
+  "s": "partial",
+  "note": "Undo for deleting a stop (toast with Undo). Other deletes and edits get it as their screens are built."
+ },
+ "polish.4": {
+  "s": "done",
+  "note": "Double-click a cell to edit (people names)."
+ },
+ "polish.5": {
+  "s": "done",
+  "note": "Sort, filter, group, pin, hide and resize columns, CSV export, saved views."
+ },
+ "polish.6": {
+  "s": "done",
+  "note": "Sticky headers; lists over 150 rows are windowed."
+ },
+ "polish.7": {
+  "s": "done",
+  "note": "Checked on a phone-sized screen."
+ },
+ "polish.8": {
+  "s": "partial",
+  "note": "Keyboard use, labels and focus are in place; axe found no contrast problems in the three themes. Not tested with a real screen reader."
+ },
+ "polish.9": {
+  "s": "partial",
+  "note": "English and French complete. Punjabi and Arabic cover sign-in, navigation and the driver app; Arabic mirrors the layout. Both were drafted without a native reviewer."
+ },
+ "report.14": {
+  "s": "done",
+  "note": "Audit log page with filters and CSV export."
+ },
+ "security.2": {
+  "s": "done",
+  "note": "Append-only audit log of every change with who, what, when and IP; the app role cannot edit or delete it."
+ },
+ "style.1": {
+  "s": "done",
+  "note": "Tokens and components follow a clean, minimal look (apps/web/src/app/tokens.css)."
+ },
+ "style.2": {
+  "s": "todo",
+  "note": "Bento dashboard cards arrive with the dashboards in Phase 3."
+ },
+ "style.3": {
+  "s": "done",
+  "note": "Floating map panel uses a light blur; switched off in high-contrast mode."
+ },
+ "style.4": {
+  "s": "partial",
+  "note": "Dark theme and a dark basemap work. Glowing route lines are not done."
+ },
+ "style.5": {
+  "s": "skip",
+  "note": "The Playbook says pick one direction and stay with it; soft shadows hurt readability."
+ },
+ "style.6": {
+  "s": "done",
+  "note": "Live map fills the page with panels floating on top."
+ },
+ "teams.1": {
+  "s": "done",
+  "note": "Owner, admin, dispatcher, manager, driver, customer and read-only. Customer and driver land in their own apps (the customer portal arrives in Phase 4)."
+ },
+ "teams.2": {
+  "s": "done",
+  "note": "Custom roles with fine-grained permissions (Settings > People & roles)."
+ },
+ "teams.4": {
+  "s": "done",
+  "note": "Every table is tenant-isolated with Row-Level Security (since Milestone 1); tests prove it."
+ },
+ "theme.1": {
+  "s": "done",
+  "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
+ },
+ "theme.2": {
+  "s": "done",
+  "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
+ },
+ "theme.3": {
+  "s": "done",
+  "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
+ },
+ "theme.4": {
+  "s": "done",
+  "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
+ },
+ "theme.5": {
+  "s": "done",
+  "note": "Each company sets a brand color and logo in Settings. The color is adjusted so text stays readable (tests in lib/color.test.ts)."
+ },
+ "theme.6": {
+  "s": "done",
+  "note": "Okabe-Ito palette in --chart-1 to --chart-8, used by every chart."
+ },
+ "theme.7": {
+  "s": "partial",
+  "note": "The palette exists; route lines on maps adopt it in Phase 2."
+ }
+}

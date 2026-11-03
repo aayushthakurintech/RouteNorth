@@ -4,14 +4,16 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | Status | Count |
 | --- | ---: |
-| ✅ Done | 0 |
-| 🟡 Partly built | 0 |
+| ✅ Done | 44 |
+| 🟡 Partly built | 9 |
 | 🔌 Needs outside accounts or hardware | 0 |
-| ⬜ Not started | 320 |
+| ➖ Chosen not to build | 1 |
+| ⬜ Not started | 266 |
 
 - **Done**: built, with tests or a manual run behind it.
 - **Partly built**: the useful core works; the note says what is missing.
 - **Needs outside accounts or hardware**: the in-product side is built (settings, adapter, queue), but it cannot be verified or switched on without a third-party account, credentials or a physical device. Nothing here pretends to be connected.
+- **Chosen not to build**: left out on purpose; the note says why (the Playbook itself says "do not build them all").
 - **Not started**: not built yet.
 
 
@@ -21,85 +23,85 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Clean minimal (Linear / Stripe style). Lots of white space, thin lines, one accent color. Best for a trusted, pro feel. | ⬜ Not started |  |
-| 2 | Bento grid. Dashboard cards of different sizes, like a lunchbox. Very popular now. | ⬜ Not started |  |
-| 3 | Glassmorphism, used lightly. Soft blurred panels over a map. Do not overuse it. | ⬜ Not started |  |
-| 4 | Dark-first "command center" look. Dark map, glowing routes. Feels like mission control. | ⬜ Not started |  |
-| 5 | Soft neumorphic cards. Gentle shadows. Only for small widgets, since it can hurt | ⬜ Not started |  |
-| 6 | Map-first layout. The map fills the screen, and panels float on top. | ⬜ Not started |  |
+| 1 | Clean minimal (Linear / Stripe style). Lots of white space, thin lines, one accent color. Best for a trusted, pro feel. | ✅ Done | Tokens and components follow a clean, minimal look (apps/web/src/app/tokens.css). |
+| 2 | Bento grid. Dashboard cards of different sizes, like a lunchbox. Very popular now. | ⬜ Not started | Bento dashboard cards arrive with the dashboards in Phase 3. |
+| 3 | Glassmorphism, used lightly. Soft blurred panels over a map. Do not overuse it. | ✅ Done | Floating map panel uses a light blur; switched off in high-contrast mode. |
+| 4 | Dark-first "command center" look. Dark map, glowing routes. Feels like mission control. | 🟡 Partly built | Dark theme and a dark basemap work. Glowing route lines are not done. |
+| 5 | Soft neumorphic cards. Gentle shadows. Only for small widgets, since it can hurt | ➖ Chosen not to build | The Playbook says pick one direction and stay with it; soft shadows hurt readability. |
+| 6 | Map-first layout. The map fills the screen, and panels float on top. | ✅ Done | Live map fills the page with panels floating on top. |
 
 ### Design system basics
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Design tokens for color, spacing, radius, shadow, and type | ⬜ Not started |  |
-| 2 | One accent color plus a neutral gray scale | ⬜ Not started |  |
-| 3 | A semantic color set: success, warning, danger, info | ⬜ Not started |  |
-| 4 | 8-point spacing grid | ⬜ Not started |  |
-| 5 | Modern font pair, such as Inter for UI and a display font for headings | ⬜ Not started |  |
-| 6 | Type scale with clear sizes for title, heading, body, caption | ⬜ Not started |  |
-| 7 | Icon set in one style (Lucide or Phosphor) | ⬜ Not started |  |
-| 8 | Reusable component library (buttons, inputs, tables, modals, tabs, chips) | ⬜ Not started |  |
-| 9 | A living style guide page (Storybook) so the team stays consistent | ⬜ Not started |  |
-| 10 | Consistent corner radius across the app | ⬜ Not started |  |
+| 1 | Design tokens for color, spacing, radius, shadow, and type | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
+| 2 | One accent color plus a neutral gray scale | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
+| 3 | A semantic color set: success, warning, danger, info | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
+| 4 | 8-point spacing grid | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
+| 5 | Modern font pair, such as Inter for UI and a display font for headings | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
+| 6 | Type scale with clear sizes for title, heading, body, caption | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
+| 7 | Icon set in one style (Lucide or Phosphor) | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
+| 8 | Reusable component library (buttons, inputs, tables, modals, tabs, chips) | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
+| 9 | A living style guide page (Storybook) so the team stays consistent | 🟡 Partly built | A living style guide page at /styleguide. Storybook itself was not added. |
+| 10 | Consistent corner radius across the app | ✅ Done | One radius family (--r-sm, --r, --r-lg). |
 
 ### Themes and color
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Light mode | ⬜ Not started |  |
-| 2 | Dark mode | ⬜ Not started |  |
-| 3 | Auto mode that follows the device | ⬜ Not started |  |
-| 4 | High-contrast mode for accessibility | ⬜ Not started |  |
-| 5 | Custom brand colors per company (white label) | ⬜ Not started |  |
-| 6 | Color-blind-safe chart palettes | ⬜ Not started |  |
-| 7 | Route colors that are easy to tell apart on a map | ⬜ Not started |  |
+| 1 | Light mode | ✅ Done | Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key. |
+| 2 | Dark mode | ✅ Done | Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key. |
+| 3 | Auto mode that follows the device | ✅ Done | Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key. |
+| 4 | High-contrast mode for accessibility | ✅ Done | Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key. |
+| 5 | Custom brand colors per company (white label) | ✅ Done | Each company sets a brand color and logo in Settings. The color is adjusted so text stays readable (tests in lib/color.test.ts). |
+| 6 | Color-blind-safe chart palettes | ✅ Done | Okabe-Ito palette in --chart-1 to --chart-8, used by every chart. |
+| 7 | Route colors that are easy to tell apart on a map | 🟡 Partly built | The palette exists; route lines on maps adopt it in Phase 2. |
 
 ### Motion and feel
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Skeleton loaders instead of spinners | ⬜ Not started |  |
-| 2 | Smooth page and panel transitions | ⬜ Not started |  |
-| 3 | Animated route lines that draw themselves | ⬜ Not started |  |
-| 4 | Moving vehicle markers that glide, not jump | ⬜ Not started |  |
-| 5 | Number count-up animation on KPI cards | ⬜ Not started |  |
-| 6 | Micro-interactions on buttons and toggles | ⬜ Not started |  |
-| 7 | Success animations (a small check mark or confetti) | ⬜ Not started |  |
-| 8 | Pull-to-refresh on mobile | ⬜ Not started |  |
-| 9 | Drag-and-drop with smooth feedback | ⬜ Not started |  |
-| 10 | Reduced-motion option for people who need it | ⬜ Not started |  |
+| 1 | Skeleton loaders instead of spinners | ✅ Done | Skeleton loaders on every list and table. |
+| 2 | Smooth page and panel transitions | 🟡 Partly built | Short fade and slide transitions on dialogs, toasts and panels. No full page transitions. |
+| 3 | Animated route lines that draw themselves | ⬜ Not started | Planned with the route map in Phase 2. |
+| 4 | Moving vehicle markers that glide, not jump | ✅ Done | Vehicle markers glide to each new fix (lib/glide.ts). |
+| 5 | Number count-up animation on KPI cards | ✅ Done | KPI numbers count up. |
+| 6 | Micro-interactions on buttons and toggles | ✅ Done | Buttons press, switches slide, menus fade. |
+| 7 | Success animations (a small check mark or confetti) | ✅ Done | Check-mark animation component (SuccessMark). |
+| 8 | Pull-to-refresh on mobile | ⬜ Not started | Planned with the driver app in Phase 4. |
+| 9 | Drag-and-drop with smooth feedback | ⬜ Not started | Planned with the dispatch board in Phase 2. |
+| 10 | Reduced-motion option for people who need it | ✅ Done | Account menu has Follow device / Reduce motion / Full motion; it also respects the device setting. |
 
 ### Layout and navigation
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Collapsible side navigation with icons | ⬜ Not started |  |
-| 2 | Command palette (Cmd/Ctrl + K) to jump anywhere | ⬜ Not started |  |
-| 3 | Global search across routes, drivers, vehicles, and customers | ⬜ Not started |  |
-| 4 | Breadcrumbs | ⬜ Not started |  |
-| 5 | Split view: list on the left, map on the right | ⬜ Not started |  |
-| 6 | Resizable panels | ⬜ Not started |  |
-| 7 | Pinned and favorite items | ⬜ Not started |  |
-| 8 | Keyboard shortcuts with a cheat sheet | ⬜ Not started |  |
-| 9 | Saved views and custom tabs | ⬜ Not started |  |
-| 10 | Customizable home dashboard with drag-and-drop widgets | ⬜ Not started |  |
+| 1 | Collapsible side navigation with icons | ✅ Done | Collapsible side menu; becomes a drawer on phones. |
+| 2 | Command palette (Cmd/Ctrl + K) to jump anywhere | ✅ Done | Ctrl/Cmd+K, or /. |
+| 3 | Global search across routes, drivers, vehicles, and customers | 🟡 Partly built | Searches vehicles, drivers, routes and stops. Customers join when customer records are added. |
+| 4 | Breadcrumbs | ✅ Done | Breadcrumbs in the top bar. |
+| 5 | Split view: list on the left, map on the right | ✅ Done | History and route pages: list on the left, map on the right. |
+| 6 | Resizable panels | ✅ Done | Drag the divider (or use the arrow keys); the width is remembered. |
+| 7 | Pinned and favorite items | ✅ Done | Pin any page; pins show in the menu and in the palette. |
+| 8 | Keyboard shortcuts with a cheat sheet | ✅ Done | ? opens the cheat sheet; g then l/r/p jumps; T switches theme; [ collapses the menu. |
+| 9 | Saved views and custom tabs | 🟡 Partly built | Tables save named views (sort, filters, columns, grouping). Custom tabs are not built. |
+| 10 | Customizable home dashboard with drag-and-drop widgets | ⬜ Not started | Home dashboard with drag-and-drop widgets arrives with dashboards in Phase 3. |
 
 ### Polish that people notice
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Friendly empty states with a clear next step | ⬜ Not started |  |
-| 2 | Helpful error messages in plain words | ⬜ Not started |  |
-| 3 | Undo for deletes and edits | ⬜ Not started |  |
-| 4 | Inline editing in tables | ⬜ Not started |  |
-| 5 | Smart tables: sort, filter, group, pin columns, resize columns | ⬜ Not started |  |
-| 6 | Sticky headers and virtual scrolling for big lists | ⬜ Not started |  |
-| 7 | Responsive layout for phone, tablet, and desktop | ⬜ Not started |  |
-| 8 | Accessibility: keyboard use, screen reader labels, WCAG AA contrast | ⬜ Not started |  |
-| 9 | Multi-language and right-to-left support | ⬜ Not started |  |
-| 10 | Guided product tour and a setup checklist for new users | ⬜ Not started |  |
-| 11 | Tooltips and "what's new" announcements | ⬜ Not started |  |
+| 1 | Friendly empty states with a clear next step | ✅ Done | Empty states say what to do next. |
+| 2 | Helpful error messages in plain words | ✅ Done | Plain-language error states with a retry button and a separate "no access" state. |
+| 3 | Undo for deletes and edits | 🟡 Partly built | Undo for deleting a stop (toast with Undo). Other deletes and edits get it as their screens are built. |
+| 4 | Inline editing in tables | ✅ Done | Double-click a cell to edit (people names). |
+| 5 | Smart tables: sort, filter, group, pin columns, resize columns | ✅ Done | Sort, filter, group, pin, hide and resize columns, CSV export, saved views. |
+| 6 | Sticky headers and virtual scrolling for big lists | ✅ Done | Sticky headers; lists over 150 rows are windowed. |
+| 7 | Responsive layout for phone, tablet, and desktop | ✅ Done | Checked on a phone-sized screen. |
+| 8 | Accessibility: keyboard use, screen reader labels, WCAG AA contrast | 🟡 Partly built | Keyboard use, labels and focus are in place; axe found no contrast problems in the three themes. Not tested with a real screen reader. |
+| 9 | Multi-language and right-to-left support | 🟡 Partly built | English and French complete. Punjabi and Arabic cover sign-in, navigation and the driver app; Arabic mirrors the layout. Both were drafted without a native reviewer. |
+| 10 | Guided product tour and a setup checklist for new users | ✅ Done | Five-step product tour and a getting-started checklist for owners and admins. |
+| 11 | Tooltips and "what's new" announcements | ✅ Done | Tooltips and a What's new panel. |
 
 ## Core features
 
@@ -224,7 +226,7 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 | 11 | Idle and stop-time report | ⬜ Not started |  |
 | 12 | Compliance report: hours of service, inspections, documents | ⬜ Not started |  |
 | 13 | Invoice and billing report | ⬜ Not started |  |
-| 14 | Audit log report (who changed what, and when) | ⬜ Not started |  |
+| 14 | Audit log report (who changed what, and when) | ✅ Done | Audit log page with filters and CSV export. |
 | 15 | Executive summary in one page | ⬜ Not started |  |
 
 ### Report builder
@@ -430,10 +432,10 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Roles: owner, admin, dispatcher, manager, driver, customer, read-only | ⬜ Not started |  |
-| 2 | Custom roles with fine-grained permissions | ⬜ Not started |  |
+| 1 | Roles: owner, admin, dispatcher, manager, driver, customer, read-only | ✅ Done | Owner, admin, dispatcher, manager, driver, customer and read-only. Customer and driver land in their own apps (the customer portal arrives in Phase 4). |
+| 2 | Custom roles with fine-grained permissions | ✅ Done | Custom roles with fine-grained permissions (Settings > People & roles). |
 | 3 | Multiple depots, regions, and teams in one account | ⬜ Not started |  |
-| 4 | Multi-company (multi-tenant) support with separate data | ⬜ Not started |  |
+| 4 | Multi-company (multi-tenant) support with separate data | ✅ Done | Every table is tenant-isolated with Row-Level Security (since Milestone 1); tests prove it. |
 | 5 | Team invites by email or link | ⬜ Not started |  |
 | 6 | User activity feed | ⬜ Not started |  |
 | 7 | In-app comments and @mentions on jobs | ⬜ Not started |  |
@@ -461,7 +463,7 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
 | 1 | Single sign-on (SSO) and two-factor sign-in | ⬜ Not started |  |
-| 2 | Full audit log of every change | ⬜ Not started |  |
+| 2 | Full audit log of every change | ✅ Done | Append-only audit log of every change with who, what, when and IP; the app role cannot edit or delete it. |
 | 3 | Data encryption at rest and in transit | ⬜ Not started |  |
 | 4 | Automatic backups and one-click restore | ⬜ Not started |  |
 | 5 | IP allow lists and session controls | ⬜ Not started |  |
