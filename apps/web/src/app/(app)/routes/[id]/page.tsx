@@ -2,9 +2,12 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import type { MessageKey, StopStatus } from "@routenorth/shared";
-import { LanguageToggle } from "@/components/LanguageToggle";
+import { SplitView } from "@/components/ui/SplitView";
+import { ErrorState, SkeletonList } from "@/components/ui/primitives";
+import { useBreadcrumbs } from "@/lib/breadcrumbs";
+import { useToast } from "@/lib/toast";
 import { ProofGallery } from "@/components/ProofGallery";
 import { apiGet, apiSend, Unauthorized } from "@/lib/api";
 import { formatDuration, formatTime } from "@/lib/format";
@@ -23,6 +26,9 @@ export default function RoutePage() {
   const [report, setReport] = useState<RouteReport | null>(null);
   const [live, setLive] = useState<LiveVehicle[]>([]);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+  const { undoable } = useToast();
+  const hiding = useRef(new Set<string>());
+  useBreadcrumbs([{ label: t("routes"), href: "/routes" }, { label: route?.name ?? "…" }]);
   const [placing, setPlacing] = useState(false);
   const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
   const [form, setForm] = useState({ name: "", address: "", windowStart: "", windowEnd: "", packages: "0" });
@@ -36,7 +42,7 @@ export default function RoutePage() {
         apiGet<RouteReport>(`/routes/${id}/report`),
         apiGet<LiveVehicle[]>("/vehicles/live"),
       ]);
-      setRoute(r); setReport(rep); setLive(l); setState("ready");
+      setRoute({ ...r, stops: r.stops.filter((x) => !hiding.current.has(x.id)) }); setReport(rep); setLive(l); setState("ready");
     } catch (e) {
       if (e instanceof Unauthorized) router.replace("/login"); else setState("error");
     }
@@ -91,20 +97,22 @@ export default function RoutePage() {
   };
   const setStatus = (s: RouteStop, status: StopStatus) =>
     run(() => apiSend<RouteDetail>("PATCH", `/routes/${id}/stops/${s.id}`, { status }));
+  // Removing a stop can be undone for a few seconds; the delete is only sent when the time is up.
   const remove = (s: RouteStop) => {
-    if (window.confirm(`${t("confirmRemoveStop")}\n${s.name}`)) run(() => apiSend<RouteDetail>("DELETE", `/routes/${id}/stops/${s.id}`));
+    const before = route!;
+    undoable(`${t("deleted")}: ${s.name}`, {
+      hide: () => { hiding.current.add(s.id); setRoute({ ...before, stops: before.stops.filter((x) => x.id !== s.id) }); },
+      restore: () => { hiding.current.delete(s.id); setRoute(before); },
+      commit: async () => { try { await apiSend<RouteDetail>("DELETE", `/routes/${id}/stops/${s.id}`); } finally { hiding.current.delete(s.id); } await load(); },
+    });
   };
 
-  if (state === "loading") return <main className="page"><p className="empty">{t("loading")}</p></main>;
-  if (state === "error" || !route) return <main className="page"><p className="error" role="alert">{t("loadFailed")}</p></main>;
+  if (state === "loading") return <div className="content"><SkeletonList rows={4} /></div>;
+  if (state === "error" || !route) return <div className="content"><ErrorState onRetry={() => location.reload()} /></div>;
 
   return (
-    <div className="shell">
+    <SplitView id="route">
       <aside className="panel">
-        <header>
-          <Link href="/routes" className="link">← {t("routes")}</Link>
-          <LanguageToggle />
-        </header>
         <h1 className="h">{route.name}</h1>
         <p className="meta">{route.date} · {t(`route_${route.status}` as MessageKey)}</p>
 
@@ -212,6 +220,6 @@ export default function RoutePage() {
         stops={route.stops} vehicle={vehicle} pin={pin}
         onPick={placing ? (lat, lng) => setPin({ lat, lng }) : null}
       />
-    </div>
+    </SplitView>
   );
 }

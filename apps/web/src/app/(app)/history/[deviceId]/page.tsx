@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LanguageToggle } from "@/components/LanguageToggle";
+import { SplitView } from "@/components/ui/SplitView";
+import { useBreadcrumbs } from "@/lib/breadcrumbs";
 import type { TrackPoint } from "@/components/ReplayMap";
 import { apiGet, Unauthorized } from "@/lib/api";
 import { dayRange, formatDuration, formatKm, formatTime, todayLocal } from "@/lib/format";
@@ -62,14 +63,11 @@ export default function HistoryPage() {
     [data],
   );
   const current = track[Math.min(index, track.length - 1)];
+  useBreadcrumbs([{ label: t("navLive"), href: "/" }, { label: t("history") }]);
 
   return (
-    <div className="shell">
+    <SplitView id="history">
       <aside className="panel">
-        <header>
-          <Link href="/" className="link">← {t("back")}</Link>
-          <LanguageToggle />
-        </header>
         <h1 className="h">{t("history")}</h1>
         <label className="field">
           {t("date")}
@@ -134,6 +132,6 @@ export default function HistoryPage() {
         )}
       </aside>
       <ReplayMap track={track} stops={stopMarkers} index={index} />
-    </div>
+    </SplitView>
   );
 }
