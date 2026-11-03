@@ -282,3 +282,34 @@ describe("customer portal and invoices", () => {
     expect((await h.call("post", "/portal/support", other, { body: "hi", jobId: id })).status).toBe(404);
   });
 });
+
+describe("settings screens support", () => {
+  it("lists the standard wording and previews custom wording with sample values, in both languages", async () => {
+    const d = await h.call("get", "/message-defaults", owner);
+    expect(d.status).toBe(200);
+    expect(d.body.events).toContain("on_the_way");
+    expect(d.body.defaults.delivered.fr.subject).toContain("Livré");
+    const pv = await h.call("post", "/message-defaults/preview", owner, { event: "minutes_away", locale: "fr", sms: "Salut {{customer}}, {{minutes}} min. {{link}}" });
+    expect(pv.status).toBe(200);
+    expect(pv.body.sms).toBe("Salut Marie, 10 min. https://exemple.ca/j/abc");
+    expect((await h.call("post", "/message-defaults/preview", owner, { event: "nope" })).status).toBe(400);
+    expect((await h.call("get", "/message-defaults", drvTok)).status).toBe(403);
+  });
+  it("lets an owner rename the public web address, but not to a taken or invalid one", async () => {
+    const org = (await h.call("get", "/org", owner)).body;
+    expect(org.slug).toMatch(/^[a-z0-9-]+$/);
+    expect((await h.call("put", "/org", owner, { slug: "Nord Express!" })).status).toBe(400);
+    const other = (await h.admin.query("SELECT slug FROM organizations WHERE id <> $1 LIMIT 1", [h.orgA])).rows[0]?.slug;
+    if (other) expect((await h.call("put", "/org", owner, { slug: other })).status).toBe(400);
+    expect((await h.call("put", "/org", owner, { slug: "nord-express" })).body.slug).toBe("nord-express");
+    expect((await h.call("get", "/public/org/nord-express", undefined)).status).toBe(200);
+    expect((await h.call("put", "/org", viewer, { slug: "sneaky" })).status).toBe(403);
+  });
+  it("stores a driver's hourly rate so timesheets can estimate pay", async () => {
+    expect((await h.call("put", `/fleet/drivers/${drv}`, owner, { skills: [], hourlyRate: 31.5 })).status).toBe(200);
+    expect((await h.admin.query("SELECT hourly_rate::float AS r FROM driver_profiles WHERE user_id = $1", [drv])).rows[0].r).toBe(31.5);
+    expect((await h.call("put", `/fleet/drivers/${drv}`, owner, { skills: [], hourlyRate: -3 })).status).toBe(400);
+    const list = (await h.call("get", "/fleet/drivers", owner)).body as { id: string; hourlyRate: number | null }[];
+    expect(list.find((x) => x.id === drv)?.hourlyRate).toBe(31.5);
+  });
+});

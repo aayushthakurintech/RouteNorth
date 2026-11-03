@@ -197,7 +197,7 @@ export default function ResourcePage({ name, extra, onOpen }: { name: string; ex
   const data = (rows.data ?? []).filter((r) => !hidden.has(r.id));
   const title = t(`res_${name}` as MessageKey);
   const withActions: Column<Row>[] = canWrite ? [...columns, {
-    key: "_actions", header: "", width: 96, value: () => "", noGroup: true,
+    key: "_actions", header: t("actions"), width: 96, value: () => "", noGroup: true,
     render: (r) => (
       <span className="row" style={{ gap: 2 }} onClick={(e) => e.stopPropagation()}>
         <button type="button" className="btn sm ghost" aria-label={`${t("rEdit")} ${title}`} onClick={() => startEdit(r)}><Pencil size={14} aria-hidden /></button>

@@ -6,7 +6,7 @@ import { CUSTOMER_EVENTS, render, type CustomerEvent } from "../automation/spec.
  */
 export type Locale = "en" | "fr";
 export type Channel = "email" | "sms";
-interface Text { subject: string; sms: string; email: string }
+export interface Text { subject: string; sms: string; email: string }
 
 export const DEFAULTS: Record<CustomerEvent, Record<Locale, Text>> = {
   received: {

@@ -1,7 +1,7 @@
 import type { Permission } from "@routenorth/shared";
 import type { MessageKey } from "@routenorth/shared";
 import {
-  Activity, AlertTriangle, BarChart3, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
+  Activity, AlertTriangle, MessageSquareHeart, BarChart3, Banknote, Clock, Inbox, Receipt, Workflow, CheckSquare, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
   ScrollText, Settings, Truck, UsersRound, Warehouse, Wrench, type LucideIcon,
 } from "lucide-react";
 
@@ -12,6 +12,8 @@ export interface NavItem {
   /** Shown only to people with ANY of these permissions. */
   perms: Permission[];
   group: "main" | "fleet" | "admin";
+  /** A small count shown beside the name (loaded by the shell). */
+  badge?: "approvals" | "inbox";
   /** Extra words the command palette should match. */
   keywords?: string;
 }
@@ -25,6 +27,9 @@ export const NAV: NavItem[] = [
   { href: "/analytics", label: "navAnalytics", icon: LayoutDashboard, perms: ["reports.view", "driver.app"], group: "main", keywords: "dashboard kpi goals insights tableau de bord indicateurs" },
   { href: "/analytics/reports", label: "navReportBuilder", icon: BarChart3, perms: ["reports.view"], group: "main", keywords: "report builder charts pivot export scheduled constructeur de rapports" },
   { href: "/alerts", label: "navAlerts", icon: BellRing, perms: ["alerts.view"], group: "main", keywords: "alerts rules notifications slack teams alertes règles" },
+  { href: "/inbox", label: "navInbox", icon: Inbox, perms: ["routes.dispatch", "customers.manage"], group: "main", badge: "inbox", keywords: "messages chat drivers customers help messagerie clients aide" },
+  { href: "/approvals", label: "navApprovals", icon: CheckSquare, perms: ["reports.view"], group: "main", badge: "approvals", keywords: "approve overtime expenses approbations" },
+  { href: "/automation", label: "navAutomation", icon: Workflow, perms: ["alerts.view"], group: "main", keywords: "workflows rules webhooks no-code if then automatisation flux" },
   { href: "/reports", label: "navReports", icon: FileText, perms: ["reports.view"], group: "main", keywords: "distance idle export rapports" },
   { href: "/fleet/vehicles", label: "navFleetVehicles", icon: Truck, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "trucks buses vans camions autobus" },
   { href: "/drivers", label: "navDrivers", icon: IdCard, perms: ["users.view", "routes.view"], group: "fleet", keywords: "licence license skills chauffeurs" },
@@ -37,7 +42,11 @@ export const NAV: NavItem[] = [
   { href: "/fleet/equipment", label: "navEquipment", icon: Container, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "trailers remorques" },
   { href: "/fleet/depots", label: "navDepots", icon: Warehouse, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "parking yard dépôts" },
   { href: "/fleet/route-templates", label: "navTemplates", icon: Repeat, perms: ["routes.view"], group: "fleet", keywords: "recurring repeat modèles" },
+  { href: "/timesheets", label: "navTimesheets", icon: Clock, perms: ["reports.view"], group: "fleet", keywords: "shifts hours overtime pay feuilles de temps quarts heures" },
+  { href: "/expenses", label: "navExpenses", icon: Receipt, perms: ["reports.view"], group: "fleet", keywords: "receipts reimburse dépenses reçus" },
+  { href: "/invoices", label: "navInvoices", icon: Banknote, perms: ["customers.view"], group: "admin", keywords: "billing pdf factures facturation" },
   { href: "/settings", label: "navSettings", icon: Settings, perms: ["settings.manage"], group: "admin", keywords: "company branding paramètres" },
+  { href: "/settings/customers", label: "navCustomerSettings", icon: MessageSquareHeart, perms: ["settings.manage"], group: "admin", keywords: "customer notifications booking portal status faq clients messages réservation" },
   { href: "/settings/users", label: "navUsers", icon: UsersRound, perms: ["users.view"], group: "admin", keywords: "people roles permissions users personnes" },
   { href: "/audit", label: "navAudit", icon: ScrollText, perms: ["audit.view"], group: "admin", keywords: "changes history journal" },
   { href: "/styleguide", label: "navStyle", icon: Palette, perms: [], group: "admin", keywords: "design components" },

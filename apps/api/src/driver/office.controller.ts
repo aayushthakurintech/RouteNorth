@@ -27,7 +27,7 @@ export class MessagesController {
     const orgId = this.orgFor(req, k);
     return (await withOrg(this.pool, orgId, (c) => c.query(
       `SELECT t.thread_id AS id,
-              CASE WHEN t.kind = 'driver' THEN (SELECT coalesce(display_name, email) FROM users WHERE id = t.thread_id) ELSE (SELECT coalesce(ref || ' · ', '') || title || coalesce(' · ' || customer_name, '') FROM jobs WHERE id = t.thread_id) END AS name,
+              CASE WHEN t.kind = 'driver' THEN (SELECT coalesce(display_name, email) FROM users WHERE id = t.thread_id) ELSE coalesce((SELECT coalesce(ref || ' · ', '') || title || coalesce(' · ' || customer_name, '') FROM jobs WHERE id = t.thread_id), (SELECT coalesce(display_name, email) FROM users WHERE id = t.thread_id)) END AS name,
               t.last_at AS "lastAt", t.unread::int AS unread,
               (SELECT CASE WHEN audio_data_url IS NOT NULL AND body = '' THEN '(voice note)' ELSE body END FROM messages m WHERE m.thread_kind = t.kind AND m.thread_id = t.thread_id ORDER BY created_at DESC LIMIT 1) AS last
        FROM (SELECT thread_kind AS kind, thread_id, max(created_at) AS last_at, count(*) FILTER (WHERE read_at IS NULL AND sender_kind IN ('driver','customer')) AS unread

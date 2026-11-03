@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ConflictException, Controller, Get, Inject, NotFoundException, Param, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, ConflictException, Controller, Get, HttpCode, Inject, NotFoundException, Param, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
 import type { Response } from "express";
 import PDFDocument from "pdfkit";
@@ -9,7 +9,9 @@ import { collect, pdfHeader } from "../reports/export.js";
 import { csvEscape } from "../resources/engine.js";
 import { JWT_SECRET, PG_POOL } from "../tokens.js";
 import { createInvoiceForJob } from "./invoices.js";
+import { CUSTOMER_EVENTS } from "../automation/spec.js";
 import { ensureJobLink } from "./links.js";
+import { DEFAULTS, isCustomerEvent, renderCustomerMessage } from "./templates.js";
 
 /** What a signed-in customer sees: their own orders (matched by the email on the order), invoices, and a way to reach the office. */
 @Controller("portal")
@@ -190,5 +192,31 @@ export class InvoicesController {
       if (status) await emit(c, orgId, "invoice.updated", "invoice", r.id, { invoiceId: r.id, number: r.number, status: r.status });
       return r;
     });
+  }
+}
+
+/** The wording customers get by default, and a preview of any wording (default or the office's own) with sample values. */
+@Controller("message-defaults")
+@UseGuards(AuthGuard)
+export class MessageDefaultsController {
+  @Get()
+  list(@Req() req: AuthedRequest) {
+    requirePerm(req, "customers.view");
+    return { events: CUSTOMER_EVENTS, defaults: DEFAULTS, placeholders: ["customer", "ref", "title", "org", "link", "window", "minutes", "stops", "reason", "driverWith"] };
+  }
+
+  @Post("preview")
+  @HttpCode(200)
+  preview(@Req() req: AuthedRequest, @Body() body: { event?: unknown; locale?: unknown; subject?: unknown; email?: unknown; sms?: unknown }) {
+    requirePerm(req, "customers.view");
+    if (!isCustomerEvent(body?.event)) throw new BadRequestException("unknown message");
+    const locale = body.locale === "fr" ? "fr" : "en";
+    const str = (v: unknown, n: number) => (typeof v === "string" && v.trim() ? v.slice(0, n) : undefined);
+    const email = str(body.email, 2000), sms = str(body.sms, 2000);
+    const sample = locale === "fr"
+      ? { customer: "Marie", ref: "J-1042", title: "Livraison de palettes", org: "Votre entreprise", link: "https://exemple.ca/j/abc", window: "demain entre 8 h et 12 h", minutes: "10", stops: "2", reason: "personne sur place", driverWith: " (Alex)" }
+      : { customer: "Sam", ref: "J-1042", title: "Pallet delivery", org: "Your company", link: "https://example.ca/j/abc", window: "tomorrow between 8:00 and 12:00", minutes: "10", stops: "2", reason: "nobody home", driverWith: " (Alex)" };
+    const r = renderCustomerMessage(body.event, locale, sample, { name: sample.org, color: null }, { email: email ? { subject: str(body.subject, 200), body: email } : undefined, sms: sms ? { body: sms } : undefined });
+    return { subject: r.subject, text: r.text, sms: r.sms };
   }
 }

@@ -36,7 +36,7 @@ import { ApprovalsController, AutomationController, WebhooksController } from ".
 import { PublicJobController } from "./customer/public.controller.js";
 import { DriverExtrasController } from "./driver/driver-extras.controller.js";
 import { ExpensesController, HelpRequestsController, MessagesController, TimesheetsController } from "./driver/office.controller.js";
-import { InvoicesController, PortalController } from "./customer/portal.controller.js";
+import { InvoicesController, MessageDefaultsController, PortalController } from "./customer/portal.controller.js";
 import { VehiclesController } from "./vehicles/vehicles.controller.js";
 
 export interface AppOptions {
@@ -58,7 +58,7 @@ export class AppModule {
   static register(opts: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController, AutomationController, WebhooksController, ApprovalsController, PublicJobController, DriverExtrasController, MessagesController, HelpRequestsController, TimesheetsController, ExpensesController, PortalController, InvoicesController],
+      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController, AutomationController, WebhooksController, ApprovalsController, PublicJobController, DriverExtrasController, MessagesController, HelpRequestsController, TimesheetsController, ExpensesController, PortalController, InvoicesController, MessageDefaultsController],
       providers: [
         { provide: PG_POOL, useValue: opts.pool },
         { provide: POSITION_BUS, useValue: opts.bus },

@@ -37,6 +37,9 @@ export const RESOURCE_VIEWS: Record<string, ResourceView> = {
     columns: ["scheduledDate", "title", "type", "priority", "status", "customerName", "address"],
     hideInForm: ["status", "driverId", "vehicleId", "routeId", "reasonCode", "reasonNote"], longText: ["notes", "address"],
   },
+  "faq-items": { columns: ["question", "lang", "sort", "published"], longText: ["answer"] },
+  "status-notices": { columns: ["level", "title", "startsAt", "endsAt"], longText: ["body"] },
+  "training-items": { columns: ["title", "lang", "sort", "active"], longText: ["body"] },
   "route-templates": { columns: ["name", "vehicleId", "driverId", "startTime", "objective", "active"], hideInForm: ["stops"] },
 };
 

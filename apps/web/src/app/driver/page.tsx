@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MessageKey } from "@routenorth/shared";
 import { DriverExtras } from "@/components/DriverExtras";
+import { DriverMore } from "@/components/DriverMore";
 import { Sheet } from "@/components/DriverSheet";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad";
@@ -13,7 +14,7 @@ import { useI18n } from "@/lib/i18n-context";
 import { applyPending, type DriverRoute, type DriverStop, type QueueItem, type StatusBody } from "@/lib/offline-queue";
 import { API_URL, loadSession, saveSession } from "@/lib/session";
 
-interface Stop extends DriverStop { name: string; address: string | null; lat: number; lng: number; sequence: number; notes: string | null; packages: number | null }
+interface Stop extends DriverStop { name: string; address: string | null; lat: number; lng: number; sequence: number; notes: string | null; packages: number | null; customerInstructions?: string | null }
 interface Route extends DriverRoute { name: string; stops: Stop[] }
 
 const CACHE_KEY = "routenorth.driver.routes";
@@ -146,6 +147,15 @@ export default function DriverPage() {
         );
       })}
       <DriverExtras nextStop={(() => { const r = routes[0]; if (!r) return null; const i = nextStopIndex(r.stops); const st = r.stops[i]; return st ? { id: st.id, name: st.name } : null; })()} />
+      <DriverMore
+        nextStop={(() => { const r = routes[0]; if (!r) return null; const st = r.stops[nextStopIndex(r.stops)]; return st ? { id: st.id, name: st.name, address: st.address } : null; })()}
+        actions={{
+          arrive: () => { const st = routes[0]?.stops[nextStopIndex(routes[0].stops)]; if (st && st.status === "pending") void enqueue([status(st, { status: "arrived" })]); },
+          complete: () => { const st = routes[0]?.stops[nextStopIndex(routes[0].stops)]; if (st) { position.current = null; void currentPosition().then((p) => { position.current = p; }); setSheet({ kind: "complete", stop: st }); } },
+          fail: () => { const st = routes[0]?.stops[nextStopIndex(routes[0].stops)]; if (st) setSheet({ kind: "fail", stop: st }); },
+          navigate: () => { const st = routes[0]?.stops[nextStopIndex(routes[0].stops)]; if (st) window.open(navigationLinks(st.lat, st.lng).google, "_blank", "noopener"); },
+        }}
+      />
       <p className="meta">{t("installHint")}</p>
 
       {sheet?.kind === "complete" && (
@@ -194,6 +204,7 @@ function StopCard(props: {
       </div>
       {s.address && <p className="meta">{s.address}</p>}
       {s.notes && <p className="meta">{s.notes}</p>}
+      {s.customerInstructions && <p className="meta"><strong>{t("dx_customerNote")}:</strong> {s.customerInstructions}</p>}
       {s.packages ? <p className="meta">{s.packages} pkg</p> : null}
       {s.failureReason && <p className="meta">{s.failureReason}</p>}
       {open && (

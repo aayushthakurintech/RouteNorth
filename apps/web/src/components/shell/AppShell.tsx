@@ -10,6 +10,7 @@ import { ErrorState, SkeletonList } from "@/components/ui/primitives";
 import { useCrumbs } from "@/lib/breadcrumbs";
 import { useI18n } from "@/lib/i18n-context";
 import { useMe } from "@/lib/me-context";
+import { useApi } from "@/lib/use-api";
 import { isActive, visibleNav } from "@/lib/nav";
 import { loadSession, saveSession } from "@/lib/session";
 import { useTheme, type MotionMode, type ThemeMode } from "@/lib/theme-context";
@@ -61,6 +62,9 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
 
   const signOut = useCallback(() => { saveSession(null); router.replace("/login"); }, [router]);
   const nav = useMemo(() => visibleNav(can), [can]);
+  const approvals = useApi<{ pending: number }>(can("reports.view") ? "/approvals/count" : null, { intervalMs: 60_000 });
+  const inbox = useApi<{ drivers: number; customers: number; help: number }>(can("routes.dispatch") || can("customers.manage") ? "/messages/unread" : null, { intervalMs: 30_000 });
+  const badges = { approvals: approvals.data?.pending ?? 0, inbox: (inbox.data?.drivers ?? 0) + (inbox.data?.customers ?? 0) + (inbox.data?.help ?? 0) };
   const go = useCallback((href: string, label?: string) => {
     if (label) setPrefs({ recent: [{ href, label }, ...(prefs.recent ?? []).filter((r) => r.href !== href)].slice(0, 5) });
     router.push(href);
@@ -153,6 +157,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
             {s.items.map((n) => (
               <Link key={n.href} href={n.href} className="nav-item" aria-current={isActive(n.href, pathname) ? "page" : undefined} title={collapsed ? t(n.label) : undefined}>
                 <n.icon size={18} aria-hidden /><span className="nav-text">{t(n.label)}</span>
+                {n.badge && badges[n.badge] > 0 && <span className="nav-badge" aria-label={t("navBadge", { n: badges[n.badge] })}>{badges[n.badge] > 99 ? "99+" : badges[n.badge]}</span>}
               </Link>
             ))}
           </div>

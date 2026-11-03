@@ -21,7 +21,7 @@ export class OrgController {
       await withOrg(this.pool, orgId, (c) =>
         c.query(
           `SELECT id, name, locale, timezone, retention_days AS "retentionDays", brand_name AS "brandName", brand_color AS "brandColor",
-                  logo_data_url AS "logoDataUrl", settings FROM organizations WHERE id = $1`, [orgId]),
+                  logo_data_url AS "logoDataUrl", slug, settings FROM organizations WHERE id = $1`, [orgId]),
       )
     ).rows[0];
     return { ...o, settings: withDefaults(o.settings) };
@@ -64,6 +64,13 @@ export class OrgController {
         throw new BadRequestException("logo must be a PNG, JPEG, WebP or SVG image under about 300 KB");
       }
       add("logo_data_url", body.logoDataUrl);
+    }
+    if (body.slug !== undefined) {
+      const slug = String(body.slug).trim().toLowerCase();
+      if (!/^[a-z0-9][a-z0-9-]{0,48}$/.test(slug)) throw new BadRequestException("the web address can use letters, numbers and dashes (up to 49 characters)");
+      const cur = (await withOrg(this.pool, orgId, (c) => c.query("SELECT slug FROM organizations WHERE id = $1", [orgId]))).rows[0]?.slug;
+      if (cur !== slug && (await this.pool.query("SELECT slug_taken($1) AS taken", [slug])).rows[0].taken) throw new BadRequestException("that web address is already taken");
+      add("slug", slug);
     }
     if (body.settings !== undefined) {
       let patch;

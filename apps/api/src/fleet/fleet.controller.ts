@@ -251,7 +251,8 @@ export class FleetController {
       `SELECT u.id, coalesce(u.display_name, u.email) AS name, u.email, (u.disabled_at IS NOT NULL) AS disabled, dp.phone, dp.license_no AS "licenseNo", dp.license_class AS "licenseClass",
               dp.license_expiry::text AS "licenseExpiry", dp.emergency_name AS "emergencyName", dp.emergency_phone AS "emergencyPhone", dp.home_depot_id AS "homeDepotId",
               coalesce(dp.max_shift_min, 600) AS "maxShiftMin", coalesce(dp.break_after_min, 300) AS "breakAfterMin", coalesce(dp.break_min, 30) AS "breakMin",
-              coalesce(dp.skills, '{}') AS skills, coalesce(dp.training, '[]'::jsonb) AS training, dp.notes
+              coalesce(dp.skills, '{}') AS skills, coalesce(dp.training, '[]'::jsonb) AS training, dp.notes,
+              dp.hourly_rate::float AS "hourlyRate", (dp.photo_data_url IS NOT NULL) AS "hasPhoto"
        FROM users u LEFT JOIN driver_profiles dp ON dp.user_id = u.id WHERE u.role = 'driver' ORDER BY name`)).rows);
   }
 
@@ -278,6 +279,11 @@ export class FleetController {
            break_after_min = EXCLUDED.break_after_min, break_min = EXCLUDED.break_min, skills = EXCLUDED.skills, training = EXCLUDED.training, notes = EXCLUDED.notes, updated_at = now()`,
         [uid, orgId, txt("phone", 40), txt("licenseNo", 40), txt("licenseClass", 20), expiry, txt("emergencyName", 120), txt("emergencyPhone", 40), depot,
           int("maxShiftMin", 30, 1440, 600), int("breakAfterMin", 30, 1440, 300), int("breakMin", 5, 240, 30), skills, JSON.stringify(training), txt("notes", 2000)]);
+      if (body.hourlyRate !== undefined) {
+        const rate = body.hourlyRate === null || body.hourlyRate === "" ? null : Number(body.hourlyRate);
+        if (rate !== null && (!Number.isFinite(rate) || rate < 0 || rate > 1000)) throw new BadRequestException("hourlyRate must be 0 to 1000");
+        await c.query("UPDATE driver_profiles SET hourly_rate = $2 WHERE user_id = $1", [uid, rate]);
+      }
       return { ok: true };
     });
   }

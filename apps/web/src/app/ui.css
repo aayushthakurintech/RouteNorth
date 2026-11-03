@@ -362,3 +362,46 @@ table.plain tr.median th, table.plain tr.median td { color: var(--muted); font-s
 .builder-side select, .builder-side input:not([type=checkbox]) { width: 100%; max-width: 100%; box-sizing: border-box; }
 .builder-side .row { flex-wrap: nowrap; } .builder-side .row select, .builder-side .row input { min-width: 0; }
 .builder table.plain td, .builder table.plain th { white-space: nowrap; }
+
+/* Plain data tables used by the office pages (timesheets, expenses, invoices). */
+.ptable { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ptable th, .ptable td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ptable thead th { color: var(--muted); font-weight: 600; font-size: 12.5px; background: var(--surface); position: sticky; top: 0; }
+.ptable tbody th { font-weight: 600; }
+.ptable td.tnum, .ptable th.tnum { text-align: right; font-variant-numeric: tabular-nums; }
+.ptable tr:last-child td, .ptable tr:last-child th { border-bottom: 0; }
+.nav-badge { margin-left: auto; min-width: 20px; padding: 0 6px; border-radius: 10px; background: var(--danger, #c0392b); color: #fff; font-size: 11.5px; line-height: 20px; text-align: center; font-weight: 700; }
+.collapsed .nav-badge { position: absolute; top: 2px; right: 2px; margin: 0; min-width: 16px; line-height: 16px; font-size: 10px; padding: 0 4px; }
+
+/* Pages customers open from a link: job page, booking, status, help, portal. */
+.pub-body { width: 100%; max-width: 720px; margin: 0 auto; padding: var(--s4) max(16px, env(safe-area-inset-left)) var(--s8); display: grid; gap: var(--s4); align-content: start; }
+.pub-body.wide { max-width: 980px; }
+.pub-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--s4); display: grid; gap: var(--s3); }
+.pub-card h1, .pub-card h2, .pub-card h3 { margin: 0; }
+.pub-status { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.pub-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 12px; font-weight: 600; font-size: 14px; background: var(--brand-soft); color: var(--fg); }
+.pub-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--brand); }
+.pub-pill.ok::before { background: var(--ok); } .pub-pill.bad::before { background: var(--danger); } .pub-pill.warn::before { background: #e69f00; }
+.pub-map { height: 260px; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--line); }
+.pub-proofs { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--s2); }
+.pub-proofs img { width: 100%; height: 120px; object-fit: cover; border-radius: var(--r); border: 1px solid var(--line); background: #fff; }
+.pub-slots { display: grid; gap: var(--s2); }
+.pub-slots .day { display: flex; gap: var(--s2); flex-wrap: wrap; align-items: center; }
+.pub-slots .day > strong { min-width: 120px; }
+.pub-slots button { min-height: 40px; padding: 4px 14px; border: 1px solid var(--line-strong); border-radius: var(--r); background: var(--surface); cursor: pointer; }
+.pub-slots button[aria-pressed="true"] { background: var(--brand); color: #fff; border-color: var(--brand); }
+.pub-slots button:disabled { opacity: .45; cursor: not-allowed; text-decoration: line-through; }
+.pub-chat { display: grid; gap: 6px; max-height: 320px; overflow: auto; }
+.pub-chat .bubble { max-width: 85%; padding: 8px 12px; border-radius: 12px; background: var(--surface-2); }
+.pub-chat .bubble.me { justify-self: end; background: var(--brand); color: var(--brand-fg); }
+.pub-chat .bubble.me .small { opacity: .95; }
+.pub-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.pub-bars { display: flex; align-items: flex-end; gap: 2px; height: 56px; }
+.pub-bars span { flex: 1; min-width: 3px; background: var(--ok); border-radius: 2px 2px 0 0; }
+.pub-bars span.low { background: #e69f00; } .pub-bars span.bad { background: var(--danger); }
+.pub-faq details { border-bottom: 1px solid var(--line); padding: var(--s2) 0; }
+.pub-faq summary { cursor: pointer; font-weight: 600; min-height: 32px; }
+.shift-card { display: grid; gap: var(--s2); padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); }
+body.battery-saver *, body.battery-saver *::before, body.battery-saver *::after { animation: none !important; transition: none !important; }
+/* The driver app also has a .primary class (white text); inside a .btn the brand's own text colour must win, or dark mode loses contrast. */
+.btn.primary, button.btn.primary { background: var(--brand); color: var(--brand-fg); border-color: var(--brand); }
