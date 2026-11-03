@@ -4,18 +4,16 @@ import {
 } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
 import { classifyStop, type StopOutcome, type StopStatus } from "@routenorth/shared";
-import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
+import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { PG_POOL } from "../tokens.js";
 import { parseUuid } from "../history/range.js";
 import { csvToObjects } from "./csv.js";
 import { MAX_STOPS_PER_ROUTE, parseDate, parseName, parseStopInput, type StopInput } from "./validate.js";
 
-const PLANNERS = ["owner", "admin", "dispatcher"];
 const ROUTE_STATUSES = ["planned", "in_progress", "completed", "cancelled"];
 
 function requirePlanner(req: AuthedRequest): string {
-  if (!PLANNERS.includes(req.session!.role)) throw new ForbiddenException("dispatcher access required");
-  return req.session!.orgId;
+  return requirePerm(req, "routes.write");
 }
 
 const STOP_COLUMNS = `id, route_id, sequence, name, address, lat, lng, radius_m AS "radiusM",
@@ -56,6 +54,7 @@ export class RoutesController {
   /** Routes for a day, with how many stops are done. */
   @Get()
   async list(@Req() req: AuthedRequest, @Query("date") date?: string) {
+    requirePerm(req, "routes.view");
     const day = parseDate(date);
     const rows = await withOrg(this.pool, req.session!.orgId, (c) =>
       c.query(
@@ -73,6 +72,7 @@ export class RoutesController {
   /** Planned vs actual: how each stop went against its time window. */
   @Get(":id/report")
   async report(@Req() req: AuthedRequest, @Param("id") id: string) {
+    requirePerm(req, "routes.view");
     const route = await withOrg(this.pool, req.session!.orgId, (c) => this.load(c, parseUuid(id)));
     if (!route) throw new NotFoundException();
     const iso = (d: Date | string | null) => (d ? new Date(d).toISOString() : null);
@@ -110,6 +110,7 @@ export class RoutesController {
 
   @Get(":id")
   async get(@Req() req: AuthedRequest, @Param("id") id: string) {
+    requirePerm(req, "routes.view");
     const route = await withOrg(this.pool, req.session!.orgId, (c) => this.load(c, parseUuid(id)));
     if (!route) throw new NotFoundException();
     return route;

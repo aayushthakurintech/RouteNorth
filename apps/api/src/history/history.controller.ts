@@ -1,7 +1,7 @@
 import { Controller, Get, HttpException, Inject, NotFoundException, Param, Query, Req, UseGuards } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
 import { dailyTotals, detectTrips, type Fix } from "@routenorth/shared";
-import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
+import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { PG_POOL } from "../tokens.js";
 import { parseRange, parseTimeZone, parseUuid } from "./range.js";
 
@@ -44,6 +44,7 @@ export class HistoryController {
     @Req() req: AuthedRequest, @Param("deviceId") deviceId: string,
     @Query("from") from?: string, @Query("to") to?: string,
   ) {
+    requirePerm(req, "fleet.view");
     const range = parseRange(from, to, 7);
     const orgId = req.session!.orgId;
     await this.assertDevice(orgId, parseUuid(deviceId));
@@ -59,6 +60,7 @@ export class HistoryController {
     @Req() req: AuthedRequest, @Param("deviceId") deviceId: string,
     @Query("from") from?: string, @Query("to") to?: string,
   ) {
+    requirePerm(req, "fleet.view");
     const range = parseRange(from, to, 31);
     const orgId = req.session!.orgId;
     await this.assertDevice(orgId, parseUuid(deviceId));
@@ -71,6 +73,7 @@ export class HistoryController {
   async daily(
     @Req() req: AuthedRequest, @Query("from") from?: string, @Query("to") to?: string, @Query("tz") tz?: string,
   ) {
+    requirePerm(req, "reports.view");
     const range = parseRange(from, to, 14);
     const zone = parseTimeZone(tz);
     const { byDevice, names } = await this.fleetFixes(req.session!.orgId, range.from, range.to);
@@ -84,6 +87,7 @@ export class HistoryController {
   /** Idle report: where and how long each vehicle sat with its engine running. */
   @Get("reports/idle")
   async idle(@Req() req: AuthedRequest, @Query("from") from?: string, @Query("to") to?: string) {
+    requirePerm(req, "reports.view");
     const range = parseRange(from, to, 14);
     const { byDevice, names } = await this.fleetFixes(req.session!.orgId, range.from, range.to);
     const vehicles = [];

@@ -4,7 +4,7 @@ import {
 } from "@nestjs/common";
 import { pg, recomputeRouteStatus, withOrg } from "@routenorth/db";
 import type { Response } from "express";
-import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
+import { AuthGuard, hasPerm, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { parseDate } from "../routes/validate.js";
 import { parseUuid } from "../history/range.js";
 import { PG_POOL } from "../tokens.js";
@@ -41,6 +41,7 @@ export class DriverController {
   /** The routes assigned to the logged-in driver for a day (default: today in the organization's time zone). */
   @Get("routes")
   async routes(@Req() req: AuthedRequest, @Query("date") date?: string) {
+    requirePerm(req, "driver.app");
     const { orgId, userId } = req.session!;
     const day = date === undefined ? null : parseDate(date);
     return withOrg(this.pool, orgId, async (c) => {
@@ -80,6 +81,7 @@ export class DriverController {
     @Req() req: AuthedRequest, @Param("stopId") stopId: string,
     @Body() body: { status?: unknown; occurredAt?: unknown; reason?: unknown; notes?: unknown; recipientName?: unknown },
   ) {
+    requirePerm(req, "driver.app");
     const { orgId, userId } = req.session!;
     const id = parseUuid(stopId);
     if (typeof body?.status !== "string" || !STATUSES.includes(body.status)) throw new BadRequestException("invalid status");
@@ -135,6 +137,7 @@ export class DriverController {
     @Body() body: unknown, @Query("kind") kind?: string, @Query("takenAt") takenAt?: string,
     @Query("lat") lat?: string, @Query("lng") lng?: string,
   ) {
+    requirePerm(req, "driver.app");
     const { orgId, userId } = req.session!;
     const sid = parseUuid(stopId);
     const cid = parseUuid(clientId);
@@ -180,6 +183,7 @@ export class ProofsController {
   constructor(@Inject(PG_POOL) private readonly pool: pg.Pool) {}
 
   private async canSee(c: pg.PoolClient, req: AuthedRequest, stopId: string): Promise<boolean> {
+    if (!hasPerm(req, "routes.view", "driver.app")) return false;
     const { role, userId } = req.session!;
     const r = await c.query("SELECT r.driver_id FROM stops s JOIN routes r ON r.id = s.route_id WHERE s.id = $1", [stopId]);
     if (r.rowCount === 0) return false;

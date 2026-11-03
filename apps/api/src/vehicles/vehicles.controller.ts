@@ -1,7 +1,7 @@
 import { Controller, Get, Inject, Req, UseGuards } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
 import { vehicleStatus, type VehicleStatus } from "@routenorth/shared";
-import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
+import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { PG_POOL } from "../tokens.js";
 
 export interface LiveVehicle {
@@ -26,6 +26,7 @@ export class VehiclesController {
   /** Every vehicle in the organization, for pickers (not just those with a position). */
   @Get()
   async list(@Req() req: AuthedRequest): Promise<{ id: string; name: string; kind: string }[]> {
+    requirePerm(req, "routes.view");
     const rows = await withOrg(this.pool, req.session!.orgId, (c) => c.query("SELECT id, name, kind FROM vehicles ORDER BY name"));
     return rows.rows;
   }
@@ -33,6 +34,7 @@ export class VehiclesController {
   /** Latest known position of every device in the caller's organization. */
   @Get("live")
   async live(@Req() req: AuthedRequest): Promise<LiveVehicle[]> {
+    requirePerm(req, "fleet.view");
     const orgId = req.session!.orgId;
     const rows = await withOrg(this.pool, orgId, (c) =>
       c.query(

@@ -1,6 +1,11 @@
-export const LOCALES = ["en", "fr"] as const;
+export const LOCALES = ["en", "fr", "pa", "ar"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
+
+/** Names shown in the language picker, each in its own language. */
+export const LOCALE_NAMES: Record<Locale, string> = { en: "English", fr: "Français", pa: "ਪੰਜਾਬੀ", ar: "العربية" };
+export const RTL_LOCALES: readonly Locale[] = ["ar"];
+export const isRtl = (l: Locale): boolean => RTL_LOCALES.includes(l);
 
 const en = {
   appName: "RouteNorth",
@@ -149,9 +154,9 @@ const en = {
   installHint: "Tip: add this page to your home screen to open it like an app.",
 } as const;
 
-export type MessageKey = keyof typeof en;
+export type CoreMessageKey = keyof typeof en;
 
-const fr: Record<MessageKey, string> = {
+const fr: Record<CoreMessageKey, string> = {
   appName: "RouteNorth",
   tagline: "Suivi de flotte simple et honnête",
   signIn: "Se connecter",
@@ -298,8 +303,22 @@ const fr: Record<MessageKey, string> = {
   installHint: "Astuce : ajoutez cette page à votre écran d’accueil pour l’ouvrir comme une application.",
 };
 
-export const messages: Record<Locale, Record<MessageKey, string>> = { en, fr };
+import { AREA_MESSAGES, type AreaKey } from "./messages/index.js";
+import { ar } from "./messages/ar.js";
+import { pa } from "./messages/pa.js";
+
+export type MessageKey = CoreMessageKey | AreaKey;
+
+const merged = {
+  en: Object.assign({}, en, ...AREA_MESSAGES.map((a) => a.en)) as Record<string, string>,
+  fr: Object.assign({}, fr, ...AREA_MESSAGES.map((a) => a.fr)) as Record<string, string>,
+  pa: pa as Record<string, string>,
+  ar: ar as Record<string, string>,
+};
+
+/** All strings per language. Punjabi and Arabic are partial: anything missing falls back to English. */
+export const messages: Record<Locale, Record<string, string>> = merged;
 
 export function translate(locale: Locale, key: MessageKey): string {
-  return messages[locale][key] ?? messages.en[key];
+  return messages[locale][key] ?? messages.en[key] ?? key;
 }
