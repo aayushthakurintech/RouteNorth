@@ -14,14 +14,14 @@ interface Alert { id: string; kind: string; severity: string; title: string; fir
 interface Endpoint { id: string; kind: string; label: string; target: string; enabled: boolean }
 interface Rule { id: string; name: string; kind: string; params: Record<string, unknown>; severity: string; endpointIds: string[]; notifyInapp: boolean; quietStart: string | null; quietEnd: string | null; groupMinutes: number; active: boolean }
 
-const KINDS = ["late_risk", "off_route", "long_idle", "speeding", "geofence", "offline", "harsh_driving", "document_expiry", "maintenance_due", "cost_anomaly", "custom_metric", "needs_break", "help_request", "fatigue", "checkin_missed", "crash"] as const;
+const KINDS = ["late_risk", "off_route", "long_idle", "speeding", "geofence", "offline", "harsh_driving", "document_expiry", "maintenance_due", "cost_anomaly", "custom_metric", "needs_break", "help_request", "fatigue", "checkin_missed", "crash", "budget"] as const;
 /** What each kind of rule asks for: a name, a kind of input and a starting value. */
 const PARAMS: Record<string, { key: string; type: "number" | "select" | "metric"; def: unknown; options?: string[] }[]> = {
   late_risk: [{ key: "minutes", type: "number", def: 15 }], off_route: [{ key: "meters", type: "number", def: 2000 }], long_idle: [{ key: "minutes", type: "number", def: 20 }],
   speeding: [{ key: "kmh", type: "number", def: 110 }, { key: "fixes", type: "number", def: 3 }], geofence: [{ key: "event", type: "select", def: "enter", options: ["enter", "exit"] }],
   offline: [{ key: "minutes", type: "number", def: 30 }], harsh_driving: [{ key: "minutes", type: "number", def: 30 }], document_expiry: [{ key: "days", type: "number", def: 30 }],
   maintenance_due: [{ key: "includeSoon", type: "select", def: "true", options: ["true", "false"] }], cost_anomaly: [{ key: "threshold", type: "number", def: 3.5 }],
-  needs_break: [{ key: "afterHours", type: "number", def: 5 }], help_request: [], fatigue: [], checkin_missed: [], crash: [],
+  needs_break: [{ key: "afterHours", type: "number", def: 5 }], help_request: [], fatigue: [], checkin_missed: [], crash: [], budget: [],
   custom_metric: [{ key: "metric", type: "metric", def: "onTimeRate" }, { key: "op", type: "select", def: "lt", options: ["gt", "gte", "lt", "lte"] }, { key: "value", type: "number", def: 90 }, { key: "period", type: "select", def: "today", options: ["today", "yesterday", "last7"] }],
 };
 

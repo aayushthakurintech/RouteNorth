@@ -4,11 +4,11 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | Status | Count |
 | --- | ---: |
-| ✅ Done | 208 |
-| 🟡 Partly built | 55 |
-| 🔌 Needs outside accounts or hardware | 14 |
+| ✅ Done | 219 |
+| 🟡 Partly built | 60 |
+| 🔌 Needs outside accounts or hardware | 15 |
 | ➖ Chosen not to build | 2 |
-| ⬜ Not started | 41 |
+| ⬜ Not started | 24 |
 
 - **Done**: built, with tests or a manual run behind it.
 - **Partly built**: the useful core works; the note says what is missing.
@@ -434,29 +434,29 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 | ---: | --- | --- | --- |
 | 1 | Roles: owner, admin, dispatcher, manager, driver, customer, read-only | ✅ Done | Owner, admin, dispatcher, manager, driver, customer and read-only. Customer and driver land in their own apps (the customer portal arrives in Phase 4). |
 | 2 | Custom roles with fine-grained permissions | ✅ Done | Custom roles with fine-grained permissions (Settings > People & roles). |
-| 3 | Multiple depots, regions, and teams in one account | ⬜ Not started |  |
+| 3 | Multiple depots, regions, and teams in one account | 🟡 Partly built | Teams, regions and depot groups (Settings > Teams) with people, vehicle and job filters. They group and filter only; they do not restrict who can see what. |
 | 4 | Multi-company (multi-tenant) support with separate data | ✅ Done | Every table is tenant-isolated with Row-Level Security (since Milestone 1); tests prove it. |
-| 5 | Team invites by email or link | ⬜ Not started |  |
-| 6 | User activity feed | ⬜ Not started |  |
-| 7 | In-app comments and @mentions on jobs | ⬜ Not started |  |
-| 8 | Tasks and to-do lists for dispatchers | ⬜ Not started |  |
-| 9 | Shift schedule and time-off calendar | ⬜ Not started |  |
-| 10 | Approval requests and sign-off | ⬜ Not started |  |
+| 5 | Team invites by email or link | ✅ Done | Invite by email or link with a role and team; the invitee opens the link, sets a password and joins. Email is sent only when an email provider is configured, otherwise the link is shown to copy. |
+| 6 | User activity feed | ✅ Done | Activity tab on Teams reads the audit log by person. |
+| 7 | In-app comments and @mentions on jobs | ✅ Done | Comments with @mention autocomplete on jobs and tasks; mentions arrive in a notification bell. |
+| 8 | Tasks and to-do lists for dispatchers | ✅ Done | Tasks page with assignee, due date, priority, status and comments; assignees are notified. |
+| 9 | Shift schedule and time-off calendar | 🟡 Partly built | Weekly schedule with shifts, time-off requests and clash flags in the office app. The driver app has no schedule or time-off screen yet. |
+| 10 | Approval requests and sign-off | ✅ Done | Custom approval requests join the Approvals queue with a decision note and a notification to the requester. |
 
 ### Billing and business tools
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Free trial, plans, and usage-based pricing | ⬜ Not started |  |
-| 2 | Self-service billing portal | ⬜ Not started |  |
-| 3 | Invoice and quote builder | ⬜ Not started |  |
-| 4 | Rate cards by distance, weight, zone, or time | ⬜ Not started |  |
-| 5 | Driver pay and payroll export | ⬜ Not started |  |
-| 6 | Expense approval | ⬜ Not started |  |
-| 7 | Profit per job, per customer, and per route | ⬜ Not started |  |
-| 8 | Budget tracking and cost alerts | ⬜ Not started |  |
-| 9 | Tax and currency support | ⬜ Not started |  |
-| 10 | Contract and SLA tracking | ⬜ Not started |  |
+| 1 | Free trial, plans, and usage-based pricing | 🟡 Partly built | Free trial, plans and a usage estimate (base fee plus vehicles in use). Prices are placeholders, no payment is taken, and limits are soft. |
+| 2 | Self-service billing portal | 🔌 Needs outside accounts or hardware | Plan and usage view is in-product. A card-and-receipts portal needs a payment provider account (Stripe), which is not connected. |
+| 3 | Invoice and quote builder | ✅ Done | Quote and invoice builder with lines, tax, rate card pricing, quote to invoice conversion and an invoice PDF. Quotes have no PDF yet. |
+| 4 | Rate cards by distance, weight, zone, or time | ✅ Done | Rate cards by distance, weight, zone or time with cumulative bands and a minimum charge. |
+| 5 | Driver pay and payroll export | ✅ Done | Driver pay from shifts, approved overtime, stops and kilometres, with a payroll CSV export. |
+| 6 | Expense approval | ✅ Done | Expenses over the approval limit go to the Approvals queue (Phase 3). |
+| 7 | Profit per job, per customer, and per route | 🟡 Partly built | Profit per job, customer and route. Revenue is the invoice or job price; cost is an estimate from per-km and per-hour rates. |
+| 8 | Budget tracking and cost alerts | ✅ Done | Budgets compare fuel, repair and expense spend with a limit; a budget alert appears at the warning percentage or when the pace says it will overrun. |
+| 9 | Tax and currency support | 🟡 Partly built | Canadian provincial tax (GST, HST, PST, QST) or a flat rate, plus manually entered FX rates. Rates should be confirmed against CRA before billing real customers. |
+| 10 | Contract and SLA tracking | ✅ Done | Contracts with terms, SLA targets and the on-time rate measured from deliveries. |
 
 ### Security and trust
 

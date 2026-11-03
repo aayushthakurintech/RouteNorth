@@ -9,6 +9,9 @@ import { collect, pdfHeader } from "../reports/export.js";
 import { csvEscape } from "../resources/engine.js";
 import { JWT_SECRET, PG_POOL } from "../tokens.js";
 import { createInvoiceForJob } from "./invoices.js";
+import { orgTax } from "../business/money.js";
+import { buildLines, round2 } from "@routenorth/shared";
+import { withDefaults } from "../org/settings.js";
 import { CUSTOMER_EVENTS } from "../automation/spec.js";
 import { ensureJobLink } from "./links.js";
 import { DEFAULTS, isCustomerEvent, renderCustomerMessage } from "./templates.js";
@@ -123,7 +126,10 @@ export async function invoicePdf(c: pg.PoolClient, invoiceId: string): Promise<B
   }
   y += 10;
   const row = (label: string, v: string, bold = false) => { doc.font(bold ? "Helvetica-Bold" : "Helvetica").text(label, 360, y, { width: 120, align: "right" }).text(v, 490, y, { width: 86, align: "right" }); y += 18; };
-  row(fr ? "Sous-total" : "Subtotal", money(inv.subtotal)); row(fr ? "Taxes" : "Tax", money(inv.tax)); row("Total", money(inv.total), true);
+  row(fr ? "Sous-total" : "Subtotal", money(inv.subtotal));
+  const tl = (inv.tax_lines ?? []) as { code: string; rate: number; amount: number }[];
+  if (tl.length) for (const t of tl) row(`${t.code} ${t.rate}%`, money(t.amount)); else row(fr ? "Taxes" : "Tax", money(inv.tax));
+  row("Total", money(inv.total), true);
   if (inv.notes) doc.font("Helvetica").fontSize(9).fillColor("#475569").text(inv.notes, 36, y + 20, { width: 400 });
   return collect(doc);
 }
@@ -174,6 +180,39 @@ export class InvoicesController {
       const r = await createInvoiceForJob(c, orgId, parseUuid(jobId), req.session!.userId);
       if (!r) throw new NotFoundException();
       return r;
+    });
+  }
+
+  /** The invoice builder: lines typed by hand, with tax worked out from the company's province (or left off for a tax-exempt customer). */
+  @Post()
+  async build(@Req() req: AuthedRequest, @Body() b: { customerName?: unknown; customerEmail?: unknown; customerAddress?: unknown; currency?: unknown; lines?: unknown; dueOn?: unknown; notes?: unknown; taxExempt?: unknown; status?: unknown }) {
+    const orgId = requirePerm(req, "customers.manage");
+    const str = (v: unknown, name: string, max: number, required = false) => {
+      if (v === undefined || v === null || v === "") { if (required) throw new BadRequestException(`${name} is required`); return null; }
+      if (typeof v !== "string" || v.length > max) throw new BadRequestException(`${name} must be up to ${max} characters`);
+      return v.trim();
+    };
+    const name = str(b?.customerName, "customerName", 120, true);
+    let built;
+    try { built = buildLines(b?.lines); } catch (e) { throw new BadRequestException((e as Error).message); }
+    if (b?.currency !== undefined && b.currency !== "" && !/^[A-Z]{3}$/.test(String(b.currency))) throw new BadRequestException("currency must be a 3-letter code such as CAD");
+    const status = b?.status === undefined ? "draft" : String(b.status);
+    if (!["draft", "sent"].includes(status)) throw new BadRequestException("status must be draft or sent");
+    const dueOn = b?.dueOn ? String(b.dueOn) : null;
+    if (dueOn && !/^\d{4}-\d{2}-\d{2}$/.test(dueOn)) throw new BadRequestException("dueOn must be YYYY-MM-DD");
+    return withOrg(this.pool, orgId, async (c) => {
+      const org = (await c.query("SELECT settings FROM organizations WHERE id = $1", [orgId])).rows[0];
+      const s = withDefaults(org.settings);
+      const tax = orgTax(org.settings, built.subtotal, b?.taxExempt === true);
+      const n = (await c.query<{ n: number }>("SELECT next_counter($1, 'invoice') AS n", [orgId])).rows[0]!.n;
+      const number = `INV-${new Date().getUTCFullYear()}-${String(n).padStart(4, "0")}`;
+      const row = (await c.query(
+        `INSERT INTO invoices (org_id, number, customer_name, customer_email, customer_address, status, due_on, currency, lines, subtotal, tax, tax_lines, total, notes, created_by)
+         VALUES ($1,$2,$3,$4,$5,$6, coalesce($7::date, current_date + $8::int), $9,$10,$11,$12,$13,$14,$15,$16) RETURNING id, number, total::float AS total`,
+        [orgId, number, name, str(b?.customerEmail, "customerEmail", 200), str(b?.customerAddress, "customerAddress", 300), status, dueOn, s.billing.paymentTermsDays, b?.currency || s.currency,
+          JSON.stringify(built.lines), built.subtotal, tax.total, JSON.stringify(tax.lines), round2(built.subtotal + tax.total), str(b?.notes, "notes", 1000), /^[0-9a-f-]{36}$/.test(req.session!.userId) ? req.session!.userId : null])).rows[0];
+      await emit(c, orgId, "invoice.created", "invoice", row.id, { invoiceId: row.id, number, total: row.total });
+      return row;
     });
   }
 

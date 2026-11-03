@@ -2,6 +2,7 @@
 import { Paperclip, Plus } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
 import type { MessageKey } from "@routenorth/shared";
+import { CommentsPanel } from "@/components/CommentsPanel";
 import { CustomFieldsPanel } from "@/components/CustomFieldsPanel";
 import { ProofGallery } from "@/components/ProofGallery";
 import { Chip, ErrorState, Modal, SkeletonList } from "@/components/ui/primitives";
@@ -145,6 +146,7 @@ export function JobPanel({ jobId, onClose, onChanged }: { jobId: string; onClose
 
           <JobLabel jobId={jobId} status={job.status} current={job.custom_status ?? null} onChanged={() => { d.reload(); onChanged(); }} />
           <CustomFieldsPanel entity="job" recordId={jobId} />
+          <CommentsPanel entity="job" entityId={jobId} />
 
           {d.data.stop && ["done", "failed"].includes(d.data.stop.status) && d.data.stop.proofCount > 0 && <ProofGallery stopId={d.data.stop.id} label={t("proofs")} />}
           {d.data.stop?.recipientName && <p className="meta">{t("receivedBy")}: {d.data.stop.recipientName}</p>}

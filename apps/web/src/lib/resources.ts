@@ -40,6 +40,10 @@ export const RESOURCE_VIEWS: Record<string, ResourceView> = {
   "faq-items": { columns: ["question", "lang", "sort", "published"], longText: ["answer"] },
   "status-notices": { columns: ["level", "title", "startsAt", "endsAt"], longText: ["body"] },
   "training-items": { columns: ["title", "lang", "sort", "active"], longText: ["body"] },
+  "shift-plans": { columns: ["startsAt", "endsAt", "driverId", "vehicleId", "note"], longText: ["note"] },
+  "rate-cards": { columns: ["name", "basis", "base", "minimum", "customerName", "active"], hideInForm: ["tiers", "zones"], longText: ["notes"] },
+  budgets: { columns: ["name", "category", "period", "amount", "vehicleId", "active"] },
+  contracts: { columns: ["customerName", "title", "startsOn", "endsOn", "value", "onTimeTargetPct", "status"], longText: ["notes"] },
   "route-templates": { columns: ["name", "vehicleId", "driverId", "startTime", "objective", "active"], hideInForm: ["stops"] },
 };
 

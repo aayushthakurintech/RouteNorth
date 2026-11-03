@@ -1,4 +1,4 @@
-import type { Permission } from "@routenorth/shared";
+import { checkRateCard, type Permission } from "@routenorth/shared";
 import { checkTarget, type EndpointKind } from "../notify/notifier.js";
 import { CUSTOMER_EVENTS, validateWorkflow } from "../automation/spec.js";
 
@@ -59,7 +59,7 @@ export const RESOURCES: readonly ResourceDef[] = [
       n("capacityKg", "capacity_kg", { min: 0, max: 200_000 }), n("capacityM3", "capacity_m3", { min: 0, max: 500 }), i("capacityItems", "capacity_items", { min: 0, max: 100_000 }),
       n("heightM", "height_m", { min: 0.5, max: 6 }), n("weightKg", "weight_kg", { min: 100, max: 200_000 }), b("hazmat", "hazmat"),
       n("batteryKwh", "battery_kwh", { min: 1, max: 2000 }), n("rangeKm", "range_km", { min: 1, max: 3000 }), n("odometerKm", "odometer_km", { min: 0, max: 10_000_000 }),
-      ref("depotId", "depot_id", "depots"), t("notes", "notes", { max: 2000 }), en("status", "status", ["active", "in_shop", "retired"]),
+      ref("depotId", "depot_id", "depots"), ref("teamId", "team_id", "teams"), t("notes", "notes", { max: 2000 }), en("status", "status", ["active", "in_shop", "retired"]),
     ],
   },
   {
@@ -152,10 +152,50 @@ export const RESOURCES: readonly ResourceDef[] = [
       d("scheduledDate", "scheduled_date", { filter: true }), { key: "windowStart", col: "window_start", type: "ts" }, { key: "windowEnd", col: "window_end", type: "ts" },
       i("serviceMin", "service_min", { min: 0, max: 600 }), n("weightKg", "weight_kg", { min: 0, max: 200_000 }), n("volumeM3", "volume_m3", { min: 0, max: 500 }), i("items", "items", { min: 0, max: 100_000 }),
       { key: "skills", col: "skills", type: "tags" }, { key: "tags", col: "tags", type: "tags" }, t("notes", "notes", { max: 2000 }),
-      ref("driverId", "driver_id", "drivers"), ref("vehicleId", "vehicle_id", "vehicles"), ref("routeId", "route_id", "@routes"),
+      ref("driverId", "driver_id", "drivers"), ref("vehicleId", "vehicle_id", "vehicles"), ref("routeId", "route_id", "@routes"), ref("teamId", "team_id", "teams"),
       t("reasonCode", "reason_code", { max: 40 }), t("reasonNote", "reason_note", { max: 500 }),
       n("price", "price", { min: 0, max: 10_000_000 }), t("customerInstructions", "customer_instructions", { max: 500 }),
     ],
+  },
+  {
+    name: "shift-plans", table: "shift_plans", view: ["routes.view"], write: "routes.dispatch", order: "starts_at", search: ["note"],
+    fields: [
+      ref("driverId", "driver_id", "drivers", { required: true }), { key: "startsAt", col: "starts_at", type: "ts", required: true }, { key: "endsAt", col: "ends_at", type: "ts", required: true },
+      ref("vehicleId", "vehicle_id", "vehicles"), t("note", "note", { max: 500 }),
+    ],
+    check: (v) => {
+      const a = Date.parse(String(v.startsAt)), e = Date.parse(String(v.endsAt));
+      if (!(e > a)) throw new Error("the shift must end after it starts");
+      if (e - a > 24 * 3_600_000) throw new Error("a planned shift is at most 24 hours");
+    },
+  },
+  {
+    name: "rate-cards", table: "rate_cards", view: ["reports.view", "customers.view"], write: "customers.manage", order: "name", search: ["name", "customer_name"],
+    fields: [
+      t("name", "name", { required: true, max: 120 }), en("basis", "basis", ["distance", "weight", "zone", "time"], { required: true }),
+      n("base", "base", { min: 0, max: 1_000_000 }), n("minimum", "minimum", { min: 0, max: 1_000_000 }),
+      { key: "tiers", col: "tiers", type: "json", json: "array" }, { key: "zones", col: "zones", type: "json", json: "array" },
+      t("customerName", "customer_name", { max: 120 }), b("active", "active"), t("notes", "notes", { max: 1000 }),
+    ],
+    check: (v) => { const bad = checkRateCard(v as Parameters<typeof checkRateCard>[0]); if (bad) throw new Error(bad); },
+  },
+  {
+    name: "budgets", table: "budgets", view: ["reports.view"], write: "customers.manage", order: "name", search: ["name"],
+    fields: [
+      t("name", "name", { required: true, max: 120 }), en("category", "category", ["fuel", "maintenance", "expenses", "total"], { required: true }),
+      en("period", "period", ["month", "quarter", "year"]), n("amount", "amount", { required: true, min: 0.01, max: 100_000_000 }),
+      ref("vehicleId", "vehicle_id", "vehicles"), b("active", "active"),
+    ],
+  },
+  {
+    name: "contracts", table: "contracts", view: ["reports.view", "customers.view"], write: "customers.manage", order: "customer_name, starts_on DESC", search: ["customer_name", "title"],
+    fields: [
+      t("customerName", "customer_name", { required: true, max: 120 }), t("title", "title", { required: true, max: 200 }),
+      d("startsOn", "starts_on", { required: true }), d("endsOn", "ends_on"), n("value", "value", { min: 0, max: 1_000_000_000 }),
+      n("onTimeTargetPct", "on_time_target_pct", { min: 0, max: 100 }), ref("rateCardId", "rate_card_id", "rate-cards"),
+      b("autoRenew", "auto_renew"), en("status", "status", ["draft", "active", "terminated"]), t("notes", "notes", { max: 2000 }),
+    ],
+    check: (v) => { if (v.endsOn && v.startsOn && String(v.endsOn) < String(v.startsOn)) throw new Error("the contract cannot end before it starts"); },
   },
   {
     name: "route-templates", table: "route_templates", view: ["routes.view"], write: "routes.write", order: "name", search: ["name"],
@@ -221,7 +261,7 @@ export const RESOURCES: readonly ResourceDef[] = [
     name: "alert-rules", table: "alert_rules", view: ["alerts.view"], write: "alerts.manage", order: "name", search: ["name"],
     fields: [
       t("name", "name", { required: true, max: 120 }),
-      en("kind", "kind", ["late_risk", "off_route", "long_idle", "speeding", "geofence", "offline", "harsh_driving", "document_expiry", "maintenance_due", "cost_anomaly", "custom_metric", "needs_break", "help_request"], { required: true }),
+      en("kind", "kind", ["late_risk", "off_route", "long_idle", "speeding", "geofence", "offline", "harsh_driving", "document_expiry", "maintenance_due", "cost_anomaly", "custom_metric", "needs_break", "help_request", "budget"], { required: true }),
       { key: "params", col: "params", type: "json", json: "object" }, en("severity", "severity", ["info", "warn", "critical"]),
       { key: "endpointIds", col: "endpoint_ids", type: "tags" }, b("notifyInapp", "notify_inapp"), { key: "quietStart", col: "quiet_start", type: "time" }, { key: "quietEnd", col: "quiet_end", type: "time" },
       i("groupMinutes", "group_minutes", { min: 0, max: 1440 }), b("active", "active"),
@@ -246,5 +286,5 @@ export const BY_NAME = new Map(RESOURCES.map((r) => [r.name, r]));
 /** Tables that "ref" fields point at (drivers are users whose role is driver). */
 export const REF_TABLES: Record<string, { table: string; where?: string }> = {
   vehicles: { table: "vehicles" }, depots: { table: "depots" }, "maintenance-plans": { table: "maintenance_plans" },
-  drivers: { table: "users", where: "role = 'driver'" }, "@routes": { table: "routes" }, "report-defs": { table: "report_defs" }, equipment: { table: "equipment" },
+  drivers: { table: "users", where: "role = 'driver'" }, "@routes": { table: "routes" }, "report-defs": { table: "report_defs" }, equipment: { table: "equipment" }, teams: { table: "teams" }, "rate-cards": { table: "rate_cards" },
 };

@@ -16,7 +16,7 @@ export const EXTRA_GROUPS: Record<string, Record<string, Spec>> = {
   billing: {
     province: en("ON", "AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"), taxMode: en("province", "province", "custom"),
     paymentTermsDays: num(30, 0, 180), quoteValidDays: num(14, 1, 180), payPerStop: num(0, 0, 1000), payPerKm: num(0, 0, 100), overtimeMultiplier: num(1.5, 1, 4),
-    budgetAlertPct: num(90, 10, 200), companyName: str("", 120), taxNumber: str("", 40),
+    budgetAlertPct: num(90, 10, 200), companyName: str("", 120), taxNumber: str("", 40), fxRates: str("", 300),
   },
   costing: { fuelPricePerL: num(1.7, 0, 20), wearPerKm: num(0.12, 0, 10), tollPerKm: num(0, 0, 10), evCostPerKm: num(0.05, 0, 10) },
   onboarding: { dismissed: bool(false), sampleLoaded: bool(false) },

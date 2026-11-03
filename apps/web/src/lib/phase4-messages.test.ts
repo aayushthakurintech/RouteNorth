@@ -7,6 +7,10 @@ const TRIGGERS = ["job.created", "job.assigned", "job.started", "job.arrived", "
 const ACTIONS = ["notify", "notify_customer", "notify_driver", "create_alert", "set_job", "request_approval", "create_invoice", "replan_route"];
 const EVENTS = ["received", "scheduled", "on_the_way", "minutes_away", "stops_away", "arrived", "delivered", "failed", "rescheduled", "cancelled"];
 const FAMILIES: Record<string, string[]> = {
+  bl_plan_: ["trial", "starter", "pro", "enterprise"], bl_m_: ["vehicles", "users", "jobs"], bl_qs_: ["draft", "sent", "accepted", "declined", "expired"], bl_bs_: ["ok", "warn", "over"],
+  bl_sla_: ["ok", "at_risk", "breached", "no_data"], bl_by_: ["customer", "job", "route"], bl_part_: ["base", "minimum"], tm_k_: ["team", "region", "depot_group"], tm_is_: ["open", "accepted", "revoked", "expired"],
+  tk_p_: ["low", "normal", "high"], sc_off_: ["vacation", "sick", "personal", "other"], res_: ["shift-plans", "rate-cards", "budgets", "contracts"],
+  f_: ["teamId", "basis", "base", "minimum", "tiers", "zones", "onTimeTargetPct", "rateCardId", "autoRenew", "startsOn", "endsOn", "startsAt", "endsAt", "category", "period", "amount", "value", "customerName", "title", "note", "notes", "name", "active"],
   wf_tr_: TRIGGERS, wf_a_: ACTIONS, wf_op_: ["eq", "ne", "gt", "gte", "lt", "lte", "contains", "in"], wf_run_: ["ok", "failed", "skipped"],
   cx_ev_: EVENTS, cx_p_: ["showDriver", "allowReschedule", "allowCancel", "allowInstructions", "allowReturns"],
   ap_s_: ["pending", "approved", "rejected"], ap_k_: ["overtime", "expense", "job", "custom"], hr_s_: ["open", "acknowledged", "resolved"],
@@ -31,7 +35,7 @@ const FAMILIES: Record<string, string[]> = {
   wh_s_: ["pending", "ok", "failed"], cj_s_: ["unassigned", "assigned", "started", "arrived", "done", "failed", "cancelled"],
   st_level_: ["operational", "degraded", "major"], st_n_: ["info", "minor", "major", "resolved"],
   vc_: ["arrive", "complete", "fail", "navigate", "help", "break_start", "break_end", "shift_end", "message"],
-  al_k_: ["needs_break", "help_request", "fatigue", "checkin_missed", "crash"], al_if_: ["needs_break", "help_request", "fatigue", "checkin_missed", "crash"], v_: ["en", "fr", "resolved", "help_request", "needs_break"],
+  al_k_: ["needs_break", "help_request", "fatigue", "checkin_missed", "crash", "budget"], al_if_: ["needs_break", "help_request", "fatigue", "checkin_missed", "crash"], v_: ["en", "fr", "resolved", "help_request", "needs_break", "distance", "weight", "zone", "time", "fuel", "maintenance", "expenses", "total", "month", "quarter", "year", "draft", "terminated"],
 };
 
 describe("Phase 4 strings", () => {
@@ -45,6 +49,6 @@ describe("Phase 4 strings", () => {
   }
   it("keeps the same placeholders in both languages", () => {
     const names = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(",");
-    for (const k of Object.keys(en)) if (k in fr && /^(wf_|wh_|cx_|cj_|bk_|st_|pt_|dx_|ts_|ex_|iv_|ap_|ib_|ai_|op_|sf_|integ_|cf_|cs_|imp_)/.test(k)) expect(names(fr[k]!), k).toBe(names(en[k]!));
+    for (const k of Object.keys(en)) if (k in fr && /^(wf_|wh_|cx_|cj_|bk_|st_|pt_|dx_|ts_|ex_|iv_|ap_|ib_|ai_|op_|sf_|integ_|cf_|cs_|imp_|bl_|tm_|tk_|sc_|cm_|inv_)/.test(k)) expect(names(fr[k]!), k).toBe(names(en[k]!));
   });
 });

@@ -407,3 +407,30 @@ table.plain tr.median th, table.plain tr.median td { color: var(--muted); font-s
 body.battery-saver *, body.battery-saver *::before, body.battery-saver *::after { animation: none !important; transition: none !important; }
 /* The driver app also has a .primary class (white text); inside a .btn the brand's own text colour must win, or dark mode loses contrast. */
 .btn.primary, button.btn.primary { background: var(--brand); color: var(--brand-fg); border-color: var(--brand); }
+
+/* Phase 6b: banners, meters, schedule grid, comments */
+.banner { padding: 10px 14px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font-size: 14px; }
+.banner.info { background: var(--info-soft); color: var(--info); border-color: transparent; }
+.banner.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+progress.meter { width: 120px; height: 8px; accent-color: var(--brand); vertical-align: middle; }
+progress.meter.warn { accent-color: var(--warn); }
+progress.meter.over { accent-color: var(--danger); }
+.sched { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+.sched th, .sched td { border: 1px solid var(--line); padding: 4px 6px; vertical-align: top; }
+.sched thead th { background: var(--surface); color: var(--muted); font-weight: 600; text-align: left; }
+.sched tbody th { text-align: left; width: 140px; font-weight: 600; background: var(--surface); }
+.sched .today { background: var(--brand-soft); }
+.shift-chip { display: block; margin: 2px 0; padding: 2px 6px; border-radius: var(--r); background: var(--info-soft); color: var(--info); font-size: 12px; line-height: 1.35; }
+.shift-chip.off { background: var(--surface-2); color: var(--fg-2); }
+.shift-chip.pending { border: 1px dashed var(--line-strong); }
+.shift-chip.clash { background: var(--warn-soft); color: var(--warn); font-weight: 600; }
+.comment { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.comment:last-child { border-bottom: 0; }
+.comment .who { font-weight: 600; font-size: 13px; }
+.comment .when { color: var(--muted); font-size: 12px; margin-inline-start: 8px; }
+.comment .mention { color: var(--brand); font-weight: 600; }
+.notif-list { max-height: 360px; overflow: auto; min-width: 280px; }
+.notif-item { display: block; padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--fg); text-decoration: none; }
+.notif-item.unread { background: var(--brand-soft); }
+.notif-item:hover { background: var(--surface-2); }
+@media (max-width: 720px) { .sched { table-layout: auto; min-width: 640px; } .sched-wrap { overflow-x: auto; } }

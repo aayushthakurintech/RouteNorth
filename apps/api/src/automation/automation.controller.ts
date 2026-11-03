@@ -1,7 +1,8 @@
 import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Inject, NotFoundException, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
 import { randomBytes } from "node:crypto";
-import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
+import { AuthGuard, requireAny, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
+import { addNotification } from "../business/notifications.js";
 import { parseUuid } from "../history/range.js";
 import { isSafeWebhookUrl, type Providers } from "../notify/notifier.js";
 import { NOTIFY, PG_POOL } from "../tokens.js";
@@ -204,6 +205,22 @@ export class ApprovalsController {
     return { pending: (await withOrg(this.pool, orgId, (c) => c.query("SELECT count(*)::int AS n FROM approvals WHERE status = 'pending'"))).rows[0].n };
   }
 
+  /** Ask for a sign-off on anything: a purchase, a schedule change, a policy exception. Managers see it in the list and decide. */
+  @Post()
+  async request(@Req() req: AuthedRequest, @Body() body: { title?: unknown; detail?: unknown }) {
+    const orgId = requireAny(req, "routes.write", "reports.manage", "fleet.manage");
+    const title = typeof body?.title === "string" ? body.title.trim() : "";
+    if (!title || title.length > 200) throw new BadRequestException("title is required (up to 200 characters)");
+    const detail = typeof body?.detail === "string" ? body.detail.trim().slice(0, 1000) : "";
+    const me = req.session!.userId;
+    return withOrg(this.pool, orgId, async (c) => {
+      const row = (await c.query("INSERT INTO approvals (org_id, kind, title, detail, requested_by) VALUES ($1,'custom',$2,$3,$4) RETURNING id, status", [orgId, title, JSON.stringify(detail ? { note: detail } : {}), /^[0-9a-f-]{36}$/.test(me) ? me : null])).rows[0];
+      const bosses = (await c.query("SELECT id FROM users WHERE role IN ('owner','admin','manager') AND disabled_at IS NULL AND id <> $1", [me])).rows;
+      for (const u of bosses) await addNotification(c, orgId, u.id, "approval", `Approval needed: ${title}`, "/approvals");
+      return row;
+    });
+  }
+
   @Post(":id/decide")
   @HttpCode(200)
   async decide(@Req() req: AuthedRequest, @Param("id") id: string, @Body() body: { decision?: unknown; note?: unknown }) {
@@ -216,6 +233,8 @@ export class ApprovalsController {
       if (!a) throw new NotFoundException("that approval is already decided or does not exist");
       if (a.kind === "expense" && a.subject_id) await c.query("UPDATE expenses SET status = $2, decided_by = $3, decided_at = now(), decision_note = $4 WHERE id = $1 AND status = 'submitted'", [a.subject_id, decision, req.session!.userId, note]);
       if (a.kind === "overtime" && a.subject_id) await c.query("UPDATE shifts SET overtime_status = $2 WHERE id = $1", [a.subject_id, decision]);
+      const asker = (await c.query("SELECT requested_by FROM approvals WHERE id = $1", [a.id])).rows[0]?.requested_by;
+      if (asker && asker !== req.session!.userId) await addNotification(c, orgId, asker, "approval", `Your request "${a.title}" was ${decision}`, "/approvals");
       await emit(c, orgId, "approval.decided", a.subject_kind ?? "approval", a.subject_id ?? a.id, { approvalId: a.id, kind: a.kind, decision, title: a.title });
       return { id: a.id, status: decision };
     });

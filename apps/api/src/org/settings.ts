@@ -26,7 +26,7 @@ export interface OrgSettings {
   overtimeAfterH: number;
   featureFlags: Record<string, boolean>;
   safety: { leaderboard: boolean; anonymous: boolean; coaching: boolean; crashDetection: boolean; fatigueWarnMin: number; fatigueStopMin: number; shiftWarnMin: number; shiftMaxMin: number; checkinGraceMin: number };
-  billing: { province: string; taxMode: string; paymentTermsDays: number; quoteValidDays: number; payPerStop: number; payPerKm: number; overtimeMultiplier: number; budgetAlertPct: number; companyName: string; taxNumber: string };
+  billing: { province: string; taxMode: string; paymentTermsDays: number; quoteValidDays: number; payPerStop: number; payPerKm: number; overtimeMultiplier: number; budgetAlertPct: number; companyName: string; taxNumber: string; fxRates: string };
   costing: { fuelPricePerL: number; wearPerKm: number; tollPerKm: number; evCostPerKm: number };
   onboarding: { dismissed: boolean; sampleLoaded: boolean };
   platform: { widgetOrigins: string; whiteLabel: boolean; poweredBy: boolean; analyticsOptOut: boolean; mapTileUrl: string; mapKey: string };

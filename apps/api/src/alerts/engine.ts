@@ -3,6 +3,7 @@ import { anomaly, daysToExpiry, detectCrash, detectSafetyEvents, distanceToPath,
 import { minutesSinceBreak } from "../driver/shifts.js";
 import { fatigueOf } from "../smart/fatigue.js";
 import { withDefaults } from "../org/settings.js";
+import { budgetRows } from "../business/money.js";
 import { breakdown, METRICS, summarize, type AnalyticsService } from "../analytics/analytics.service.js";
 import { deliver, type Endpoint, type Providers } from "../notify/notifier.js";
 
@@ -10,7 +11,7 @@ import { deliver, type Endpoint, type Providers } from "../notify/notifier.js";
  * Alert rules: "if this happens, tell these people". Each kind of rule looks at the live data and lists the things that match
  * right now. The engine then groups repeats, respects quiet hours, resolves alerts whose cause has gone away, and sends them.
  */
-export type RuleKind = "late_risk" | "off_route" | "long_idle" | "speeding" | "geofence" | "offline" | "harsh_driving" | "document_expiry" | "maintenance_due" | "cost_anomaly" | "custom_metric" | "needs_break" | "help_request" | "fatigue" | "checkin_missed" | "crash";
+export type RuleKind = "late_risk" | "off_route" | "long_idle" | "speeding" | "geofence" | "offline" | "harsh_driving" | "document_expiry" | "maintenance_due" | "cost_anomaly" | "custom_metric" | "needs_break" | "help_request" | "fatigue" | "checkin_missed" | "crash" | "budget";
 export interface Rule { id: string; name: string; kind: RuleKind; params: Record<string, unknown>; severity: "info" | "warn" | "critical"; endpointIds: string[]; quietStart: string | null; quietEnd: string | null; groupMinutes: number }
 export interface Candidate { key: string; title: string; detail: Record<string, unknown>; subjectKind?: string; subjectId?: string }
 interface Env { orgId: string; today: string; svc: AnalyticsService; now: Date }
@@ -197,6 +198,18 @@ export const EVALUATORS: Record<RuleKind, Evaluator> = {
         if (due.state === "overdue" || (soon && due.state === "due_soon")) out.push({ key: `maint:${pl.id}`, title: `${pl.vehicle}: ${pl.task} ${due.state === "overdue" ? "is overdue" : "is due soon"}`, detail: { dueOn: due.dueOn, daysLeft: due.daysLeft, kmLeft: due.kmLeft }, subjectKind: "vehicle", subjectId: pl.vehicleId });
       }
       return out;
+    },
+  },
+  budget: {
+    resolves: true,
+    async run(c, _p, e) {
+      const s = withDefaults((await c.query("SELECT settings FROM organizations WHERE id = $1", [e.orgId])).rows[0]?.settings);
+      const rows = await budgetRows(c, s.billing.budgetAlertPct, e.now, true);
+      return rows.filter((r) => r.state !== "ok").map((r) => ({
+        key: `budget:${r.id}:${r.from}`,
+        title: r.state === "over" ? `${r.name} is over budget (${r.pct}% of ${r.amount})` : `${r.name} has used ${r.pct}% of its budget`,
+        detail: { spent: r.spent, amount: r.amount, projected: r.projected, period: r.period, from: r.from, to: r.to }, subjectKind: "budget", subjectId: r.id,
+      }));
     },
   },
   cost_anomaly: {

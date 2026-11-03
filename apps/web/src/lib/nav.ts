@@ -2,7 +2,7 @@ import type { Permission } from "@routenorth/shared";
 import type { MessageKey } from "@routenorth/shared";
 import {
   Activity, AlertTriangle, Sparkles, Scale, ShieldCheck, MessageSquareHeart, BarChart3, Banknote, Clock, Inbox, Receipt, Workflow, CheckSquare, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
-  Plug, SlidersHorizontal, Upload, ScrollText, Settings, Truck, UsersRound, Warehouse, Wrench, type LucideIcon,
+  Plug, SlidersHorizontal, Upload, ScrollText, Settings, Truck, UsersRound, Warehouse, Wrench, CalendarDays, ListChecks, Wallet, Users, type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem {
@@ -47,9 +47,13 @@ export const NAV: NavItem[] = [
   { href: "/fleet/route-templates", label: "navTemplates", icon: Repeat, perms: ["routes.view"], group: "fleet", keywords: "recurring repeat modèles" },
   { href: "/timesheets", label: "navTimesheets", icon: Clock, perms: ["reports.view"], group: "fleet", keywords: "shifts hours overtime pay feuilles de temps quarts heures" },
   { href: "/expenses", label: "navExpenses", icon: Receipt, perms: ["reports.view"], group: "fleet", keywords: "receipts reimburse dépenses reçus" },
+  { href: "/tasks", label: "navTasks", icon: ListChecks, perms: ["routes.view"], group: "main", keywords: "to-do todo dispatcher reminders tâches à faire rappels" },
+  { href: "/schedule", label: "navSchedule", icon: CalendarDays, perms: ["routes.view"], group: "fleet", keywords: "shifts time off vacation calendar planning quarts congés horaire" },
+  { href: "/billing", label: "navBilling", icon: Wallet, perms: ["reports.view", "customers.view", "settings.manage", "billing.manage"], group: "admin", keywords: "plan trial quotes rate cards budget contracts payroll profit tax devis tarifs budgets contrats paie profit taxes forfait" },
   { href: "/invoices", label: "navInvoices", icon: Banknote, perms: ["customers.view"], group: "admin", keywords: "billing pdf factures facturation" },
   { href: "/settings", label: "navSettings", icon: Settings, perms: ["settings.manage"], group: "admin", keywords: "company branding paramètres" },
   { href: "/settings/customers", label: "navCustomerSettings", icon: MessageSquareHeart, perms: ["settings.manage"], group: "admin", keywords: "customer notifications booking portal status faq clients messages réservation" },
+  { href: "/settings/teams", label: "navTeams", icon: Users, perms: ["users.view", "fleet.view", "routes.view"], group: "admin", keywords: "regions depots groups invite activity équipes régions invitations activité" },
   { href: "/settings/users", label: "navUsers", icon: UsersRound, perms: ["users.view"], group: "admin", keywords: "people roles permissions users personnes" },
   { href: "/integrations", label: "navIntegrations", icon: Plug, perms: ["api.manage", "integrations.manage"], group: "admin", keywords: "api keys webhooks zapier make feeds sheets calendar email widget maps intégrations clés" },
   { href: "/settings/fields", label: "navFields", icon: SlidersHorizontal, perms: ["settings.manage"], group: "admin", keywords: "custom fields statuses labels champs personnalisés statuts" },

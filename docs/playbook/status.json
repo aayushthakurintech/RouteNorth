@@ -1134,5 +1134,73 @@
   "platform.8": {
     "s": "done",
     "note": "White-label branding on public tracking and widget pages, with powered-by toggle."
+  },
+  "teams.3": {
+    "s": "partial",
+    "note": "Teams, regions and depot groups (Settings > Teams) with people, vehicle and job filters. They group and filter only; they do not restrict who can see what."
+  },
+  "teams.5": {
+    "s": "done",
+    "note": "Invite by email or link with a role and team; the invitee opens the link, sets a password and joins. Email is sent only when an email provider is configured, otherwise the link is shown to copy."
+  },
+  "teams.6": {
+    "s": "done",
+    "note": "Activity tab on Teams reads the audit log by person."
+  },
+  "teams.7": {
+    "s": "done",
+    "note": "Comments with @mention autocomplete on jobs and tasks; mentions arrive in a notification bell."
+  },
+  "teams.8": {
+    "s": "done",
+    "note": "Tasks page with assignee, due date, priority, status and comments; assignees are notified."
+  },
+  "teams.9": {
+    "s": "partial",
+    "note": "Weekly schedule with shifts, time-off requests and clash flags in the office app. The driver app has no schedule or time-off screen yet."
+  },
+  "teams.10": {
+    "s": "done",
+    "note": "Custom approval requests join the Approvals queue with a decision note and a notification to the requester."
+  },
+  "billing.1": {
+    "s": "partial",
+    "note": "Free trial, plans and a usage estimate (base fee plus vehicles in use). Prices are placeholders, no payment is taken, and limits are soft."
+  },
+  "billing.2": {
+    "s": "external",
+    "note": "Plan and usage view is in-product. A card-and-receipts portal needs a payment provider account (Stripe), which is not connected."
+  },
+  "billing.3": {
+    "s": "done",
+    "note": "Quote and invoice builder with lines, tax, rate card pricing, quote to invoice conversion and an invoice PDF. Quotes have no PDF yet."
+  },
+  "billing.4": {
+    "s": "done",
+    "note": "Rate cards by distance, weight, zone or time with cumulative bands and a minimum charge."
+  },
+  "billing.5": {
+    "s": "done",
+    "note": "Driver pay from shifts, approved overtime, stops and kilometres, with a payroll CSV export."
+  },
+  "billing.6": {
+    "s": "done",
+    "note": "Expenses over the approval limit go to the Approvals queue (Phase 3)."
+  },
+  "billing.7": {
+    "s": "partial",
+    "note": "Profit per job, customer and route. Revenue is the invoice or job price; cost is an estimate from per-km and per-hour rates."
+  },
+  "billing.8": {
+    "s": "done",
+    "note": "Budgets compare fuel, repair and expense spend with a limit; a budget alert appears at the warning percentage or when the pace says it will overrun."
+  },
+  "billing.9": {
+    "s": "partial",
+    "note": "Canadian provincial tax (GST, HST, PST, QST) or a flat rate, plus manually entered FX rates. Rates should be confirmed against CRA before billing real customers."
+  },
+  "billing.10": {
+    "s": "done",
+    "note": "Contracts with terms, SLA targets and the on-time rate measured from deliveries."
   }
 }

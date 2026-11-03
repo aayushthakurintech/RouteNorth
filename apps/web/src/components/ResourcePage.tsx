@@ -3,6 +3,7 @@ import { Download, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { MessageKey } from "@routenorth/shared";
 import { DataTable, type Column } from "@/components/ui/DataTable";
+import BandsEditor from "@/components/BandsEditor";
 import { CustomFieldsPanel } from "@/components/CustomFieldsPanel";
 import { Chip, EmptyState, ErrorState, Modal, PageHead, SkeletonList } from "@/components/ui/primitives";
 import { API_URL, loadSession } from "@/lib/session";
@@ -21,7 +22,7 @@ const choice = (t: (k: MessageKey) => string, v: string) => t(`v_${v}` as Messag
 
 /** Lists the records that other records point at, so a form can offer them in a menu. */
 function useRefOptions(ref: string | undefined, enabled: boolean) {
-  const path = !enabled || !ref ? null : ref === "drivers" ? "/fleet/drivers" : ref === "@routes" ? null : `/r/${ref}`;
+  const path = !enabled || !ref ? null : ref === "drivers" ? "/fleet/drivers" : ref === "@routes" ? null : ref === "teams" ? "/teams" : `/r/${ref}`;
   const data = useApi<{ id: string; name?: string; title?: string; task?: string }[]>(path);
   return (data.data ?? []).map((r) => ({ id: r.id, name: r.name ?? r.title ?? r.task ?? r.id.slice(0, 8) }));
 }
@@ -114,7 +115,7 @@ function Attachments({ kind, id }: { kind: string; id: string }) {
   );
 }
 
-export default function ResourcePage({ name, extra, onOpen }: { name: string; extra?: ReactNode; onOpen?: (r: Row) => void }) {
+export default function ResourcePage({ name, extra, onOpen, embedded }: { name: string; extra?: ReactNode; onOpen?: (r: Row) => void; embedded?: boolean }) {
   const { t, locale } = useI18n();
   const { toast, undoable } = useToast();
   const { can } = useMe();
@@ -124,6 +125,8 @@ export default function ResourcePage({ name, extra, onOpen }: { name: string; ex
   const rows = useApi<Row[]>(schema ? `/r/${name}?limit=1000` : null);
   type RefList = { id: string; name: string }[];
   const refs: { vehicles: RefList; drivers: RefList; depots: RefList } & Record<string, RefList> = {
+    teams: useRefOptions("teams", !!schema?.fields.some((f) => f.ref === "teams")),
+    "rate-cards": useRefOptions("rate-cards", !!schema?.fields.some((f) => f.ref === "rate-cards")),
     vehicles: useRefOptions("vehicles", !!schema?.fields.some((f) => f.ref === "vehicles" || f.ref === "@owner")),
     drivers: useRefOptions("drivers", !!schema?.fields.some((f) => f.ref === "drivers" || f.ref === "@owner")),
     depots: useRefOptions("depots", !!schema?.fields.some((f) => f.ref === "depots")),
@@ -155,7 +158,7 @@ export default function ResourcePage({ name, extra, onOpen }: { name: string; ex
       render: (r: Row) => (f.key === "ownerId" ? (refs.vehicles.find((o) => o.id === r.ownerId) ?? refs.drivers.find((o) => o.id === r.ownerId))?.name ?? "—" : fmt(f, r[f.key])),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schema, view, t, refs.vehicles.length, refs.drivers.length, refs.depots.length, locale]);
+  }, [schema, view, t, refs.vehicles.length, refs.drivers.length, refs.depots.length, refs.teams?.length, refs["rate-cards"]?.length, locale]);
 
   if (!view) return <div className="content"><ErrorState error={new Error("404")} /></div>;
   const canWrite = !!schema?.canWrite;
@@ -210,8 +213,9 @@ export default function ResourcePage({ name, extra, onOpen }: { name: string; ex
   }] : columns;
 
   return (
-    <div className="content">
-      <PageHead
+    <div className={embedded ? "stack" : "content"}>
+      {embedded && <div className="row" style={{ justifyContent: "flex-end", gap: 8 }}>{canWrite && <button type="button" className="btn" onClick={() => startEdit()} disabled={!schema}><Plus size={16} aria-hidden />{t("rNew")}</button>}</div>}
+      {!embedded && <PageHead
         title={title}
         subtitle={!canWrite && schema ? t("rNoAccess") : undefined}
         actions={<>
@@ -223,7 +227,7 @@ export default function ResourcePage({ name, extra, onOpen }: { name: string; ex
           }}><Download size={16} aria-hidden />{t("rExport")}</a>}
           {canWrite && <button type="button" className="btn" onClick={() => startEdit()} disabled={!schema}><Plus size={16} aria-hidden />{t("rNew")}</button>}
         </>}
-      />
+      />}
       {extra}
       {(schemas.loading && !schemas.loaded) || (!rows.loaded && !rows.error && schema) ? <SkeletonList rows={6} h={38} /> : null}
       {(schemas.error || rows.error) && !rows.loaded && <ErrorState error={schemas.error ?? rows.error} onRetry={() => { schemas.reload(); rows.reload(); }} />}
@@ -245,6 +249,7 @@ export default function ResourcePage({ name, extra, onOpen }: { name: string; ex
                 <FieldInput f={f} form={editing.form} set={(k, v) => setEditing((s) => s && { ...s, form: { ...s.form, [k]: v } })} long={!!view.longText?.includes(f.key)} t={t} />
               </label>
             ))}
+            {name === "rate-cards" && <BandsEditor basis={String(editing.form.basis ?? "distance")} tiers={editing.form.tiers} zones={editing.form.zones} onTiers={(v) => setEditing((s) => s && { ...s, form: { ...s.form, tiers: v } })} onZones={(v) => setEditing((s) => s && { ...s, form: { ...s.form, zones: v } })} />}
             {name === "route-templates" && <RecurrenceEditor value={editing.form.recurrence} onChange={(v) => setEditing((s) => s && { ...s, form: { ...s.form, recurrence: v } })} />}
             {editing.id && view.attach && <Attachments kind={view.attach} id={editing.id} />}
             {editing.id && CUSTOM_ENTITY[name] && <CustomFieldsPanel entity={CUSTOM_ENTITY[name]!} recordId={editing.id} />}

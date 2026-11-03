@@ -43,6 +43,9 @@ import { OptimizeController } from "./smart/optimize.controller.js";
 import { SafetyController } from "./smart/safety.controller.js";
 import { PlatformController } from "./platform/platform.controller.js";
 import { DocsController, FeedsController, InboundController } from "./platform/feeds.controller.js";
+import { InvitesController, PublicInviteController, TeamsController } from "./business/team.controller.js";
+import { CommentsController, NotificationsController, ScheduleController, TasksController } from "./business/collab.controller.js";
+import { BillingController } from "./business/billing.controller.js";
 
 export interface AppOptions {
   pool: pg.Pool;
@@ -63,7 +66,7 @@ export class AppModule {
   static register(opts: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController, AutomationController, WebhooksController, ApprovalsController, PublicJobController, DriverExtrasController, MessagesController, HelpRequestsController, TimesheetsController, ExpensesController, PortalController, InvoicesController, MessageDefaultsController, AiController, OptimizeController, SafetyController, PlatformController, FeedsController, InboundController, DocsController],
+      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController, AutomationController, WebhooksController, ApprovalsController, PublicJobController, DriverExtrasController, MessagesController, HelpRequestsController, TimesheetsController, ExpensesController, PortalController, InvoicesController, MessageDefaultsController, AiController, OptimizeController, SafetyController, PlatformController, FeedsController, InboundController, DocsController, TeamsController, InvitesController, PublicInviteController, CommentsController, NotificationsController, TasksController, ScheduleController, BillingController],
       providers: [
         { provide: PG_POOL, useValue: opts.pool },
         { provide: POSITION_BUS, useValue: opts.bus },

@@ -2,6 +2,7 @@ import type { pg } from "@routenorth/db";
 import { haversine } from "@routenorth/shared";
 import { emit } from "../automation/events.js";
 import { withDefaults } from "../org/settings.js";
+import { orgTax } from "../business/money.js";
 import { customerOptions, type CustomerOptions } from "./settings.js";
 
 export interface Quote { distanceKm: number; base: number; distance: number; weight: number; rush: number; total: number; currency: string }
@@ -36,14 +37,15 @@ export async function createInvoiceForJob(c: pg.PoolClient, orgId: string, jobId
     sub = job.lat != null && job.lng != null ? estimateQuote(opt.booking, s.currency, { from: depot, to: { lat: job.lat, lng: job.lng }, weightKg: job.weight_kg }).total : opt.booking.minimum;
   }
   sub = round2(sub);
-  const tax = round2(sub * (s.taxRatePct / 100));
+  const taxed = orgTax(job.settings, sub);
+  const tax = taxed.total;
   const n = (await c.query<{ n: number }>("SELECT next_counter($1, 'invoice') AS n", [orgId])).rows[0]!.n;
   const number = `INV-${new Date().getUTCFullYear()}-${String(n).padStart(4, "0")}`;
   const lines = [{ description: job.ref ? `${job.title} (${job.ref})` : job.title, qty: 1, unitPrice: sub, amount: sub }];
   const row = (await c.query(
-    `INSERT INTO invoices (org_id, number, job_id, customer_name, customer_email, customer_address, status, due_on, currency, lines, subtotal, tax, total, created_by)
-     VALUES ($1,$2,$3,$4,$5,$6,'sent', current_date + 30, $7,$8,$9,$10,$11,$12) RETURNING id`,
-    [orgId, number, jobId, job.customer_name, job.customer_email, job.address, s.currency, JSON.stringify(lines), sub, tax, round2(sub + tax), createdBy])).rows[0];
+    `INSERT INTO invoices (org_id, number, job_id, customer_name, customer_email, customer_address, status, due_on, currency, lines, subtotal, tax, tax_lines, total, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,'sent', current_date + $13::int, $7,$8,$9,$10,$14,$11,$12) RETURNING id`,
+    [orgId, number, jobId, job.customer_name, job.customer_email, job.address, s.currency, JSON.stringify(lines), sub, tax, round2(sub + tax), createdBy, s.billing.paymentTermsDays, JSON.stringify(taxed.lines)])).rows[0];
   await emit(c, orgId, "invoice.created", "invoice", row.id, { invoiceId: row.id, number, total: round2(sub + tax), jobId });
   return { id: row.id, number, total: round2(sub + tax), existing: false };
 }

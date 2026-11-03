@@ -1,6 +1,7 @@
 "use client";
+import { Notifications } from "./Notifications";
 import {
-  Bell, ChevronsLeft, ChevronsRight, Keyboard, LogOut, Menu, Monitor, Moon, Pin, PinOff, Search, Sun, Contrast, UserRound,
+  Sparkles, ChevronsLeft, ChevronsRight, Keyboard, LogOut, Menu, Monitor, Moon, Pin, PinOff, Search, Sun, Contrast, UserRound,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -111,7 +112,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
       { id: "act:theme", label: `${t("theme")}: ${t("themeDark")} / ${t("themeLight")}`, group: "actions", keywords: "dark light mode sombre clair theme", icon: <Moon size={16} />, run: cycleTheme },
       { id: "act:nav", label: collapsed ? t("expandNav") : t("collapseNav"), group: "actions", icon: <ChevronsLeft size={16} />, run: () => setPrefs({ navCollapsed: !collapsed }) },
       { id: "act:keys", label: t("shortcuts"), group: "actions", keywords: "help aide raccourcis ?", icon: <Keyboard size={16} />, run: () => setHelp(true) },
-      { id: "act:news", label: t("whatsNew"), group: "actions", icon: <Bell size={16} />, run: () => setNews(true) },
+      { id: "act:news", label: t("whatsNew"), group: "actions", icon: <Sparkles size={16} />, run: () => setNews(true) },
       { id: "act:tour", label: t("setupTour"), group: "actions", icon: <UserRound size={16} />, run: () => setTour(true) },
       ...LOCALES.filter((l) => l !== locale).map((l): Command => ({ id: `act:lang:${l}`, label: `${t("language")}: ${LOCALE_NAMES[l]}`, group: "actions", keywords: "language langue", run: () => setLocale(l) })),
       { id: "act:signout", label: t("signOut"), group: "actions", icon: <LogOut size={16} />, run: signOut },
@@ -190,8 +191,9 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
               onClick={() => setPrefs({ favorites: pinned ? favorites.filter((f) => f.href !== pathname) : [...favorites, { href: pathname, label: pageLabel }].slice(-8) })}
             >{pinned ? <PinOff size={18} /> : <Pin size={18} />}</button>
           )}
+          <Notifications />
           <button type="button" className="icon-btn" aria-label={t("whatsNew")} title={t("whatsNew")} onClick={() => setNews(true)} style={{ position: "relative" }}>
-            <Bell size={18} />{unread && <span aria-label="•" style={{ position: "absolute", top: 6, insetInlineEnd: 7, width: 8, height: 8, borderRadius: "50%", background: "var(--danger)" }} />}
+            <Sparkles size={18} />{unread && <span aria-label="•" style={{ position: "absolute", top: 6, insetInlineEnd: 7, width: 8, height: 8, borderRadius: "50%", background: "var(--danger)" }} />}
           </button>
           <div className="rel" ref={menuRef}>
             <button type="button" className="icon-btn" aria-label={t("accountMenu")} aria-expanded={menu} onClick={() => setMenu((v) => !v)}><UserRound size={20} /></button>
