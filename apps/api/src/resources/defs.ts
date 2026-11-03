@@ -1,0 +1,173 @@
+import type { Permission } from "@routenorth/shared";
+
+export type FieldType = "text" | "int" | "num" | "bool" | "date" | "ts" | "time" | "ref" | "enum" | "tags" | "json";
+
+export interface Field {
+  /** API (camelCase) name */
+  key: string;
+  /** database column (snake_case) */
+  col: string;
+  type: FieldType;
+  required?: boolean;
+  max?: number;
+  min?: number;
+  values?: readonly string[];
+  /** For type "ref": which resource the id must belong to. */
+  ref?: string;
+  /** Large value (a photo): left out of lists. */
+  heavy?: boolean;
+  /** Allow filtering the list with ?key=value. */
+  filter?: boolean;
+  /** For json: the expected shape. */
+  json?: "array" | "object";
+}
+
+export interface ResourceDef {
+  name: string;
+  table: string;
+  view: readonly Permission[];
+  write: Permission;
+  fields: readonly Field[];
+  order: string;
+  search: readonly string[];
+  /** Extra checks after field validation (cross-field rules). Throw BadRequestException. */
+  check?: (v: Record<string, unknown>, existing: Record<string, unknown> | null) => void;
+}
+
+const t = (key: string, col: string, o: Partial<Field> = {}): Field => ({ key, col, type: "text", max: 300, ...o });
+const n = (key: string, col: string, o: Partial<Field> = {}): Field => ({ key, col, type: "num", ...o });
+const i = (key: string, col: string, o: Partial<Field> = {}): Field => ({ key, col, type: "int", ...o });
+const d = (key: string, col: string, o: Partial<Field> = {}): Field => ({ key, col, type: "date", ...o });
+const ref = (key: string, col: string, to: string, o: Partial<Field> = {}): Field => ({ key, col, type: "ref", ref: to, filter: true, ...o });
+const en = (key: string, col: string, values: readonly string[], o: Partial<Field> = {}): Field => ({ key, col, type: "enum", values, filter: true, ...o });
+const b = (key: string, col: string, o: Partial<Field> = {}): Field => ({ key, col, type: "bool", ...o });
+
+const FLEET_VIEW: readonly Permission[] = ["fleet.view", "routes.view"];
+
+export const VEHICLE_KINDS = ["truck", "bus", "van", "car"] as const;
+
+export const RESOURCES: readonly ResourceDef[] = [
+  {
+    name: "vehicles", table: "vehicles", view: FLEET_VIEW, write: "fleet.manage", order: "name", search: ["name", "plate", "vin", "make", "model"],
+    fields: [
+      t("name", "name", { required: true, max: 120 }), en("kind", "kind", VEHICLE_KINDS), t("plate", "plate", { max: 20 }), t("vin", "vin", { max: 17 }),
+      t("make", "make", { max: 60 }), t("model", "model", { max: 60 }), i("year", "year", { min: 1950, max: 2100 }), t("color", "color", { max: 30 }),
+      { key: "photoDataUrl", col: "photo_data_url", type: "text", max: 400_000, heavy: true },
+      en("fuelType", "fuel_type", ["diesel", "gasoline", "electric", "hybrid", "propane", "cng"]),
+      n("capacityKg", "capacity_kg", { min: 0, max: 200_000 }), n("capacityM3", "capacity_m3", { min: 0, max: 500 }), i("capacityItems", "capacity_items", { min: 0, max: 100_000 }),
+      n("heightM", "height_m", { min: 0.5, max: 6 }), n("weightKg", "weight_kg", { min: 100, max: 200_000 }), b("hazmat", "hazmat"),
+      n("batteryKwh", "battery_kwh", { min: 1, max: 2000 }), n("rangeKm", "range_km", { min: 1, max: 3000 }), n("odometerKm", "odometer_km", { min: 0, max: 10_000_000 }),
+      ref("depotId", "depot_id", "depots"), t("notes", "notes", { max: 2000 }), en("status", "status", ["active", "in_shop", "retired"]),
+    ],
+  },
+  {
+    name: "depots", table: "depots", view: FLEET_VIEW, write: "fleet.manage", order: "name", search: ["name", "address"],
+    fields: [
+      t("name", "name", { required: true, max: 120 }), t("address", "address"), n("lat", "lat", { required: true, min: -90, max: 90 }), n("lng", "lng", { required: true, min: -180, max: 180 }),
+      i("radiusM", "radius_m", { min: 20, max: 5000 }), i("spots", "spots", { min: 0, max: 100_000 }), t("notes", "notes", { max: 2000 }),
+    ],
+  },
+  {
+    name: "equipment", table: "equipment", view: FLEET_VIEW, write: "fleet.manage", order: "name", search: ["name", "plate", "serial"],
+    fields: [
+      en("kind", "kind", ["trailer", "equipment"]), t("name", "name", { required: true, max: 120 }), t("plate", "plate", { max: 20 }), t("serial", "serial", { max: 60 }),
+      n("capacityKg", "capacity_kg", { min: 0, max: 200_000 }), ref("vehicleId", "vehicle_id", "vehicles"), ref("depotId", "depot_id", "depots"),
+      en("status", "status", ["available", "in_use", "maintenance", "retired"]), t("notes", "notes", { max: 2000 }),
+    ],
+  },
+  {
+    name: "documents", table: "documents", view: FLEET_VIEW, write: "fleet.manage", order: "expires_on NULLS LAST", search: ["kind", "number"],
+    fields: [
+      en("ownerKind", "owner_kind", ["vehicle", "driver", "equipment"], { required: true }), { key: "ownerId", col: "owner_id", type: "ref", ref: "@owner", required: true, filter: true },
+      t("kind", "kind", { required: true, max: 60 }), t("number", "number", { max: 60 }), d("issuedOn", "issued_on"), d("expiresOn", "expires_on", { filter: true }),
+      i("remindDays", "remind_days", { min: 0, max: 365 }), t("notes", "notes", { max: 1000 }),
+    ],
+  },
+  {
+    name: "maintenance-plans", table: "maintenance_plans", view: FLEET_VIEW, write: "fleet.manage", order: "task", search: ["task"],
+    fields: [
+      ref("vehicleId", "vehicle_id", "vehicles", { required: true }), t("task", "task", { required: true, max: 120 }),
+      i("everyDays", "every_days", { min: 1, max: 3650 }), i("everyKm", "every_km", { min: 1, max: 1_000_000 }),
+      d("lastDoneOn", "last_done_on"), n("lastDoneKm", "last_done_km", { min: 0, max: 10_000_000 }), t("notes", "notes", { max: 1000 }),
+    ],
+    check: (v) => {
+      if (v.everyDays == null && v.everyKm == null) throw new Error("everyDays or everyKm is required");
+    },
+  },
+  {
+    name: "maintenance-logs", table: "maintenance_logs", view: FLEET_VIEW, write: "fleet.manage", order: "done_on DESC", search: ["task", "vendor"],
+    fields: [
+      ref("vehicleId", "vehicle_id", "vehicles", { required: true }), ref("planId", "plan_id", "maintenance-plans"), t("task", "task", { required: true, max: 120 }),
+      d("doneOn", "done_on", { required: true, filter: true }), n("odometerKm", "odometer_km", { min: 0, max: 10_000_000 }), n("cost", "cost", { min: 0, max: 10_000_000 }),
+      t("vendor", "vendor", { max: 120 }), t("notes", "notes", { max: 1000 }),
+    ],
+  },
+  {
+    name: "fuel-logs", table: "fuel_logs", view: FLEET_VIEW, write: "fleet.manage", order: "filled_on DESC", search: ["station"],
+    fields: [
+      ref("vehicleId", "vehicle_id", "vehicles", { required: true }), ref("driverId", "driver_id", "drivers"), d("filledOn", "filled_on", { required: true, filter: true }),
+      n("litres", "litres", { required: true, min: 0.1, max: 4999 }), n("cost", "cost", { min: 0, max: 1_000_000 }), n("odometerKm", "odometer_km", { min: 0, max: 10_000_000 }),
+      t("station", "station", { max: 120 }), t("cardLast4", "card_last4", { max: 4 }), en("source", "source", ["manual", "import"]),
+    ],
+  },
+  {
+    name: "inspections", table: "inspections", view: FLEET_VIEW, write: "fleet.manage", order: "at DESC", search: ["notes"],
+    fields: [
+      ref("vehicleId", "vehicle_id", "vehicles", { required: true }), ref("driverId", "driver_id", "drivers"), en("kind", "kind", ["check_out", "check_in"], { required: true }),
+      { key: "items", col: "items", type: "json", json: "array" }, b("defects", "defects"), n("odometerKm", "odometer_km", { min: 0, max: 10_000_000 }),
+      t("notes", "notes", { max: 2000 }), { key: "at", col: "at", type: "ts" },
+    ],
+  },
+  {
+    name: "incidents", table: "incidents", view: FLEET_VIEW, write: "fleet.manage", order: "occurred_at DESC", search: ["description", "location"],
+    fields: [
+      ref("vehicleId", "vehicle_id", "vehicles"), ref("driverId", "driver_id", "drivers"), { key: "occurredAt", col: "occurred_at", type: "ts" },
+      en("kind", "kind", ["accident", "near_miss", "theft", "damage", "breakdown", "other"]), en("severity", "severity", ["minor", "moderate", "major"]),
+      t("description", "description", { required: true, max: 4000 }), n("lat", "lat", { min: -90, max: 90 }), n("lng", "lng", { min: -180, max: 180 }), t("location", "location"),
+      b("injuries", "injuries"), t("policeReport", "police_report", { max: 60 }), en("status", "status", ["open", "investigating", "closed"]),
+    ],
+  },
+  {
+    name: "geofences", table: "geofences", view: ["fleet.view", "alerts.view"], write: "alerts.manage", order: "name", search: ["name"],
+    fields: [
+      t("name", "name", { required: true, max: 120 }), en("shape", "shape", ["circle", "polygon"]), n("lat", "lat", { min: -90, max: 90 }), n("lng", "lng", { min: -180, max: 180 }),
+      i("radiusM", "radius_m", { min: 10, max: 100_000 }), { key: "polygon", col: "polygon", type: "json", json: "array" },
+      en("alertOn", "alert_on", ["enter", "exit", "both", "none"]), t("color", "color", { max: 9 }), b("active", "active"), t("notes", "notes", { max: 1000 }),
+    ],
+    check: (v) => {
+      const shape = v.shape ?? "circle";
+      if (shape === "circle" && (v.lat == null || v.lng == null || v.radiusM == null)) throw new Error("a circle needs lat, lng and radiusM");
+      if (shape === "polygon" && (!Array.isArray(v.polygon) || v.polygon.length < 3)) throw new Error("a polygon needs at least 3 points");
+    },
+  },
+  {
+    name: "jobs", table: "jobs", view: ["routes.view"], write: "routes.write", order: "scheduled_date DESC NULLS LAST, created_at DESC", search: ["title", "ref", "customer_name", "address"],
+    fields: [
+      t("ref", "ref", { max: 60 }), en("type", "type", ["pickup", "delivery", "service", "inspection"]), en("priority", "priority", ["low", "normal", "high", "urgent"]),
+      en("status", "status", ["unassigned", "assigned", "started", "arrived", "done", "failed", "cancelled"]),
+      t("title", "title", { required: true, max: 200 }), t("customerName", "customer_name", { max: 120 }), t("customerPhone", "customer_phone", { max: 40 }), t("customerEmail", "customer_email", { max: 200 }),
+      t("address", "address"), n("lat", "lat", { min: -90, max: 90 }), n("lng", "lng", { min: -180, max: 180 }),
+      d("scheduledDate", "scheduled_date", { filter: true }), { key: "windowStart", col: "window_start", type: "ts" }, { key: "windowEnd", col: "window_end", type: "ts" },
+      i("serviceMin", "service_min", { min: 0, max: 600 }), n("weightKg", "weight_kg", { min: 0, max: 200_000 }), n("volumeM3", "volume_m3", { min: 0, max: 500 }), i("items", "items", { min: 0, max: 100_000 }),
+      { key: "skills", col: "skills", type: "tags" }, { key: "tags", col: "tags", type: "tags" }, t("notes", "notes", { max: 2000 }),
+      ref("driverId", "driver_id", "drivers"), ref("vehicleId", "vehicle_id", "vehicles"), ref("routeId", "route_id", "@routes"),
+      t("reasonCode", "reason_code", { max: 40 }), t("reasonNote", "reason_note", { max: 500 }),
+    ],
+  },
+  {
+    name: "route-templates", table: "route_templates", view: ["routes.view"], write: "routes.write", order: "name", search: ["name"],
+    fields: [
+      t("name", "name", { required: true, max: 200 }), ref("vehicleId", "vehicle_id", "vehicles"), ref("driverId", "driver_id", "drivers"), ref("depotId", "depot_id", "depots"),
+      en("objective", "objective", ["time", "distance"]), { key: "avoid", col: "avoid", type: "tags" }, { key: "startTime", col: "start_time", type: "time" },
+      { key: "stops", col: "stops", type: "json", json: "array" }, { key: "recurrence", col: "recurrence", type: "json", json: "object" }, b("active", "active"),
+    ],
+  },
+];
+
+export const BY_NAME = new Map(RESOURCES.map((r) => [r.name, r]));
+
+/** Tables that "ref" fields point at (drivers are users whose role is driver). */
+export const REF_TABLES: Record<string, { table: string; where?: string }> = {
+  vehicles: { table: "vehicles" }, depots: { table: "depots" }, "maintenance-plans": { table: "maintenance_plans" },
+  drivers: { table: "users", where: "role = 'driver'" }, "@routes": { table: "routes" }, equipment: { table: "equipment" },
+};

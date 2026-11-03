@@ -15,6 +15,7 @@ import { UsersController } from "./users/users.controller.js";
 import { HistoryController } from "./history/history.controller.js";
 import { LiveGateway } from "./live/live.gateway.js";
 import type { PositionBus } from "./live/position-bus.js";
+import { ResourcesController } from "./resources/resources.controller.js";
 import { RoutesController } from "./routes/routes.controller.js";
 import { JWT_SECRET, PG_POOL, POSITION_BUS } from "./tokens.js";
 import { VehiclesController } from "./vehicles/vehicles.controller.js";
@@ -30,7 +31,7 @@ export class AppModule {
   static register(opts: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController],
+      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController],
       providers: [
         { provide: PG_POOL, useValue: opts.pool },
         { provide: POSITION_BUS, useValue: opts.bus },
