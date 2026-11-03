@@ -3,6 +3,7 @@ import { NestFactory } from "@nestjs/core";
 import { pg } from "@routenorth/db";
 import { AppModule } from "./app.module.js";
 import { configureApp } from "./configure.js";
+import { providerFromEnv } from "./plan/providers.js";
 import { MemoryPositionBus, RedisPositionBus } from "./live/position-bus.js";
 
 const databaseUrl = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL;
@@ -15,6 +16,7 @@ const app = await NestFactory.create(
     pool: new pg.Pool({ connectionString: databaseUrl }),
     bus: process.env.REDIS_URL ? new RedisPositionBus(process.env.REDIS_URL) : new MemoryPositionBus(),
     jwtSecret,
+    routing: providerFromEnv(),
   }),
 );
 configureApp(app);

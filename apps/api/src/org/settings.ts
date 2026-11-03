@@ -17,6 +17,9 @@ export interface OrgSettings {
   defaultMapProvider: "osm" | "maptiler" | "mapbox" | "here" | "google";
   currency: string;
   taxRatePct: number;
+  /** What a kilometer and an hour of driving cost, for comparing route plans. */
+  costPerKm: number;
+  costPerHour: number;
   featureFlags: Record<string, boolean>;
   [key: string]: unknown;
 }
@@ -32,6 +35,8 @@ export const DEFAULT_SETTINGS: OrgSettings = {
   defaultMapProvider: "osm",
   currency: "CAD",
   taxRatePct: 13,
+  costPerKm: 0.9,
+  costPerHour: 35,
   featureFlags: {},
 };
 
@@ -60,7 +65,7 @@ export function parseSettingsPatch(body: unknown): Partial<OrgSettings> {
     if (!Number.isFinite(v) || v < min || v > max) throw new Error(`${String(k)} must be between ${min} and ${max}`);
     (out as Record<string, unknown>)[k as string] = v;
   };
-  num("idleThresholdMin", 1, 120); num("speedLimitKmh", 20, 200); num("sessionHours", 1, 720); num("taxRatePct", 0, 30);
+  num("idleThresholdMin", 1, 120); num("speedLimitKmh", 20, 200); num("sessionHours", 1, 720); num("taxRatePct", 0, 30); num("costPerKm", 0, 100); num("costPerHour", 0, 1000);
   if (b.trackOnlyDuringShift !== undefined) out.trackOnlyDuringShift = Boolean(b.trackOnlyDuringShift);
   if (b.twoFactorRequired !== undefined) out.twoFactorRequired = Boolean(b.twoFactorRequired);
   if (b.quietHours !== undefined) {

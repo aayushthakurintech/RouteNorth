@@ -6,6 +6,7 @@ import request from "supertest";
 import { AppModule } from "./app.module.js";
 import { configureApp } from "./configure.js";
 import { MemoryPositionBus } from "./live/position-bus.js";
+import type { RoutingProvider } from "./plan/providers.js";
 import { hashPassword } from "./passwords.js";
 
 export const ADMIN_URL = process.env.DATABASE_URL;
@@ -32,7 +33,7 @@ export interface Harness {
  * Starts the API against a throwaway database (the `public` schema is reset!) with two organizations:
  * A (owner a@example.com) and B (viewer b@example.com). Used by the tests of each feature area.
  */
-export async function startHarness(): Promise<Harness> {
+export async function startHarness(opts: { routing?: RoutingProvider | null } = {}): Promise<Harness> {
   const admin = new pg.Pool({ connectionString: ADMIN_URL });
   await admin.query("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
   await admin.query(`DO $$ BEGIN
@@ -62,7 +63,7 @@ export async function startHarness(): Promise<Harness> {
   await addUser(orgB, "b@example.com", "viewer");
 
   const bus = new MemoryPositionBus();
-  const mod = await Test.createTestingModule({ imports: [AppModule.register({ pool: app, bus, jwtSecret: SECRET })] }).compile();
+  const mod = await Test.createTestingModule({ imports: [AppModule.register({ pool: app, bus, jwtSecret: SECRET, routing: opts.routing })] }).compile();
   const nest = mod.createNestApplication();
   configureApp(nest);
   await nest.listen(0);
