@@ -18,5 +18,6 @@ const app = await NestFactory.create(
   }),
 );
 configureApp(app);
-app.enableCors({ origin: process.env.WEB_ORIGIN ?? "http://localhost:3000" });
+// localhost and 127.0.0.1 are different origins to a browser, so allow both by default.
+app.enableCors({ origin: process.env.WEB_ORIGIN?.split(",") ?? ["http://localhost:3000", "http://127.0.0.1:3000"] });
 await app.listen(Number(process.env.PORT ?? 4000));
