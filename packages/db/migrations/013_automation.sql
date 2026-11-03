@@ -50,6 +50,8 @@ ALTER TABLE jobs
   ADD COLUMN source text NOT NULL DEFAULT 'office' CHECK (source IN ('office','import','booking','portal','api','email','store','return')),
   ADD COLUMN parent_job_id uuid;
 
+ALTER TABLE driver_profiles ADD COLUMN photo_data_url text CHECK (photo_data_url IS NULL OR (length(photo_data_url) <= 300000 AND photo_data_url ~ '^data:image/(jpeg|png|webp);base64,'));
+
 -- ---------------------------------------------------------------------------------------------------------------
 -- The event feed everything else listens to (workflows, webhooks, customer messages).
 -- ---------------------------------------------------------------------------------------------------------------

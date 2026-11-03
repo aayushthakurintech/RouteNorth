@@ -281,4 +281,18 @@ export class FleetController {
       return { ok: true };
     });
   }
+
+  /** The driver's photo, shown to customers who have opted in to seeing who is coming. */
+  @Put("drivers/:id/photo")
+  async driverPhoto(@Req() req: AuthedRequest, @Param("id") id: string, @Body() body: { dataUrl?: unknown }) {
+    const orgId = requirePerm(req, "fleet.manage");
+    const uid = parseUuid(id);
+    const url = body?.dataUrl;
+    if (url !== null && (typeof url !== "string" || url.length > 300_000 || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(url))) throw new BadRequestException("send a JPEG, PNG or WebP photo under about 200 KB, or null to remove it");
+    return withOrg(this.pool, orgId, async (c) => {
+      if (!(await c.query("SELECT 1 FROM users WHERE id = $1 AND role = 'driver'", [uid])).rowCount) throw new NotFoundException();
+      await c.query("INSERT INTO driver_profiles (user_id, org_id, photo_data_url) VALUES ($1,$2,$3) ON CONFLICT (user_id) DO UPDATE SET photo_data_url = EXCLUDED.photo_data_url, updated_at = now()", [uid, orgId, url]);
+      return { ok: true };
+    });
+  }
 }

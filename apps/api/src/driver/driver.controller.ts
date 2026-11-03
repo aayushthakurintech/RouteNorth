@@ -10,6 +10,7 @@ import { parseUuid } from "../history/range.js";
 import { PG_POOL } from "../tokens.js";
 import { MAX_PROOF_BYTES, PROOF_TYPES } from "../configure.js";
 import { matchesImageType } from "./proof-files.js";
+import { endShift, openShift, startShift } from "./shifts.js";
 
 const STATUSES = ["pending", "arrived", "done", "failed", "skipped"];
 const FINAL = ["done", "failed", "skipped"];
@@ -61,7 +62,7 @@ export class DriverController {
             `SELECT s.id, s.sequence, s.name, s.address, s.lat, s.lng, s.radius_m AS "radiusM", s.window_start AS "windowStart",
                     s.window_end AS "windowEnd", s.packages, s.notes, s.status, s.failure_reason AS "failureReason", s.eta,
                     s.arrived_at AS "arrivedAt", s.departed_at AS "departedAt", s.driver_notes AS "driverNotes",
-                    s.recipient_name AS "recipientName",
+                    s.recipient_name AS "recipientName", (SELECT j.customer_instructions FROM jobs j WHERE j.id = s.job_id) AS "customerInstructions",
                     (SELECT count(*)::int FROM proofs p WHERE p.stop_id = s.id) AS "proofCount"
              FROM stops s WHERE s.route_id = $1 ORDER BY s.sequence`,
             [r.id],
@@ -122,7 +123,14 @@ export class DriverController {
           [id],
         )
       ).rows[0];
-      const route = (await c.query("SELECT status FROM routes WHERE id = $1", [cur.route_id])).rows[0];
+      const route = (await c.query("SELECT status, route_date FROM routes WHERE id = $1", [cur.route_id])).rows[0];
+      // The timesheet runs itself: the first action of the day starts a shift, and finishing the last route ends one that was started this way.
+      if (status !== "pending") await startShift(c, orgId, userId, "auto", at);
+      if (route.status === "completed") {
+        const more = await c.query("SELECT 1 FROM routes WHERE driver_id = $1 AND route_date = $2 AND status IN ('planned','in_progress')", [userId, route.route_date]);
+        const shift = await openShift(c, userId);
+        if (!more.rowCount && shift?.source === "auto") await endShift(c, orgId, userId, at);
+      }
       return { stop, routeStatus: route.status };
     });
   }

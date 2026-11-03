@@ -45,10 +45,10 @@ function logoBuffer(url: string | null): Buffer | null {
   const m = url ? /^data:image\/(png|jpe?g);base64,([A-Za-z0-9+/=]+)$/.exec(url) : null;
   return m ? Buffer.from(m[2]!, "base64") : null;
 }
-function collect(doc: PDFKit.PDFDocument): Promise<Buffer> {
+export function collect(doc: PDFKit.PDFDocument): Promise<Buffer> {
   return new Promise((ok, fail) => { const parts: Buffer[] = []; doc.on("data", (d: Buffer) => parts.push(d)); doc.on("end", () => ok(Buffer.concat(parts))); doc.on("error", fail); doc.end(); });
 }
-function header(doc: PDFKit.PDFDocument, brand: Brand, title: string, sub: string) {
+export function pdfHeader(doc: PDFKit.PDFDocument, brand: Brand, title: string, sub: string) {
   const color = hex(brand.color);
   doc.rect(0, 0, doc.page.width, 64).fill(color);
   let x = 36;
@@ -65,7 +65,7 @@ function header(doc: PDFKit.PDFDocument, brand: Brand, title: string, sub: strin
 export async function toPdf(r: Pick<ReportResult, "columns" | "rows" | "totals" | "range">, o: { brand: Brand; title: string; labels?: Labels; footer?: string }): Promise<Buffer> {
   const doc = new PDFDocument({ size: "LETTER", layout: r.columns.length > 6 ? "landscape" : "portrait", margin: 36, info: { Title: o.title, Producer: "RouteNorth" } });
   const out = collect(doc);
-  const color = header(doc, o.brand, o.title, `${r.range.from} – ${r.range.to}   ·   ${r.rows.length} rows`);
+  const color = pdfHeader(doc, o.brand, o.title, `${r.range.from} – ${r.range.to}   ·   ${r.rows.length} rows`);
   const labels = o.labels ?? {};
   const W = doc.page.width - 72;
   const cols = r.columns.slice(0, 12);
@@ -123,7 +123,7 @@ export async function executivePdf(o: { brand: Brand; range: { from: string; to:
   const fr = o.lang === "fr";
   const doc = new PDFDocument({ size: "LETTER", margin: 36, info: { Title: fr ? "Sommaire exécutif" : "Executive summary", Producer: "RouteNorth" } });
   const out = collect(doc);
-  const color = header(doc, o.brand, fr ? "Sommaire exécutif" : "Executive summary", `${o.range.from} – ${o.range.to}`);
+  const color = pdfHeader(doc, o.brand, fr ? "Sommaire exécutif" : "Executive summary", `${o.range.from} – ${o.range.to}`);
   const W = doc.page.width - 72, tw = (W - 20) / 3, th = 70;
   KPI_TILES.forEach(([k, en, frl, unit, good], i) => {
     const x = 36 + (i % 3) * (tw + 10), y = 100 + Math.floor(i / 3) * (th + 10);

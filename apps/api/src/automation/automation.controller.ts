@@ -11,7 +11,7 @@ import { ACTION_TYPES, ALL_TRIGGERS, conditionsHold, CUSTOMER_EVENTS, EVENT_TRIG
 import { WORKFLOW_TEMPLATES } from "./templates.js";
 
 /** Events a webhook can subscribe to (an empty list means all of them). */
-export const WEBHOOK_EVENTS: readonly string[] = [...EVENT_TRIGGERS, "approval.decided", "invoice.created"];
+export const WEBHOOK_EVENTS: readonly string[] = [...EVENT_TRIGGERS, "approval.decided", "invoice.created", "invoice.updated"];
 /** Fields a condition can look at, for the builder's drop-down. */
 const FIELDS = ["job.priority", "job.type", "job.status", "job.title", "job.customer", "job.tags", "job.weight_kg", "job.price", "job.source", "job.age_min", "driver.name", "route.name",
   "help.kind", "expense.amount", "expense.kind", "feedback.csat", "feedback.nps", "alert.severity", "alert.kind", "shift.hours", "message.from"];

@@ -1,5 +1,6 @@
 import type { pg } from "@routenorth/db";
 import { haversine } from "@routenorth/shared";
+import { emit } from "../automation/events.js";
 import { withDefaults } from "../org/settings.js";
 import { customerOptions, type CustomerOptions } from "./settings.js";
 
@@ -43,5 +44,6 @@ export async function createInvoiceForJob(c: pg.PoolClient, orgId: string, jobId
     `INSERT INTO invoices (org_id, number, job_id, customer_name, customer_email, customer_address, status, due_on, currency, lines, subtotal, tax, total, created_by)
      VALUES ($1,$2,$3,$4,$5,$6,'sent', current_date + 30, $7,$8,$9,$10,$11,$12) RETURNING id`,
     [orgId, number, jobId, job.customer_name, job.customer_email, job.address, s.currency, JSON.stringify(lines), sub, tax, round2(sub + tax), createdBy])).rows[0];
+  await emit(c, orgId, "invoice.created", "invoice", row.id, { invoiceId: row.id, number, total: round2(sub + tax), jobId });
   return { id: row.id, number, total: round2(sub + tax), existing: false };
 }
