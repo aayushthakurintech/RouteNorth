@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { isRtl, LOCALES, messages, translate } from "./i18n.js";
 import { isValidPosition, vehicleStatus } from "./position.js";
 
 const now = new Date("2026-11-02T12:00:00Z");
@@ -25,14 +26,26 @@ describe("isValidPosition", () => {
     expect(isValidPosition({ lat: NaN, lng: 0, speed: 0 })).toBe(false));
 });
 
-import { LOCALES, messages } from "./i18n.js";
 
 describe("i18n", () => {
-  it("has the same keys in every locale", () => {
-    const keys = Object.keys(messages.en).sort();
-    for (const l of LOCALES) expect(Object.keys(messages[l]).sort()).toEqual(keys);
+  const placeholders = (v: string) => (v.match(/\{\w+\}/g) ?? []).sort();
+  it("has the same keys in English and French", () => {
+    expect(Object.keys(messages.fr).sort()).toEqual(Object.keys(messages.en).sort());
   });
-  it("has no empty translations", () => {
-    for (const l of LOCALES) for (const v of Object.values(messages[l])) expect(v.trim()).not.toBe("");
+  it("only translates keys that exist, so Punjabi and Arabic can be partial", () => {
+    for (const l of ["pa", "ar"] as const) for (const k of Object.keys(messages[l])) expect(messages.en[k], `${l}.${k}`).toBeDefined();
+  });
+  it("has no empty translations and keeps {placeholders}", () => {
+    for (const l of LOCALES) {
+      for (const [k, v] of Object.entries(messages[l])) {
+        expect(v.trim(), `${l}.${k}`).not.toBe("");
+        expect(placeholders(v), `${l}.${k}`).toEqual(placeholders(messages.en[k]!));
+      }
+    }
+  });
+  it("falls back to English for untranslated keys and flags right-to-left languages", () => {
+    expect(translate("pa", "navAudit")).toBe(messages.en.navAudit);
+    expect(isRtl("ar")).toBe(true);
+    expect(isRtl("fr")).toBe(false);
   });
 });
