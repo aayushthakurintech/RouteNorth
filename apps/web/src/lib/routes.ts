@@ -9,11 +9,13 @@ export interface RouteStop {
   id: string; sequence: number; name: string; address: string | null; lat: number; lng: number; radiusM: number;
   windowStart: string | null; windowEnd: string | null; packages: number; notes: string | null;
   status: StopStatus; failureReason: string | null; eta: string | null; arrivedAt: string | null; departedAt: string | null;
+  weightKg?: number; volumeM3?: number; serviceMin?: number; priority?: string; kind?: string; jobId?: string | null;
 }
 
 export interface RouteDetail {
   id: string; name: string; date: string; status: string; vehicleId: string | null; driverId: string | null;
   startedAt: string | null; completedAt: string | null; stops: RouteStop[];
+  objective?: "time" | "distance"; avoid?: string[]; depotId?: string | null; startTime?: string | null; notes?: string | null;
 }
 
 export interface RouteReport {

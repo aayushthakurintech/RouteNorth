@@ -33,12 +33,12 @@ await q(`ALTER ROLE routenorth_app PASSWORD '${appPassword.replace(/'/g, "''")}'
 await q("GRANT USAGE ON SCHEMA public TO routenorth_app");
 await q("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO routenorth_app");
 await q("GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO routenorth_app");
-await q("GRANT EXECUTE ON FUNCTION resolve_device(text, text), find_login(text) TO routenorth_app");
+await q("GRANT EXECUTE ON FUNCTION resolve_device(text, text), find_login(text), all_org_ids() TO routenorth_app");
 
 let org = (await q("SELECT id FROM organizations WHERE name = 'Demo Fleet Co'")).rows[0]?.id as string | undefined;
 if (!org) {
   org = (await q("INSERT INTO organizations (name) VALUES ('Demo Fleet Co') RETURNING id")).rows[0].id as string;
-  for (const [email, role] of [["owner@demo.ca", "owner"], ["dispatcher@demo.ca", "dispatcher"], ["driver@demo.ca", "driver"]]) {
+  for (const [email, role] of [["owner@demo.ca", "owner"], ["dispatcher@demo.ca", "dispatcher"], ["manager@demo.ca", "manager"], ["driver@demo.ca", "driver"], ["viewer@demo.ca", "viewer"]]) {
     await q("INSERT INTO users (org_id, email, password_hash, role) VALUES ($1, $2, $3, $4)", [org, email, hash(demoPassword), role]);
   }
   // external_id matches the ids the simulator reports (apps/simulator/src/routes.ts).
@@ -78,6 +78,8 @@ if (!hasRoute) {
 console.log(`
 Demo logins (password: ${demoPassword})
   owner@demo.ca       live map, routes, reports
-  dispatcher@demo.ca  same, for planners
+  dispatcher@demo.ca  plans routes and dispatches
+  manager@demo.ca     reports, alerts and the audit log
+  viewer@demo.ca      read-only
   driver@demo.ca      driver app at /driver`);
 await pool.end();

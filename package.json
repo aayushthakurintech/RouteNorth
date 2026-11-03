@@ -12,6 +12,8 @@
     "seed": "pnpm --filter @routenorth/db seed",
     "dev": "node scripts/dev.mjs",
     "demo": "node scripts/dev.mjs --simulate",
+    "backup": "bash scripts/backup.sh",
+    "restore": "bash scripts/restore.sh",
     "infra:down": "docker compose down"
   },
   "devDependencies": {

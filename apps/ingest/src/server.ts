@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { pg } from "@routenorth/db";
 import { Redis } from "ioredis";
 import { normalizeTraccar, type TraccarForward } from "./traccar.js";
+import { updateGeofences } from "./geofence.js";
 import { updateRouteProgress } from "./progress.js";
 import { storeFix } from "./store.js";
 
@@ -36,6 +37,7 @@ const server = createServer(async (req, res) => {
     if (stored) {
       // Route progress must never block or fail position storage.
       await updateRouteProgress(pool, stored).catch((err) => console.error("route progress error", err));
+      await updateGeofences(pool, stored).catch((err) => console.error("geofence error", err));
     }
     res.writeHead(stored ? 200 : 202).end(stored ? "stored" : "ignored");
   } catch (err) {

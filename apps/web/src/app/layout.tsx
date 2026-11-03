@@ -1,6 +1,10 @@
+import "@fontsource-variable/inter";
+import "@fontsource-variable/manrope";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { I18nProvider } from "@/lib/i18n-context";
+import { THEME_BOOT_SCRIPT, ThemeProvider } from "@/lib/theme-context";
+import { ToastProvider } from "@/lib/toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,13 +14,20 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "RouteNorth", statusBarStyle: "default" },
 };
 
-export const viewport: Viewport = { themeColor: "#1e3a8a", viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: [{ media: "(prefers-color-scheme: light)", color: "#0f5fa8" }, { media: "(prefers-color-scheme: dark)", color: "#0b1019" }], viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
       <body>
-        <I18nProvider>{children}</I18nProvider>
+        <I18nProvider>
+          <ThemeProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );

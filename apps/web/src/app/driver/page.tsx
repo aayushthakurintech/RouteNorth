@@ -2,6 +2,10 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MessageKey } from "@routenorth/shared";
+import { DriverExtras } from "@/components/DriverExtras";
+import { DriverSafety } from "@/components/DriverSafety";
+import { DriverMore } from "@/components/DriverMore";
+import { Sheet } from "@/components/DriverSheet";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad";
 import { navigationLinks, nextStopIndex } from "@/lib/driver-nav";
@@ -9,9 +13,10 @@ import { newId, queueStore, syncNow } from "@/lib/driver-sync";
 import { downscaleImage } from "@/lib/image";
 import { useI18n } from "@/lib/i18n-context";
 import { applyPending, type DriverRoute, type DriverStop, type QueueItem, type StatusBody } from "@/lib/offline-queue";
+import { usePullToRefresh } from "@/lib/pull-refresh";
 import { API_URL, loadSession, saveSession } from "@/lib/session";
 
-interface Stop extends DriverStop { name: string; address: string | null; lat: number; lng: number; sequence: number; notes: string | null; packages: number | null }
+interface Stop extends DriverStop { name: string; address: string | null; lat: number; lng: number; sequence: number; notes: string | null; packages: number | null; customerInstructions?: string | null }
 interface Route extends DriverRoute { name: string; stops: Stop[] }
 
 const CACHE_KEY = "routenorth.driver.routes";
@@ -98,12 +103,17 @@ export default function DriverPage() {
     id: newId(), kind: "status", stopId: stop.id, body: { ...body, occurredAt: new Date().toISOString() },
   });
 
+  const refresher = usePullToRefresh(sync, ready);
+
   if (!ready) return null;
   const routes = applyPending(base, queue);
   const pending = queue.filter((q) => !q.failed).length;
 
   return (
     <main className="driver">
+      <div className="pull-indicator" style={{ height: refresher.busy ? 36 : refresher.pull }} role="status" aria-live="polite">
+        {(refresher.busy || refresher.pull > 0) && <span>{refresher.busy ? t("pull_refreshing") : refresher.ready ? t("pull_release") : t("pull_pull")}</span>}
+      </div>
       <header className="driver-bar">
         <strong>{t("driverToday")}</strong>
         <span className={online ? "pill ok" : "pill warn"} role="status">{online ? t("online") : t("offline")}</span>
@@ -143,6 +153,17 @@ export default function DriverPage() {
           </section>
         );
       })}
+      <DriverExtras nextStop={(() => { const r = routes[0]; if (!r) return null; const i = nextStopIndex(r.stops); const st = r.stops[i]; return st ? { id: st.id, name: st.name } : null; })()} />
+      <DriverMore
+        nextStop={(() => { const r = routes[0]; if (!r) return null; const st = r.stops[nextStopIndex(r.stops)]; return st ? { id: st.id, name: st.name, address: st.address } : null; })()}
+        actions={{
+          arrive: () => { const st = routes[0]?.stops[nextStopIndex(routes[0].stops)]; if (st && st.status === "pending") void enqueue([status(st, { status: "arrived" })]); },
+          complete: () => { const st = routes[0]?.stops[nextStopIndex(routes[0].stops)]; if (st) { position.current = null; void currentPosition().then((p) => { position.current = p; }); setSheet({ kind: "complete", stop: st }); } },
+          fail: () => { const st = routes[0]?.stops[nextStopIndex(routes[0].stops)]; if (st) setSheet({ kind: "fail", stop: st }); },
+          navigate: () => { const st = routes[0]?.stops[nextStopIndex(routes[0].stops)]; if (st) window.open(navigationLinks(st.lat, st.lng).google, "_blank", "noopener"); },
+        }}
+      />
+      <DriverSafety />
       <p className="meta">{t("installHint")}</p>
 
       {sheet?.kind === "complete" && (
@@ -191,6 +212,7 @@ function StopCard(props: {
       </div>
       {s.address && <p className="meta">{s.address}</p>}
       {s.notes && <p className="meta">{s.notes}</p>}
+      {s.customerInstructions && <p className="meta"><strong>{t("dx_customerNote")}:</strong> {s.customerInstructions}</p>}
       {s.packages ? <p className="meta">{s.packages} pkg</p> : null}
       {s.failureReason && <p className="meta">{s.failureReason}</p>}
       {open && (
@@ -210,18 +232,6 @@ function StopCard(props: {
       )}
       {!open && s.proofCount > 0 && <p className="meta">{t("proofs")}: {s.proofCount}</p>}
     </li>
-  );
-}
-
-function Sheet(props: { title: string; t: T; onClose: () => void; children: React.ReactNode }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => { ref.current?.showModal(); }, []);
-  return (
-    <dialog ref={ref} className="sheet" onClose={props.onClose} aria-label={props.title}>
-      <h2>{props.title}</h2>
-      {props.children}
-      <button type="button" className="link" onClick={() => ref.current?.close()}>{props.t("closeSheet")}</button>
-    </dialog>
   );
 }
 

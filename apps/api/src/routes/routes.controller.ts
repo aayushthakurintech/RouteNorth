@@ -4,23 +4,39 @@ import {
 } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
 import { classifyStop, type StopOutcome, type StopStatus } from "@routenorth/shared";
-import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
+import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { PG_POOL } from "../tokens.js";
 import { parseUuid } from "../history/range.js";
 import { csvToObjects } from "./csv.js";
 import { MAX_STOPS_PER_ROUTE, parseDate, parseName, parseStopInput, type StopInput } from "./validate.js";
 
-const PLANNERS = ["owner", "admin", "dispatcher"];
 const ROUTE_STATUSES = ["planned", "in_progress", "completed", "cancelled"];
 
+const AVOIDS = ["tolls", "highways", "ferries", "unpaved"];
+function objective(v: unknown): "time" | "distance" {
+  if (v === undefined || v === null || v === "") return "time";
+  if (v !== "time" && v !== "distance") throw new BadRequestException("objective must be time or distance");
+  return v;
+}
+function avoidList(v: unknown): string[] {
+  if (v === undefined || v === null) return [];
+  if (!Array.isArray(v) || v.some((x) => !AVOIDS.includes(String(x)))) throw new BadRequestException(`avoid must list: ${AVOIDS.join(", ")}`);
+  return [...new Set(v.map(String))];
+}
+function startTime(v: unknown): string | null {
+  if (v === undefined || v === null || v === "") return null;
+  if (typeof v !== "string" || !/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(v)) throw new BadRequestException("startTime must be HH:MM");
+  return v;
+}
+
 function requirePlanner(req: AuthedRequest): string {
-  if (!PLANNERS.includes(req.session!.role)) throw new ForbiddenException("dispatcher access required");
-  return req.session!.orgId;
+  return requirePerm(req, "routes.write");
 }
 
 const STOP_COLUMNS = `id, route_id, sequence, name, address, lat, lng, radius_m AS "radiusM",
   window_start AS "windowStart", window_end AS "windowEnd", packages, notes, status,
-  failure_reason AS "failureReason", eta, arrived_at AS "arrivedAt", departed_at AS "departedAt"`;
+  failure_reason AS "failureReason", eta, arrived_at AS "arrivedAt", departed_at AS "departedAt",
+  weight_kg AS "weightKg", volume_m3 AS "volumeM3", service_min AS "serviceMin", priority, kind, job_id AS "jobId"`;
 
 @Controller("routes")
 @UseGuards(AuthGuard)
@@ -31,7 +47,7 @@ export class RoutesController {
   @Post()
   async create(
     @Req() req: AuthedRequest,
-    @Body() body: { name?: unknown; date?: unknown; vehicleId?: unknown; driverId?: unknown; stops?: unknown },
+    @Body() body: { name?: unknown; date?: unknown; vehicleId?: unknown; driverId?: unknown; stops?: unknown; objective?: unknown; avoid?: unknown; depotId?: unknown; startTime?: unknown },
   ) {
     const orgId = requirePlanner(req);
     const name = parseName(body?.name);
@@ -44,8 +60,10 @@ export class RoutesController {
       await this.assertRefs(c, vehicleId, driverId);
       const route = (
         await c.query(
-          `INSERT INTO routes (org_id, name, route_date, vehicle_id, driver_id) VALUES ($1,$2,$3,$4,$5) RETURNING id`,
-          [orgId, name, date, vehicleId, driverId],
+          `INSERT INTO routes (org_id, name, route_date, vehicle_id, driver_id, objective, avoid, depot_id, start_time)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+          [orgId, name, date, vehicleId, driverId, objective(body?.objective), avoidList(body?.avoid), body?.depotId == null ? null : parseUuid(String(body.depotId)),
+            startTime(body?.startTime)],
         )
       ).rows[0];
       await this.insertStops(c, orgId, route.id, stops, 1);
@@ -56,6 +74,7 @@ export class RoutesController {
   /** Routes for a day, with how many stops are done. */
   @Get()
   async list(@Req() req: AuthedRequest, @Query("date") date?: string) {
+    requirePerm(req, "routes.view");
     const day = parseDate(date);
     const rows = await withOrg(this.pool, req.session!.orgId, (c) =>
       c.query(
@@ -73,6 +92,7 @@ export class RoutesController {
   /** Planned vs actual: how each stop went against its time window. */
   @Get(":id/report")
   async report(@Req() req: AuthedRequest, @Param("id") id: string) {
+    requirePerm(req, "routes.view");
     const route = await withOrg(this.pool, req.session!.orgId, (c) => this.load(c, parseUuid(id)));
     if (!route) throw new NotFoundException();
     const iso = (d: Date | string | null) => (d ? new Date(d).toISOString() : null);
@@ -110,6 +130,7 @@ export class RoutesController {
 
   @Get(":id")
   async get(@Req() req: AuthedRequest, @Param("id") id: string) {
+    requirePerm(req, "routes.view");
     const route = await withOrg(this.pool, req.session!.orgId, (c) => this.load(c, parseUuid(id)));
     if (!route) throw new NotFoundException();
     return route;
@@ -118,7 +139,7 @@ export class RoutesController {
   @Patch(":id")
   async update(
     @Req() req: AuthedRequest, @Param("id") id: string,
-    @Body() body: { name?: unknown; vehicleId?: unknown; driverId?: unknown; status?: unknown },
+    @Body() body: { name?: unknown; vehicleId?: unknown; driverId?: unknown; status?: unknown; objective?: unknown; avoid?: unknown; depotId?: unknown; startTime?: unknown; notes?: unknown },
   ) {
     const orgId = requirePlanner(req);
     const routeId = parseUuid(id);
@@ -126,6 +147,11 @@ export class RoutesController {
       const sets: string[] = [];
       const vals: unknown[] = [];
       const add = (col: string, v: unknown) => { vals.push(v); sets.push(`${col} = $${vals.length}`); };
+      if (body?.objective !== undefined) add("objective", objective(body.objective));
+      if (body?.avoid !== undefined) add("avoid", avoidList(body.avoid));
+      if (body?.depotId !== undefined) add("depot_id", body.depotId === null ? null : parseUuid(String(body.depotId)));
+      if (body?.startTime !== undefined) add("start_time", startTime(body.startTime));
+      if (body?.notes !== undefined) add("notes", body.notes === null ? null : String(body.notes).slice(0, 2000));
       if (body?.name !== undefined) add("name", parseName(body.name));
       if (body?.status !== undefined) {
         if (typeof body.status !== "string" || !ROUTE_STATUSES.includes(body.status)) throw new BadRequestException("invalid status");
@@ -227,6 +253,8 @@ export class RoutesController {
         name: body.name ?? cur.name, address: body.address ?? cur.address, lat: body.lat ?? cur.lat, lng: body.lng ?? cur.lng,
         radiusM: body.radiusM ?? cur.radius_m, windowStart: body.windowStart ?? cur.window_start?.toISOString(),
         windowEnd: body.windowEnd ?? cur.window_end?.toISOString(), packages: body.packages ?? cur.packages, notes: body.notes ?? cur.notes,
+        weightKg: body.weightKg ?? cur.weight_kg, volumeM3: body.volumeM3 ?? cur.volume_m3, serviceMin: body.serviceMin ?? cur.service_min,
+        priority: body.priority ?? cur.priority, kind: body.kind ?? cur.kind, jobId: cur.job_id,
       });
       let status = cur.status as string;
       if (body.status !== undefined) {
@@ -238,9 +266,10 @@ export class RoutesController {
       const reason = body.failureReason === undefined ? cur.failure_reason : String(body.failureReason).slice(0, 300) || null;
       await c.query(
         `UPDATE stops SET name=$2, address=$3, lat=$4, lng=$5, radius_m=$6, window_start=$7, window_end=$8,
-                packages=$9, notes=$10, status=$11, failure_reason=$12 WHERE id = $1`,
+                packages=$9, notes=$10, status=$11, failure_reason=$12,
+                weight_kg=$13, volume_m3=$14, service_min=$15, priority=$16, kind=$17 WHERE id = $1`,
         [sid, merged.name, merged.address, merged.lat, merged.lng, merged.radiusM, merged.windowStart, merged.windowEnd,
-          merged.packages, merged.notes, status, reason],
+          merged.packages, merged.notes, status, reason, merged.weightKg, merged.volumeM3, merged.serviceMin, merged.priority, merged.kind],
       );
       return this.load(c, routeId);
     });
@@ -294,9 +323,11 @@ export class RoutesController {
   private async insertStops(c: pg.PoolClient, orgId: string, routeId: string, stops: StopInput[], firstSeq: number): Promise<void> {
     for (const [i, s] of stops.entries()) {
       await c.query(
-        `INSERT INTO stops (org_id, route_id, sequence, name, address, lat, lng, radius_m, window_start, window_end, packages, notes)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
-        [orgId, routeId, firstSeq + i, s.name, s.address, s.lat, s.lng, s.radiusM, s.windowStart, s.windowEnd, s.packages, s.notes],
+        `INSERT INTO stops (org_id, route_id, sequence, name, address, lat, lng, radius_m, window_start, window_end, packages, notes,
+                            weight_kg, volume_m3, service_min, priority, kind, job_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
+        [orgId, routeId, firstSeq + i, s.name, s.address, s.lat, s.lng, s.radiusM, s.windowStart, s.windowEnd, s.packages, s.notes,
+          s.weightKg, s.volumeM3, s.serviceMin, s.priority, s.kind, s.jobId],
       );
     }
   }
@@ -305,7 +336,8 @@ export class RoutesController {
     const route = (
       await c.query(
         `SELECT id, name, route_date::text AS date, status, vehicle_id AS "vehicleId", driver_id AS "driverId",
-                started_at AS "startedAt", completed_at AS "completedAt" FROM routes WHERE id = $1`,
+                started_at AS "startedAt", completed_at AS "completedAt", objective, avoid, depot_id AS "depotId",
+                start_time::text AS "startTime", notes FROM routes WHERE id = $1`,
         [routeId],
       )
     ).rows[0];

@@ -44,6 +44,7 @@ export function useFleet(token: string | null): FleetFeed {
       ws.onclose = (ev) => {
         setConnected(false);
         if (ev.code === 4401) { setUnauthorized(true); return; }
+        if (ev.code === 4403) return; // signed in, but this role may not see the fleet
         if (cancelled) return;
         timer = setTimeout(async () => {
           // Re-sync after a gap so positions missed while disconnected are not lost.

@@ -1,4 +1,5 @@
 "use client";
+import { animateLine } from "@/lib/line-draw";
 import maplibregl, { type GeoJSONSource, type Map as MapLibreMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef } from "react";
@@ -17,15 +18,22 @@ export function ReplayMap({ track, stops, index }: Props) {
   const latest = useRef({ track, stops, index });
   latest.current = { track, stops, index };
   const fitted = useRef<TrackPoint[] | null>(null);
+  const drawnFor = useRef<TrackPoint[] | null>(null);
+  const cancelDraw = useRef<() => void>(() => {});
 
   const push = () => {
     const m = map.current;
     if (!m || !ready.current) return;
     const { track: tr, stops: st, index: i } = latest.current;
-    (m.getSource("route") as GeoJSONSource).setData({
-      type: "Feature", properties: {},
-      geometry: { type: "LineString", coordinates: tr.length > 1 ? tr.map((p) => [p.lng, p.lat]) : [] },
-    });
+    const routeSrc = m.getSource("route") as GeoJSONSource;
+    const line = (c: [number, number][]) => routeSrc.setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: c } });
+    const coords: [number, number][] = tr.length > 1 ? tr.map((p) => [p.lng, p.lat]) : [];
+    // The trail draws itself when a new day's track arrives; moving the replay slider only moves the dot.
+    if (drawnFor.current !== tr) {
+      cancelDraw.current();
+      drawnFor.current = tr;
+      cancelDraw.current = animateLine(line, coords);
+    }
     (m.getSource("stops") as GeoJSONSource).setData({
       type: "FeatureCollection",
       features: st.map((s) => ({
@@ -77,7 +85,7 @@ export function ReplayMap({ track, stops, index }: Props) {
       ready.current = true;
       push();
     });
-    return () => { ready.current = false; fitted.current = null; m.remove(); map.current = null; };
+    return () => { cancelDraw.current(); ready.current = false; fitted.current = null; drawnFor.current = null; m.remove(); map.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
