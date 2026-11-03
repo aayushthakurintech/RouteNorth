@@ -19,7 +19,11 @@ import { ResourcesController } from "./resources/resources.controller.js";
 import { RoutesController } from "./routes/routes.controller.js";
 import { PlanController } from "./plan/plan.controller.js";
 import type { RoutingProvider } from "./plan/providers.js";
-import { JWT_SECRET, PG_POOL, POSITION_BUS, ROUTING_PROVIDER } from "./tokens.js";
+import { DispatchController } from "./dispatch/dispatch.controller.js";
+import { AttachmentsController, RoutePlanningController } from "./dispatch/dispatch.controller.js";
+import { GeocodeController } from "./dispatch/geocode.controller.js";
+import type { Geocoder } from "./dispatch/geocoder.js";
+import { GEOCODER, JWT_SECRET, PG_POOL, POSITION_BUS, ROUTING_PROVIDER } from "./tokens.js";
 import { VehiclesController } from "./vehicles/vehicles.controller.js";
 
 export interface AppOptions {
@@ -28,6 +32,8 @@ export interface AppOptions {
   jwtSecret: string;
   /** Real road travel times (OSRM or Valhalla). Without one, plans use estimates. */
   routing?: RoutingProvider | null;
+  /** Address search (Nominatim-compatible). Without one, only saved addresses are suggested. */
+  geocoder?: Geocoder | null;
 }
 
 @Module({})
@@ -35,12 +41,13 @@ export class AppModule {
   static register(opts: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController],
+      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController],
       providers: [
         { provide: PG_POOL, useValue: opts.pool },
         { provide: POSITION_BUS, useValue: opts.bus },
         { provide: JWT_SECRET, useValue: opts.jwtSecret },
         { provide: ROUTING_PROVIDER, useValue: opts.routing ?? null },
+        { provide: GEOCODER, useValue: opts.geocoder ?? null },
         AuthGuard,
         AuditService,
         { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },

@@ -127,6 +127,28 @@ export class DriverController {
     });
   }
 
+  /** Record a scanned barcode or typed package code at a stop (proof of delivery). Safe to replay with the same clientId. */
+  @Post("stops/:stopId/scans")
+  async scan(@Req() req: AuthedRequest, @Param("stopId") stopId: string, @Body() body: { code?: unknown; clientId?: unknown; scannedAt?: unknown }) {
+    requirePerm(req, "driver.app");
+    const { orgId, userId } = req.session!;
+    const sid = parseUuid(stopId);
+    const code = typeof body?.code === "string" ? body.code.trim() : "";
+    if (!code || code.length > 200) throw new BadRequestException("code must be 1 to 200 characters");
+    const clientId = body?.clientId == null ? null : parseUuid(String(body.clientId));
+    const at = parseOccurred(body?.scannedAt);
+    return withOrg(this.pool, orgId, async (c) => {
+      const ok = (await c.query("SELECT 1 FROM stops s JOIN routes r ON r.id = s.route_id WHERE s.id = $1 AND r.driver_id = $2", [sid, userId])).rowCount;
+      if (!ok) throw new NotFoundException();
+      const ins = await c.query(
+        `INSERT INTO stop_scans (org_id, stop_id, code, scanned_at, scanned_by, client_id) VALUES ($1,$2,$3,$4,$5,$6)
+         ON CONFLICT (org_id, client_id) DO NOTHING RETURNING id, code, scanned_at AS "scannedAt"`, [orgId, sid, code, at, userId, clientId]);
+      if (ins.rows[0]) return { ...ins.rows[0], duplicate: false };
+      const old = (await c.query(`SELECT id, code, scanned_at AS "scannedAt" FROM stop_scans WHERE client_id = $1`, [clientId])).rows[0];
+      return { ...old, duplicate: true };
+    });
+  }
+
   /**
    * Upload a proof image. The phone picks `clientId`, so retrying after a dropped connection
    * returns the file already stored instead of creating a duplicate.
@@ -188,6 +210,15 @@ export class ProofsController {
     const r = await c.query("SELECT r.driver_id FROM stops s JOIN routes r ON r.id = s.route_id WHERE s.id = $1", [stopId]);
     if (r.rowCount === 0) return false;
     return role !== "driver" || r.rows[0].driver_id === userId;
+  }
+
+  @Get("stops/:stopId/scans")
+  async scans(@Req() req: AuthedRequest, @Param("stopId") stopId: string) {
+    const sid = parseUuid(stopId);
+    return withOrg(this.pool, req.session!.orgId, async (c) => {
+      if (!(await this.canSee(c, req, sid))) throw new NotFoundException();
+      return (await c.query(`SELECT id, code, scanned_at AS "scannedAt" FROM stop_scans WHERE stop_id = $1 ORDER BY scanned_at`, [sid])).rows;
+    });
   }
 
   @Get("stops/:stopId/proofs")

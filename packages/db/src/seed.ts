@@ -33,7 +33,7 @@ await q(`ALTER ROLE routenorth_app PASSWORD '${appPassword.replace(/'/g, "''")}'
 await q("GRANT USAGE ON SCHEMA public TO routenorth_app");
 await q("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO routenorth_app");
 await q("GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO routenorth_app");
-await q("GRANT EXECUTE ON FUNCTION resolve_device(text, text), find_login(text) TO routenorth_app");
+await q("GRANT EXECUTE ON FUNCTION resolve_device(text, text), find_login(text), all_org_ids() TO routenorth_app");
 
 let org = (await q("SELECT id FROM organizations WHERE name = 'Demo Fleet Co'")).rows[0]?.id as string | undefined;
 if (!org) {

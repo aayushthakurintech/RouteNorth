@@ -4,4 +4,6 @@ export * from "./geo.js";
 export * from "./trips.js";
 export * from "./stops.js";
 export * from "./optimize.js";
+export * from "./recurrence.js";
+export * from "./address.js";
 export * from "./permissions.js";
