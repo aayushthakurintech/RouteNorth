@@ -6,7 +6,7 @@ import {
   isRecurrence, makeTravel, occursOn, planFleet, upcoming, whatIfAdd, type PlanStop, type PlanVehicle, type Recurrence,
 } from "@routenorth/shared";
 import type { Response } from "express";
-import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
+import { AuthGuard, requirePerm, type AuthedRequest, requireAny } from "../auth/auth.guard.js";
 import { ATTACHMENT_TYPES } from "../configure.js";
 import { matchesImageType } from "../driver/proof-files.js";
 import { parseUuid } from "../history/range.js";
@@ -377,7 +377,7 @@ export class AttachmentsController {
 
   @Get(":id")
   async file(@Req() req: AuthedRequest, @Param("id") id: string, @Res() res: Response) {
-    const orgId = requirePerm(req, "routes.view", "fleet.view");
+    const orgId = requireAny(req, "routes.view", "fleet.view");
     const row = (await withOrg(this.pool, orgId, (c) => c.query("SELECT name, content_type, data FROM attachments WHERE id = $1", [parseUuid(id)]))).rows[0];
     if (!row) throw new NotFoundException();
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -409,7 +409,7 @@ export class AttachmentsController {
 
   @Get("of/:kind/:id")
   async listFor(@Req() req: AuthedRequest, @Param("kind") kind: string, @Param("id") id: string) {
-    const orgId = requirePerm(req, "fleet.view", "routes.view");
+    const orgId = requireAny(req, "fleet.view", "routes.view");
     return (await withOrg(this.pool, orgId, (c) => c.query(
       `SELECT id, name, content_type AS "contentType", size_bytes AS "sizeBytes", created_at AS "createdAt" FROM attachments WHERE owner_kind = $1 AND owner_id = $2 ORDER BY created_at`, [kind, parseUuid(id)]))).rows;
   }
@@ -417,7 +417,7 @@ export class AttachmentsController {
   @Delete(":id")
   @HttpCode(204)
   async remove(@Req() req: AuthedRequest, @Param("id") id: string) {
-    const orgId = requirePerm(req, "routes.write", "fleet.manage");
+    const orgId = requireAny(req, "routes.write", "fleet.manage");
     const n = (await withOrg(this.pool, orgId, (c) => c.query("DELETE FROM attachments WHERE id = $1", [parseUuid(id)]))).rowCount;
     if (!n) throw new NotFoundException();
   }

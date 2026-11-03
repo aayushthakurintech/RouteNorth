@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, Get, Inject, NotFoundException, 
 import { pg, withOrg } from "@routenorth/db";
 import { detectTrips, documentState, daysToExpiry, fuelEconomy, haversine, maintenanceDue, type Fix } from "@routenorth/shared";
 import type { Response } from "express";
-import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
+import { AuthGuard, requirePerm, type AuthedRequest, requireAny } from "../auth/auth.guard.js";
 import { parseRange, parseUuid } from "../history/range.js";
 import { csvToObjects } from "../routes/csv.js";
 import { parseDate } from "../routes/validate.js";
@@ -30,7 +30,7 @@ export class FleetController {
   /** Everything that needs attention: expiring documents and licences, maintenance due, open defects. */
   @Get("reminders")
   async reminders(@Req() req: AuthedRequest) {
-    const orgId = requirePerm(req, "fleet.view", "routes.view");
+    const orgId = requireAny(req, "fleet.view", "routes.view");
     return withOrg(this.pool, orgId, async (c) => {
       const today = (await c.query<{ d: string }>("SELECT (now() AT TIME ZONE timezone)::date::text AS d FROM organizations WHERE id = $1", [orgId])).rows[0]!.d;
       const odo = await this.odometers(c);
@@ -72,7 +72,7 @@ export class FleetController {
   /** Maintenance schedule for every vehicle with its next due date or odometer. */
   @Get("maintenance")
   async maintenance(@Req() req: AuthedRequest) {
-    const orgId = requirePerm(req, "fleet.view", "routes.view");
+    const orgId = requireAny(req, "fleet.view", "routes.view");
     return withOrg(this.pool, orgId, async (c) => {
       const today = (await c.query<{ d: string }>("SELECT (now() AT TIME ZONE timezone)::date::text AS d FROM organizations WHERE id = $1", [orgId])).rows[0]!.d;
       const odo = await this.odometers(c);
@@ -148,7 +148,7 @@ export class FleetController {
   /** Fuel use and cost per vehicle: litres per 100 km and cost per km. */
   @Get("fuel/summary")
   async fuelSummary(@Req() req: AuthedRequest, @Query("from") from?: string, @Query("to") to?: string) {
-    const orgId = requirePerm(req, "fleet.view", "reports.view");
+    const orgId = requireAny(req, "fleet.view", "reports.view");
     const f = from ? parseDate(from) : "1970-01-01";
     const t = to ? parseDate(to) : "2999-12-31";
     const rows = (await withOrg(this.pool, orgId, (c) => c.query(
@@ -190,7 +190,7 @@ export class FleetController {
 
   @Get("trip-log")
   async tripLogJson(@Req() req: AuthedRequest, @Res() res: Response, @Query("from") from?: string, @Query("to") to?: string, @Query("vehicleId") vehicleId?: string, @Query("format") format?: string) {
-    const orgId = requirePerm(req, "fleet.view", "reports.view");
+    const orgId = requireAny(req, "fleet.view", "reports.view");
     const range = parseRange(from, to, 31);
     const rows = await this.tripLog(orgId, range.from, range.to, vehicleId ? parseUuid(vehicleId) : null);
     if (format === "csv") {
@@ -226,7 +226,7 @@ export class FleetController {
   /** How many vehicles are inside each depot right now, against its parking spots. */
   @Get("depots/occupancy")
   async occupancy(@Req() req: AuthedRequest) {
-    const orgId = requirePerm(req, "fleet.view", "routes.view");
+    const orgId = requireAny(req, "fleet.view", "routes.view");
     return withOrg(this.pool, orgId, async (c) => {
       const depots = (await c.query("SELECT id, name, lat, lng, radius_m AS \"radiusM\", spots FROM depots ORDER BY name")).rows;
       const live = (await c.query<{ vehicle_id: string | null; name: string; lat: number; lng: number }>(
@@ -246,7 +246,7 @@ export class FleetController {
 
   @Get("drivers")
   async drivers(@Req() req: AuthedRequest) {
-    const org = requirePerm(req, "users.view", "routes.view");
+    const org = requireAny(req, "users.view", "routes.view");
     return withOrg(this.pool, org, async (c) => (await c.query(
       `SELECT u.id, coalesce(u.display_name, u.email) AS name, u.email, (u.disabled_at IS NOT NULL) AS disabled, dp.phone, dp.license_no AS "licenseNo", dp.license_class AS "licenseClass",
               dp.license_expiry::text AS "licenseExpiry", dp.emergency_name AS "emergencyName", dp.emergency_phone AS "emergencyPhone", dp.home_depot_id AS "homeDepotId",

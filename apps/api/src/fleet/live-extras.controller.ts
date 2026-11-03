@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Inject, N
 import { pg, withOrg } from "@routenorth/db";
 import { vehicleStatus } from "@routenorth/shared";
 import { createHash, randomBytes } from "node:crypto";
-import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
+import { AuthGuard, requirePerm, type AuthedRequest, requireAny } from "../auth/auth.guard.js";
 import { parseRange, parseUuid } from "../history/range.js";
 import { withDefaults } from "../org/settings.js";
 import { PG_POOL, WEATHER } from "../tokens.js";
@@ -19,7 +19,7 @@ export class ShareController {
 
   @Post()
   async create(@Req() req: AuthedRequest, @Body() body: { deviceId?: unknown; routeId?: unknown; hours?: unknown; label?: unknown }) {
-    const orgId = requirePerm(req, "fleet.manage", "routes.dispatch");
+    const orgId = requireAny(req, "fleet.manage", "routes.dispatch");
     const hours = body?.hours == null ? 24 : Number(body.hours);
     if (!(hours > 0 && hours <= MAX_SHARE_HOURS)) throw new BadRequestException(`hours must be between 0 and ${MAX_SHARE_HOURS}`);
     const deviceId = body?.deviceId ? parseUuid(String(body.deviceId)) : null;
@@ -43,7 +43,7 @@ export class ShareController {
 
   @Get()
   async list(@Req() req: AuthedRequest) {
-    const orgId = requirePerm(req, "fleet.manage", "routes.dispatch");
+    const orgId = requireAny(req, "fleet.manage", "routes.dispatch");
     return (await withOrg(this.pool, orgId, (c) => c.query(
       `SELECT id, label, device_id AS "deviceId", route_id AS "routeId", expires_at AS "expiresAt", revoked_at AS "revokedAt", created_at AS "createdAt"
        FROM share_links ORDER BY created_at DESC LIMIT 200`))).rows;
@@ -52,7 +52,7 @@ export class ShareController {
   @Delete(":id")
   @HttpCode(204)
   async revoke(@Req() req: AuthedRequest, @Param("id") id: string) {
-    const orgId = requirePerm(req, "fleet.manage", "routes.dispatch");
+    const orgId = requireAny(req, "fleet.manage", "routes.dispatch");
     const n = (await withOrg(this.pool, orgId, (c) => c.query("UPDATE share_links SET revoked_at = now() WHERE id = $1 AND revoked_at IS NULL", [parseUuid(id)]))).rowCount;
     if (!n) throw new NotFoundException();
   }
@@ -104,7 +104,7 @@ export class LiveExtrasController {
 
   @Get("heat")
   async heat(@Req() req: AuthedRequest, @Query("kind") kind?: string, @Query("from") from?: string, @Query("to") to?: string) {
-    const orgId = requirePerm(req, "fleet.view", "reports.view");
+    const orgId = requireAny(req, "fleet.view", "reports.view");
     if (kind !== "stops" && kind !== "delays" && kind !== "speeding") throw new BadRequestException("kind must be stops, delays or speeding");
     const range = parseRange(from, to, 31);
     return withOrg(this.pool, orgId, async (c) => {
@@ -126,7 +126,7 @@ export class LiveExtrasController {
 
   @Get("weather")
   async at(@Req() req: AuthedRequest, @Query("lat") lat?: string, @Query("lng") lng?: string, @Query("at") at?: string) {
-    requirePerm(req, "fleet.view", "routes.view");
+    requireAny(req, "fleet.view", "routes.view");
     if (!this.weather) return { available: false };
     const la = Number(lat), lo = Number(lng);
     if (!(la >= -90 && la <= 90) || !(lo >= -180 && lo <= 180)) throw new BadRequestException("lat and lng are required");

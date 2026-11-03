@@ -141,7 +141,7 @@ export function PlannerPanel({ route, pin, selected, onChanged }: { route: Route
       {tab === "share" && (
         <div className="stack">
           <p className="meta">{t("shareHelp")}</p>
-          <button type="button" className="btn alt" disabled={busy || !can("routes.dispatch", "fleet.manage")} onClick={() => run(() => apiSend<{ path: string }>("POST", "/share", { routeId: route.id, hours: 24, label: route.name }), (r) => setShareUrl(`${location.origin}${r.path}`))}><Link2 size={16} aria-hidden />{t("shareCreate")}</button>
+          <button type="button" className="btn alt" disabled={busy || !(can("routes.dispatch") || can("fleet.manage"))} onClick={() => run(() => apiSend<{ path: string }>("POST", "/share", { routeId: route.id, hours: 24, label: route.name }), (r) => setShareUrl(`${location.origin}${r.path}`))}><Link2 size={16} aria-hidden />{t("shareCreate")}</button>
           {shareUrl && <div className="row"><input readOnly value={shareUrl} aria-label={t("shareLink")} onFocus={(e) => e.currentTarget.select()} style={{ flex: 1 }} /><button type="button" className="btn sm" onClick={() => navigator.clipboard?.writeText(shareUrl).then(() => toast(t("copied")))}><Copy size={14} aria-hidden />{t("copy")}</button></div>}
         </div>
       )}

@@ -104,7 +104,7 @@ function LiveView() {
             <div className="row">
               <button type="button" className="btn alt sm" aria-pressed={follow} onClick={() => setFollow((f) => !f)}><Crosshair size={14} aria-hidden />{follow ? t("stopFollowing") : t("follow")}</button>
               <Link href={`/history/${selected.deviceId}`} className="btn sm">{t("history")}</Link>
-              {can("fleet.manage", "routes.dispatch") && <button type="button" className="btn alt sm" onClick={() => void share()}><Link2 size={14} aria-hidden />{t("share_title")}</button>}
+              {(can("fleet.manage") || can("routes.dispatch")) && <button type="button" className="btn alt sm" onClick={() => void share()}><Link2 size={14} aria-hidden />{t("share_title")}</button>}
             </div>
           </section>
         )}

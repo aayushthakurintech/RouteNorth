@@ -98,7 +98,7 @@ export const RESOURCES: readonly ResourceDef[] = [
     name: "maintenance-logs", table: "maintenance_logs", view: FLEET_VIEW, write: "fleet.manage", order: "done_on DESC", search: ["task", "vendor"],
     fields: [
       ref("vehicleId", "vehicle_id", "vehicles", { required: true }), ref("planId", "plan_id", "maintenance-plans"), t("task", "task", { required: true, max: 120 }),
-      d("doneOn", "done_on", { required: true, filter: true }), n("odometerKm", "odometer_km", { min: 0, max: 10_000_000 }), n("cost", "cost", { min: 0, max: 10_000_000 }),
+      d("doneOn", "done_on", { required: true, filter: true }), n("odometerKm", "odometer_km", { min: 0, max: 10_000_000 }), n("cost", "cost", { min: 0, max: 10_000_000 }), n("downtimeHours", "downtime_hours", { min: 0, max: 10_000 }),
       t("vendor", "vendor", { max: 120 }), t("notes", "notes", { max: 1000 }),
     ],
   },
@@ -162,6 +162,39 @@ export const RESOURCES: readonly ResourceDef[] = [
       { key: "stops", col: "stops", type: "json", json: "array" }, { key: "recurrence", col: "recurrence", type: "json", json: "object" }, b("active", "active"),
     ],
   },
+  {
+    name: "dashboards", table: "dashboards", view: ["reports.view"], write: "reports.manage", order: "name", search: ["name"],
+    fields: [t("name", "name", { required: true, max: 80 }), { key: "widgets", col: "widgets", type: "json", json: "array", required: true }, b("shared", "shared")],
+  },
+  {
+    name: "goals", table: "goals", view: ["reports.view"], write: "reports.manage", order: "name", search: ["name"],
+    fields: [
+      t("name", "name", { required: true, max: 120 }), t("metric", "metric", { required: true, max: 60 }), n("target", "target", { required: true, min: -1e9, max: 1e9 }),
+      en("direction", "direction", ["up", "down"]), en("period", "period", ["day", "week", "month"]), b("active", "active"),
+    ],
+  },
+  {
+    name: "notification-endpoints", table: "notification_endpoints", view: ["alerts.manage", "reports.manage"], write: "alerts.manage", order: "label", search: ["label"],
+    fields: [en("kind", "kind", ["email", "slack", "teams", "sms", "webhook"], { required: true }), t("label", "label", { required: true, max: 80 }), t("target", "target", { required: true, max: 500 }), b("enabled", "enabled")],
+  },
+  {
+    name: "alert-rules", table: "alert_rules", view: ["alerts.view"], write: "alerts.manage", order: "name", search: ["name"],
+    fields: [
+      t("name", "name", { required: true, max: 120 }),
+      en("kind", "kind", ["late_risk", "off_route", "long_idle", "speeding", "geofence", "offline", "harsh_driving", "document_expiry", "maintenance_due", "cost_anomaly", "custom_metric"], { required: true }),
+      { key: "params", col: "params", type: "json", json: "object" }, en("severity", "severity", ["info", "warn", "critical"]),
+      { key: "endpointIds", col: "endpoint_ids", type: "tags" }, b("notifyInapp", "notify_inapp"), { key: "quietStart", col: "quiet_start", type: "time" }, { key: "quietEnd", col: "quiet_end", type: "time" },
+      i("groupMinutes", "group_minutes", { min: 0, max: 1440 }), b("active", "active"),
+    ],
+  },
+  {
+    name: "report-schedules", table: "report_schedules", view: ["reports.view"], write: "reports.manage", order: "created_at DESC", search: [],
+    fields: [
+      ref("reportId", "report_id", "report-defs", { required: true }), en("freq", "freq", ["daily", "weekly", "monthly"], { required: true }), i("hour", "hour", { min: 0, max: 23 }),
+      i("weekday", "weekday", { min: 0, max: 6 }), i("monthday", "monthday", { min: 1, max: 28 }), en("format", "format", ["csv", "xlsx", "pdf"]),
+      { key: "endpointIds", col: "endpoint_ids", type: "tags" }, b("active", "active"),
+    ],
+  },
 ];
 
 export const BY_NAME = new Map(RESOURCES.map((r) => [r.name, r]));
@@ -169,5 +202,5 @@ export const BY_NAME = new Map(RESOURCES.map((r) => [r.name, r]));
 /** Tables that "ref" fields point at (drivers are users whose role is driver). */
 export const REF_TABLES: Record<string, { table: string; where?: string }> = {
   vehicles: { table: "vehicles" }, depots: { table: "depots" }, "maintenance-plans": { table: "maintenance_plans" },
-  drivers: { table: "users", where: "role = 'driver'" }, "@routes": { table: "routes" }, equipment: { table: "equipment" },
+  drivers: { table: "users", where: "role = 'driver'" }, "@routes": { table: "routes" }, "report-defs": { table: "report_defs" }, equipment: { table: "equipment" },
 };

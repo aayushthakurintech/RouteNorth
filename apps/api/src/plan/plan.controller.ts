@@ -264,6 +264,10 @@ export class PlanController {
       const { ctx, plan } = await this.solve(c, orgId, r);
       const out = this.present(plan, stops, ctx);
       if (body?.apply === true) {
+        const before = await this.solve(c, orgId, { ...r, fixedOrder: true });
+        await c.query(
+          "INSERT INTO route_savings (org_id, route_id, saved_by, before_km, after_km, before_cost, after_cost) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+          [orgId, routeId, req.session!.userId, before.plan.totals.distanceM / 1000, plan.totals.distanceM / 1000, planCost(before.plan.totals, before.ctx.rates), planCost(plan.totals, ctx.rates)]);
         const order = [...done.map((s) => s.id), ...plan.order];
         await c.query(
           `UPDATE stops s SET sequence = x.seq FROM unnest($2::uuid[]) WITH ORDINALITY AS x(id, seq) WHERE s.id = x.id AND s.route_id = $1`, [routeId, order]);

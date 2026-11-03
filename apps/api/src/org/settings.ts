@@ -20,6 +20,8 @@ export interface OrgSettings {
   /** What a kilometer and an hour of driving cost, for comparing route plans. */
   costPerKm: number;
   costPerHour: number;
+  /** Hours of work in a day before overtime starts. */
+  overtimeAfterH: number;
   featureFlags: Record<string, boolean>;
   [key: string]: unknown;
 }
@@ -37,6 +39,7 @@ export const DEFAULT_SETTINGS: OrgSettings = {
   taxRatePct: 13,
   costPerKm: 0.9,
   costPerHour: 35,
+  overtimeAfterH: 8,
   featureFlags: {},
 };
 

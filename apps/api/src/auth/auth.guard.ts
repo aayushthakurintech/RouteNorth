@@ -56,6 +56,12 @@ export function requirePerm(req: AuthedRequest, ...needed: Permission[]): string
   return req.session!.orgId;
 }
 
+/** Throws 403 unless the caller has at least one of the listed permissions. Returns the caller's organization id. */
+export function requireAny(req: AuthedRequest, ...any: Permission[]): string {
+  if (!any.some((p) => req.perms?.has(p))) throw new ForbiddenException(`requires one of ${any.join(", ")}`);
+  return req.session!.orgId;
+}
+
 /** True when the caller has any of the listed permissions. */
 export function hasPerm(req: AuthedRequest, ...any: Permission[]): boolean {
   return any.some((p) => req.perms?.has(p));

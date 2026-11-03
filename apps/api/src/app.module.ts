@@ -27,6 +27,8 @@ import { FleetController } from "./fleet/fleet.controller.js";
 import { LiveExtrasController, PublicTrackController, ShareController } from "./fleet/live-extras.controller.js";
 import type { WeatherProvider } from "./weather/provider.js";
 import { GEOCODER, WEATHER, JWT_SECRET, PG_POOL, POSITION_BUS, ROUTING_PROVIDER } from "./tokens.js";
+import { AnalyticsController } from "./analytics/analytics.controller.js";
+import { AnalyticsService } from "./analytics/analytics.service.js";
 import { VehiclesController } from "./vehicles/vehicles.controller.js";
 
 export interface AppOptions {
@@ -46,7 +48,7 @@ export class AppModule {
   static register(opts: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController],
+      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController],
       providers: [
         { provide: PG_POOL, useValue: opts.pool },
         { provide: POSITION_BUS, useValue: opts.bus },
@@ -55,6 +57,7 @@ export class AppModule {
         { provide: GEOCODER, useValue: opts.geocoder ?? null },
         { provide: WEATHER, useValue: opts.weather ?? null },
         AuthGuard,
+        AnalyticsService,
         AuditService,
         { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
         LiveGateway,
