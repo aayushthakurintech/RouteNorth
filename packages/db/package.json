@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "migrate": "tsc -p tsconfig.json && node dist/cli.js"
+    "migrate": "tsc -p tsconfig.json && node dist/cli.js",
+    "seed": "tsc -p tsconfig.json && node dist/seed.js"
   },
   "dependencies": { "pg": "^8.16.0" },
   "devDependencies": {

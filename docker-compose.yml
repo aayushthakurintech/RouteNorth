@@ -22,6 +22,8 @@ services:
   traccar:
     image: traccar/traccar:6
     depends_on: [db]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # lets Traccar reach the ingest service on Linux
     ports:
       - "8082:8082"   # web UI / REST
       - "5055:5055"   # OsmAnd protocol (used by the simulator)

@@ -23,6 +23,7 @@ suite("tenant isolation (Row-Level Security)", () => {
       IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'routenorth_app') THEN
         CREATE ROLE routenorth_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS;
       END IF; END $$;`);
+    await admin.query("ALTER ROLE routenorth_app PASSWORD 'app'"); // `pnpm seed` may have set another password
     await admin.query("GRANT USAGE ON SCHEMA public TO routenorth_app");
     await admin.query("GRANT ALL ON ALL TABLES IN SCHEMA public TO routenorth_app");
     const u = new URL(ADMIN_URL!);

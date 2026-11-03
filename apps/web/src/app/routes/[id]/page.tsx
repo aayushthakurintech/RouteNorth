@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import type { MessageKey, StopStatus } from "@routenorth/shared";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ProofGallery } from "@/components/ProofGallery";
 import { apiGet, apiSend, Unauthorized } from "@/lib/api";
 import { formatDuration, formatTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n-context";
@@ -26,6 +27,7 @@ export default function RoutePage() {
   const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
   const [form, setForm] = useState({ name: "", address: "", windowStart: "", windowEnd: "", packages: "0" });
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [drivers, setDrivers] = useState<{ id: string; email: string }[]>([]);
 
   const load = useCallback(async () => {
     try {
@@ -39,6 +41,8 @@ export default function RoutePage() {
       if (e instanceof Unauthorized) router.replace("/login"); else setState("error");
     }
   }, [id, router]);
+
+  useEffect(() => { apiGet<{ id: string; email: string }[]>("/users?role=driver").then(setDrivers).catch(() => setDrivers([])); }, []);
 
   useEffect(() => { load(); const i = setInterval(load, 10_000); return () => clearInterval(i); }, [load]);
 
@@ -104,6 +108,17 @@ export default function RoutePage() {
         <h1 className="h">{route.name}</h1>
         <p className="meta">{route.date} · {t(`route_${route.status}` as MessageKey)}</p>
 
+        <label className="field">
+          {t("assignDriver")}
+          <select
+            value={route.driverId ?? ""}
+            onChange={(e) => run(() => apiSend<RouteDetail>("PATCH", `/routes/${route.id}`, { driverId: e.target.value || null }))}
+          >
+            <option value="">{t("noDriver")}</option>
+            {drivers.map((d) => <option key={d.id} value={d.id}>{d.email}</option>)}
+          </select>
+        </label>
+
         {report && (
           <section className="summary" aria-label={t("plannedVsActual")} aria-live="polite">
             <strong>{report.summary.done}/{report.summary.total} {t("stopsProgress")}</strong>
@@ -134,6 +149,7 @@ export default function RoutePage() {
                     {o && o.outcome !== "pending" && o.outcome !== "no_window" ? ` · ${t(`outcome_${o.outcome}` as MessageKey)}` : ""}
                     {o?.dwellS != null ? ` · ${formatDuration(o.dwellS)}` : ""}
                   </div>
+                  {(s.status === "done" || s.status === "failed") && <ProofGallery stopId={s.id} label={t("proofs")} />}
                   <div className="actions">
                     <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label={`${t("moveUp")}: ${s.name}`}>↑</button>
                     <button type="button" onClick={() => move(i, 1)} disabled={i === route.stops.length - 1} aria-label={`${t("moveDown")}: ${s.name}`}>↓</button>

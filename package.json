@@ -9,6 +9,9 @@
     "test": "turbo run test --concurrency=1",
     "typecheck": "turbo run typecheck",
     "infra:up": "docker compose up -d",
+    "seed": "pnpm --filter @routenorth/db seed",
+    "dev": "node scripts/dev.mjs",
+    "demo": "node scripts/dev.mjs --simulate",
     "infra:down": "docker compose down"
   },
   "devDependencies": {
