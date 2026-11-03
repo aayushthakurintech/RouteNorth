@@ -4,11 +4,11 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | Status | Count |
 | --- | ---: |
-| ✅ Done | 133 |
-| 🟡 Partly built | 25 |
-| 🔌 Needs outside accounts or hardware | 6 |
-| ➖ Chosen not to build | 1 |
-| ⬜ Not started | 155 |
+| ✅ Done | 175 |
+| 🟡 Partly built | 34 |
+| 🔌 Needs outside accounts or hardware | 9 |
+| ➖ Chosen not to build | 2 |
+| ⬜ Not started | 100 |
 
 - **Done**: built, with tests or a manual run behind it.
 - **Partly built**: the useful core works; the note says what is missing.
@@ -287,16 +287,16 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | No-code workflow builder: triggers, conditions, actions | ⬜ Not started |  |
-| 2 | Auto-send "your driver is 10 minutes away" messages | ⬜ Not started |  |
-| 3 | Auto-replan routes when traffic, a crash, or a cancellation happens | ⬜ Not started |  |
-| 4 | Auto-create invoices when a job is marked done | ⬜ Not started |  |
-| 5 | Auto-assign new orders from email, forms, or a store | ⬜ Not started |  |
-| 6 | Auto-flag drivers who need a break | ⬜ Not started |  |
-| 7 | Auto-escalate a job if nobody picks it up in 15 minutes | ⬜ Not started |  |
-| 8 | Recurring task scheduler | ⬜ Not started |  |
-| 9 | Approval flows (for example: overtime needs manager approval) | ⬜ Not started |  |
-| 10 | Webhooks that fire on any event | ⬜ Not started |  |
+| 1 | No-code workflow builder: triggers, conditions, actions | ✅ Done | No-code workflows: pick a trigger, match rules (all/any) and actions; templates gallery and a Try it test run. Automation page. |
+| 2 | Auto-send "your driver is 10 minutes away" messages | ✅ Done | Built-in minutes-away trigger plus a customer message in the customer's language; also available as a workflow template. |
+| 3 | Auto-replan routes when traffic, a crash, or a cancellation happens | 🟡 Partly built | Routes are replanned when a stop is cancelled or removed. Live traffic and crash detection need a traffic feed and are not built. |
+| 4 | Auto-create invoices when a job is marked done | ✅ Done | Invoice INV-YYYY-NNNN is created when a job is marked done (workflow action and default setting); PDF download in the portal. |
+| 5 | Auto-assign new orders from email, forms, or a store | 🟡 Partly built | Public booking form creates orders and a workflow can assign them. Email, store and form connectors need outside accounts. |
+| 6 | Auto-flag drivers who need a break | ✅ Done | Needs-break alert rule (hours without a break) feeds the event feed, workflows and the dispatcher inbox. |
+| 7 | Auto-escalate a job if nobody picks it up in 15 minutes | ✅ Done | Unaccepted-job escalation as a workflow trigger with a minutes setting (default 15); notifies the manager. |
+| 8 | Recurring task scheduler | ✅ Done | Recurring route templates, maintenance plans and scheduled reports. |
+| 9 | Approval flows (for example: overtime needs manager approval) | ✅ Done | Approvals queue for overtime, expenses over the limit and workflow approvals; decide with a note; sidebar count. |
+| 10 | Webhooks that fire on any event | ✅ Done | HMAC-signed webhooks on any event, delivery log, retries with back-off (1, 5, 30, 120, 720 minutes), ping, secret rotation. |
 
 ### Optimization extras
 
@@ -333,31 +333,31 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Installable app (PWA) or native iOS and Android | ⬜ Not started |  |
-| 2 | Works offline and syncs when signal returns | ⬜ Not started |  |
-| 3 | Big buttons and a simple "next stop" screen | ⬜ Not started |  |
-| 4 | Built-in turn-by-turn navigation, or one-tap open in Google Maps, Waze, or Apple Maps | ⬜ Not started |  |
-| 5 | Voice commands and voice notes | ⬜ Not started |  |
-| 6 | Dark mode for night driving | ⬜ Not started |  |
-| 7 | Driver-friendly mode that locks the screen while the vehicle moves | ⬜ Not started |  |
-| 8 | Barcode and QR scanner | ⬜ Not started |  |
-| 9 | Photo capture with auto timestamp and location | ⬜ Not started |  |
-| 10 | Signature capture | ⬜ Not started |  |
-| 11 | In-app chat between driver and dispatcher | ⬜ Not started |  |
-| 12 | Pre-written quick replies ("Running 10 minutes late") | ⬜ Not started |  |
-| 13 | Push notifications for new or changed jobs | ⬜ Not started |  |
-| 14 | Digital timesheet and automatic shift start and stop | ⬜ Not started |  |
-| 15 | Break and lunch timer | ⬜ Not started |  |
-| 16 | Daily vehicle inspection checklist | ⬜ Not started |  |
-| 17 | Expense capture: fuel receipts, parking, tolls | ⬜ Not started |  |
-| 18 | Earnings and trip summary for the driver | ⬜ Not started |  |
-| 19 | Battery-saver tracking mode | ⬜ Not started |  |
-| 20 | Multi-language driver app | ⬜ Not started |  |
-| 21 | Biometric sign-in (face or fingerprint) | ⬜ Not started |  |
-| 22 | Wearable and car-screen support (Apple Watch, CarPlay, Android Auto) | ⬜ Not started |  |
-| 23 | Ability to mark a stop as failed with a reason and photo | ⬜ Not started |  |
-| 24 | Request help from the app (flat tire, wrong address, customer not home) | ⬜ Not started |  |
-| 25 | Learning tips and short training videos inside the app | ⬜ Not started |  |
+| 1 | Installable app (PWA) or native iOS and Android | 🟡 Partly built | Installable web app (manifest and service worker). Native iOS and Android store apps are not built. |
+| 2 | Works offline and syncs when signal returns | ✅ Done | Offline outbox and service worker; actions sync when signal returns. |
+| 3 | Big buttons and a simple "next stop" screen | ✅ Done | Big-button next-stop screen. |
+| 4 | Built-in turn-by-turn navigation, or one-tap open in Google Maps, Waze, or Apple Maps | 🟡 Partly built | One-tap open in Google Maps, Waze or Apple Maps. No built-in turn-by-turn. |
+| 5 | Voice commands and voice notes | 🟡 Partly built | Voice commands (EN/FR) with a confirm step and voice notes use browser speech and recording support; not verified on real phones. |
+| 6 | Dark mode for night driving | ✅ Done | Dark mode and contrast themes. |
+| 7 | Driver-friendly mode that locks the screen while the vehicle moves | 🟡 Partly built | Driving mode (big buttons, locked controls) while moving; browsers cannot truly lock the phone screen. Not verified on devices. |
+| 8 | Barcode and QR scanner | ✅ Done | Barcode and QR scanner (uses the browser's detector where available). |
+| 9 | Photo capture with auto timestamp and location | ✅ Done | Photo capture with timestamp and location on proofs. |
+| 10 | Signature capture | ✅ Done | Signature pad on delivery. |
+| 11 | In-app chat between driver and dispatcher | ✅ Done | Chat with the dispatcher in the driver app, offline-safe through the outbox; dispatcher inbox replies. |
+| 12 | Pre-written quick replies ("Running 10 minutes late") | ✅ Done | Quick replies (late, arrived, need help ...) in EN/FR with one tap. |
+| 13 | Push notifications for new or changed jobs | 🟡 Partly built | In-app alerts use the browser Notification API when the app is open. Background push needs a push provider account. |
+| 14 | Digital timesheet and automatic shift start and stop | ✅ Done | Shift clock: start, end, breaks, overtime flags; timesheets page for managers with approval. |
+| 15 | Break and lunch timer | ✅ Done | Break and lunch timer with a reminder when a break is due. |
+| 16 | Daily vehicle inspection checklist | ✅ Done | Daily vehicle inspection checklist. |
+| 17 | Expense capture: fuel receipts, parking, tolls | ✅ Done | Expense sheet with receipt photo; auto-approved under the limit, otherwise sent for approval; reimburse in Expenses. |
+| 18 | Earnings and trip summary for the driver | ✅ Done | Tips sheet and trip/earnings summary in the driver app. |
+| 19 | Battery-saver tracking mode | 🟡 Partly built | Battery-saver mode lowers update rate and turns animations off; savings not measured on devices. |
+| 20 | Multi-language driver app | ✅ Done | Driver app in English and French. |
+| 21 | Biometric sign-in (face or fingerprint) | 🔌 Needs outside accounts or hardware | Biometric sign-in needs the native app or passkeys on real hardware; not built in the web app. |
+| 22 | Wearable and car-screen support (Apple Watch, CarPlay, Android Auto) | 🔌 Needs outside accounts or hardware | Apple Watch, CarPlay and Android Auto need native apps and platform approval; not built. |
+| 23 | Ability to mark a stop as failed with a reason and photo | ✅ Done | Mark a stop failed with a reason and photo. |
+| 24 | Request help from the app (flat tire, wrong address, customer not home) | ✅ Done | Help request (flat tire, wrong address, customer not home) with notes; dispatcher acknowledges or resolves in Inbox. |
+| 25 | Learning tips and short training videos inside the app | ✅ Done | Training items and tips managed in Settings and shown in the driver app. |
 
 ## Customer-facing features
 
@@ -365,26 +365,26 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Branded live tracking page (like Uber or Domino's) | ⬜ Not started |  |
-| 2 | Delivery time window picker for the customer | ⬜ Not started |  |
-| 3 | SMS, email, and WhatsApp updates at every step | ⬜ Not started |  |
-| 4 | "Driver is 5 stops away" notice | ⬜ Not started |  |
-| 5 | Reschedule or cancel from the tracking link | ⬜ Not started |  |
-| 6 | Leave delivery instructions (gate code, leave at door) | ⬜ Not started |  |
-| 7 | Driver name, photo, and vehicle shown for trust | ⬜ Not started |  |
-| 8 | Chat or call the driver through a masked number | ⬜ Not started |  |
-| 9 | Proof of delivery link with photo and signature | ⬜ Not started |  |
-| 10 | Rating and feedback after each delivery | ⬜ Not started |  |
-| 11 | Customer portal with order history and invoices | ⬜ Not started |  |
-| 12 | Self-service booking and quote form | ⬜ Not started |  |
-| 13 | Public status page for your own service health | ⬜ Not started |  |
-| 14 | Notification preferences per customer | ⬜ Not started |  |
-| 15 | Branded emails and SMS with your logo and colors | ⬜ Not started |  |
-| 16 | Delivery photo gallery | ⬜ Not started |  |
-| 17 | FAQ and help center, with in-app support chat | ⬜ Not started |  |
-| 18 | Loyalty and referral features | ⬜ Not started |  |
-| 19 | Return and pickup scheduling | ⬜ Not started |  |
-| 20 | Multi-language tracking pages | ⬜ Not started |  |
+| 1 | Branded live tracking page (like Uber or Domino's) | ✅ Done | Branded live tracking page /j/<token> with map, ETA and company colours. |
+| 2 | Delivery time window picker for the customer | ✅ Done | Customer picks a delivery slot when rescheduling or booking. |
+| 3 | SMS, email, and WhatsApp updates at every step | 🟡 Partly built | In-product messages and templates work; email and SMS send through your provider keys, WhatsApp is not built. Needs outside accounts. |
+| 4 | "Driver is 5 stops away" notice | ✅ Done | Driver-is-N-stops-away notice on the tracking page and as a trigger. |
+| 5 | Reschedule or cancel from the tracking link | ✅ Done | Reschedule and cancel from the tracking link, with the rules you set. |
+| 6 | Leave delivery instructions (gate code, leave at door) | ✅ Done | Customers leave delivery instructions (gate code, leave at door); shown on the driver's stop. |
+| 7 | Driver name, photo, and vehicle shown for trust | ✅ Done | Driver name, photo and vehicle on the tracking page. |
+| 8 | Chat or call the driver through a masked number | 🔌 Needs outside accounts or hardware | Chat with dispatch is built. A masked phone number needs a telephony account. |
+| 9 | Proof of delivery link with photo and signature | ✅ Done | Proof of delivery link with photo and signature on the job page. |
+| 10 | Rating and feedback after each delivery | ✅ Done | Rating and comment after each delivery; shown to managers. |
+| 11 | Customer portal with order history and invoices | ✅ Done | Customer portal with orders, invoices (PDF) and support chat. |
+| 12 | Self-service booking and quote form | ✅ Done | Public booking page with quote and spam protection. |
+| 13 | Public status page for your own service health | ✅ Done | Public status page with your own notices. |
+| 14 | Notification preferences per customer | ✅ Done | Per-customer notification preferences on the tracking link. |
+| 15 | Branded emails and SMS with your logo and colors | ✅ Done | Message templates in EN/FR with company logo and colours; wording editor with preview. |
+| 16 | Delivery photo gallery | ✅ Done | Proof photos shown as a gallery on the job page. |
+| 17 | FAQ and help center, with in-app support chat | ✅ Done | Help centre FAQ page and support chat in the portal and job page. |
+| 18 | Loyalty and referral features | ➖ Chosen not to build | Loyalty and referral features chosen not to build for now. |
+| 19 | Return and pickup scheduling | ✅ Done | Return and pickup requests from the tracking link. |
+| 20 | Multi-language tracking pages | ✅ Done | All public pages in English and French. |
 
 ## Integrations and open platform
 

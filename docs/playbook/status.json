@@ -678,5 +678,225 @@
  "alerts.11": {
   "s": "partial",
   "note": "The ask box understands common questions such as \"which driver had the most delays last month?\" with a rule-based reader and answers with a number or chart. Free-form questions come with the AI helper in Phase 5."
+ },
+ "auto.1": {
+  "s": "done",
+  "note": "No-code workflows: pick a trigger, match rules (all/any) and actions; templates gallery and a Try it test run. Automation page."
+ },
+ "auto.2": {
+  "s": "done",
+  "note": "Built-in minutes-away trigger plus a customer message in the customer's language; also available as a workflow template."
+ },
+ "auto.3": {
+  "s": "partial",
+  "note": "Routes are replanned when a stop is cancelled or removed. Live traffic and crash detection need a traffic feed and are not built."
+ },
+ "auto.4": {
+  "s": "done",
+  "note": "Invoice INV-YYYY-NNNN is created when a job is marked done (workflow action and default setting); PDF download in the portal."
+ },
+ "auto.5": {
+  "s": "partial",
+  "note": "Public booking form creates orders and a workflow can assign them. Email, store and form connectors need outside accounts."
+ },
+ "auto.6": {
+  "s": "done",
+  "note": "Needs-break alert rule (hours without a break) feeds the event feed, workflows and the dispatcher inbox."
+ },
+ "auto.7": {
+  "s": "done",
+  "note": "Unaccepted-job escalation as a workflow trigger with a minutes setting (default 15); notifies the manager."
+ },
+ "auto.8": {
+  "s": "done",
+  "note": "Recurring route templates, maintenance plans and scheduled reports."
+ },
+ "auto.9": {
+  "s": "done",
+  "note": "Approvals queue for overtime, expenses over the limit and workflow approvals; decide with a note; sidebar count."
+ },
+ "auto.10": {
+  "s": "done",
+  "note": "HMAC-signed webhooks on any event, delivery log, retries with back-off (1, 5, 30, 120, 720 minutes), ping, secret rotation."
+ },
+ "driver.5": {
+  "s": "partial",
+  "note": "Voice commands (EN/FR) with a confirm step and voice notes use browser speech and recording support; not verified on real phones."
+ },
+ "driver.7": {
+  "s": "partial",
+  "note": "Driving mode (big buttons, locked controls) while moving; browsers cannot truly lock the phone screen. Not verified on devices."
+ },
+ "driver.13": {
+  "s": "partial",
+  "note": "In-app alerts use the browser Notification API when the app is open. Background push needs a push provider account."
+ },
+ "driver.19": {
+  "s": "partial",
+  "note": "Battery-saver mode lowers update rate and turns animations off; savings not measured on devices."
+ },
+ "driver.21": {
+  "s": "external",
+  "note": "Biometric sign-in needs the native app or passkeys on real hardware; not built in the web app."
+ },
+ "driver.22": {
+  "s": "external",
+  "note": "Apple Watch, CarPlay and Android Auto need native apps and platform approval; not built."
+ },
+ "driver.11": {
+  "s": "done",
+  "note": "Chat with the dispatcher in the driver app, offline-safe through the outbox; dispatcher inbox replies."
+ },
+ "driver.12": {
+  "s": "done",
+  "note": "Quick replies (late, arrived, need help ...) in EN/FR with one tap."
+ },
+ "driver.14": {
+  "s": "done",
+  "note": "Shift clock: start, end, breaks, overtime flags; timesheets page for managers with approval."
+ },
+ "driver.15": {
+  "s": "done",
+  "note": "Break and lunch timer with a reminder when a break is due."
+ },
+ "driver.17": {
+  "s": "done",
+  "note": "Expense sheet with receipt photo; auto-approved under the limit, otherwise sent for approval; reimburse in Expenses."
+ },
+ "driver.18": {
+  "s": "done",
+  "note": "Tips sheet and trip/earnings summary in the driver app."
+ },
+ "driver.24": {
+  "s": "done",
+  "note": "Help request (flat tire, wrong address, customer not home) with notes; dispatcher acknowledges or resolves in Inbox."
+ },
+ "driver.25": {
+  "s": "done",
+  "note": "Training items and tips managed in Settings and shown in the driver app."
+ },
+ "driver.1": {
+  "s": "partial",
+  "note": "Installable web app (manifest and service worker). Native iOS and Android store apps are not built."
+ },
+ "driver.2": {
+  "s": "done",
+  "note": "Offline outbox and service worker; actions sync when signal returns."
+ },
+ "driver.3": {
+  "s": "done",
+  "note": "Big-button next-stop screen."
+ },
+ "driver.4": {
+  "s": "partial",
+  "note": "One-tap open in Google Maps, Waze or Apple Maps. No built-in turn-by-turn."
+ },
+ "driver.6": {
+  "s": "done",
+  "note": "Dark mode and contrast themes."
+ },
+ "driver.8": {
+  "s": "done",
+  "note": "Barcode and QR scanner (uses the browser's detector where available)."
+ },
+ "driver.9": {
+  "s": "done",
+  "note": "Photo capture with timestamp and location on proofs."
+ },
+ "driver.10": {
+  "s": "done",
+  "note": "Signature pad on delivery."
+ },
+ "driver.16": {
+  "s": "done",
+  "note": "Daily vehicle inspection checklist."
+ },
+ "driver.20": {
+  "s": "done",
+  "note": "Driver app in English and French."
+ },
+ "driver.23": {
+  "s": "done",
+  "note": "Mark a stop failed with a reason and photo."
+ },
+ "cust.1": {
+  "s": "done",
+  "note": "Branded live tracking page /j/<token> with map, ETA and company colours."
+ },
+ "cust.2": {
+  "s": "done",
+  "note": "Customer picks a delivery slot when rescheduling or booking."
+ },
+ "cust.3": {
+  "s": "partial",
+  "note": "In-product messages and templates work; email and SMS send through your provider keys, WhatsApp is not built. Needs outside accounts."
+ },
+ "cust.4": {
+  "s": "done",
+  "note": "Driver-is-N-stops-away notice on the tracking page and as a trigger."
+ },
+ "cust.5": {
+  "s": "done",
+  "note": "Reschedule and cancel from the tracking link, with the rules you set."
+ },
+ "cust.6": {
+  "s": "done",
+  "note": "Customers leave delivery instructions (gate code, leave at door); shown on the driver's stop."
+ },
+ "cust.7": {
+  "s": "done",
+  "note": "Driver name, photo and vehicle on the tracking page."
+ },
+ "cust.8": {
+  "s": "external",
+  "note": "Chat with dispatch is built. A masked phone number needs a telephony account."
+ },
+ "cust.9": {
+  "s": "done",
+  "note": "Proof of delivery link with photo and signature on the job page."
+ },
+ "cust.10": {
+  "s": "done",
+  "note": "Rating and comment after each delivery; shown to managers."
+ },
+ "cust.11": {
+  "s": "done",
+  "note": "Customer portal with orders, invoices (PDF) and support chat."
+ },
+ "cust.12": {
+  "s": "done",
+  "note": "Public booking page with quote and spam protection."
+ },
+ "cust.13": {
+  "s": "done",
+  "note": "Public status page with your own notices."
+ },
+ "cust.14": {
+  "s": "done",
+  "note": "Per-customer notification preferences on the tracking link."
+ },
+ "cust.15": {
+  "s": "done",
+  "note": "Message templates in EN/FR with company logo and colours; wording editor with preview."
+ },
+ "cust.16": {
+  "s": "done",
+  "note": "Proof photos shown as a gallery on the job page."
+ },
+ "cust.17": {
+  "s": "done",
+  "note": "Help centre FAQ page and support chat in the portal and job page."
+ },
+ "cust.18": {
+  "s": "skip",
+  "note": "Loyalty and referral features chosen not to build for now."
+ },
+ "cust.19": {
+  "s": "done",
+  "note": "Return and pickup requests from the tracking link."
+ },
+ "cust.20": {
+  "s": "done",
+  "note": "All public pages in English and French."
  }
 }
