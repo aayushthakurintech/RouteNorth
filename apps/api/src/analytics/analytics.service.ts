@@ -30,13 +30,13 @@ export const METRICS: Record<string, { unit: "%" | "min" | "h" | "km" | "$" | "n
 export type MetricKey = keyof typeof METRICS;
 export type Metrics = Partial<Record<string, number | null>>;
 
-interface StopRow { routeId: string; driverId: string | null; vehicleId: string | null; depotId: string | null; date: string; status: string; reason: string | null; windowEnd: Date | null; arrivedAt: Date | null; departedAt: Date | null; serviceMin: number; customer: string | null; lat: number; lng: number; sequence: number; weightKg: number; jobId: string | null }
-interface RouteRow { id: string; name: string; date: string; driverId: string | null; vehicleId: string | null; depotId: string | null; plannedKm: number; plannedMin: number; actualMin: number | null; stops: StopRow[]; adherence: number | null; actualKm: number }
-interface Mv { vehicleId: string | null; driverId: string | null; depotId: string | null; date: string; km: number; idleS: number; movingS: number; shiftH: number; routeIds: string[] }
-interface FuelRow { vehicleId: string; driverId: string | null; depotId: string | null; date: string; litres: number; cost: number; odometerKm: number | null; fuelType: string | null }
-interface MaintRow { vehicleId: string; depotId: string | null; date: string; cost: number; downtimeH: number }
-interface IncRow { vehicleId: string | null; driverId: string | null; depotId: string | null; date: string; kind: string; severity: string }
-interface FbRow { driverId: string | null; routeId: string | null; vehicleId: string | null; date: string; csat: number | null; nps: number | null }
+export interface StopRow { routeId: string; driverId: string | null; vehicleId: string | null; depotId: string | null; date: string; status: string; reason: string | null; windowEnd: Date | null; arrivedAt: Date | null; departedAt: Date | null; serviceMin: number; customer: string | null; lat: number; lng: number; sequence: number; weightKg: number; jobId: string | null }
+export interface RouteRow { id: string; name: string; date: string; driverId: string | null; vehicleId: string | null; depotId: string | null; plannedKm: number; plannedMin: number; actualMin: number | null; stops: StopRow[]; adherence: number | null; actualKm: number }
+export interface Mv { deviceId: string | null; vehicleId: string | null; driverId: string | null; depotId: string | null; date: string; km: number; idleS: number; movingS: number; shiftH: number; routeIds: string[] }
+export interface FuelRow { vehicleId: string; driverId: string | null; depotId: string | null; date: string; litres: number; cost: number; odometerKm: number | null; fuelType: string | null }
+export interface MaintRow { vehicleId: string; depotId: string | null; date: string; cost: number; downtimeH: number }
+export interface IncRow { vehicleId: string | null; driverId: string | null; depotId: string | null; date: string; kind: string; severity: string }
+export interface FbRow { driverId: string | null; routeId: string | null; vehicleId: string | null; date: string; csat: number | null; nps: number | null }
 interface SafeRow extends SafetyEvent { vehicleId: string | null; driverId: string | null; depotId: string | null; date: string; name: string }
 
 export interface Bundle {
@@ -148,7 +148,7 @@ export function breakdown(b: Bundle, by: Group): BreakdownRow[] {
   if (by === "route") {
     for (const r of b.routes) {
       const s = at(r.id)!;
-      s.mv.push({ vehicleId: r.vehicleId, driverId: r.driverId, depotId: r.depotId, date: r.date, km: r.actualKm, idleS: 0, movingS: 0, shiftH: 0, routeIds: [r.id] });
+      s.mv.push({ deviceId: null, vehicleId: r.vehicleId, driverId: r.driverId, depotId: r.depotId, date: r.date, km: r.actualKm, idleS: 0, movingS: 0, shiftH: 0, routeIds: [r.id] });
     }
   } else for (const x of b.mv) at(k.mv(x))?.mv.push(x);
   for (const x of b.fuel) at(k.fuel(x))?.fuel.push(x);
@@ -239,7 +239,7 @@ export class AnalyticsService {
       const safe: SafeRow[] = [];
       const kmByVehicleDay = new Map<string, number>();
       const fixesByVehicleDay = new Map<string, { lat: number; lng: number; t: number; speed: number }[]>();
-      for (const [, e] of byDevice) {
+      for (const [devId, e] of byDevice) {
         const vId = e.vehicleId;
         const perDay = new Map<string, { first: number; last: number }>();
         for (const x of e.fixes) {
@@ -256,7 +256,7 @@ export class AnalyticsService {
           const span = perDay.get(d.date);
           kmByVehicleDay.set(key, (kmByVehicleDay.get(key) ?? 0) + d.distanceM / 1000);
           mv.push({
-            vehicleId: vId, driverId: driverOn.get(key) ?? null, depotId: (vId ? vmap.get(vId)?.depotId : null) ?? null, date: d.date, km: d.distanceM / 1000,
+            deviceId: devId, vehicleId: vId, driverId: driverOn.get(key) ?? null, depotId: (vId ? vmap.get(vId)?.depotId : null) ?? null, date: d.date, km: d.distanceM / 1000,
             idleS: d.idleS, movingS: d.movingS, shiftH: span ? (span.last - span.first) / 3_600_000 : 0, routeIds: routesOn.get(key) ?? [],
           });
         }

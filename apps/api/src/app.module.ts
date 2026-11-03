@@ -26,8 +26,10 @@ import type { Geocoder } from "./dispatch/geocoder.js";
 import { FleetController } from "./fleet/fleet.controller.js";
 import { LiveExtrasController, PublicTrackController, ShareController } from "./fleet/live-extras.controller.js";
 import type { WeatherProvider } from "./weather/provider.js";
-import { GEOCODER, WEATHER, JWT_SECRET, PG_POOL, POSITION_BUS, ROUTING_PROVIDER } from "./tokens.js";
+import type { Providers } from "./notify/notifier.js";
+import { NOTIFY, GEOCODER, WEATHER, JWT_SECRET, PG_POOL, POSITION_BUS, ROUTING_PROVIDER } from "./tokens.js";
 import { AnalyticsController } from "./analytics/analytics.controller.js";
+import { PublicReportController, ReportsController } from "./reports/reports.controller.js";
 import { AnalyticsService } from "./analytics/analytics.service.js";
 import { VehiclesController } from "./vehicles/vehicles.controller.js";
 
@@ -41,6 +43,8 @@ export interface AppOptions {
   geocoder?: Geocoder | null;
   /** Forecasts (Open-Meteo by default). */
   weather?: WeatherProvider | null;
+  /** Where alerts and scheduled reports are sent (Slack, Teams, email, SMS). */
+  notify?: Providers | null;
 }
 
 @Module({})
@@ -48,7 +52,7 @@ export class AppModule {
   static register(opts: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController],
+      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController],
       providers: [
         { provide: PG_POOL, useValue: opts.pool },
         { provide: POSITION_BUS, useValue: opts.bus },
@@ -56,6 +60,7 @@ export class AppModule {
         { provide: ROUTING_PROVIDER, useValue: opts.routing ?? null },
         { provide: GEOCODER, useValue: opts.geocoder ?? null },
         { provide: WEATHER, useValue: opts.weather ?? null },
+        { provide: NOTIFY, useValue: opts.notify ?? { fetch } },
         AuthGuard,
         AnalyticsService,
         AuditService,

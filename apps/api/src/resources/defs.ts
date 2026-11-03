@@ -1,4 +1,5 @@
 import type { Permission } from "@routenorth/shared";
+import { checkTarget, type EndpointKind } from "../notify/notifier.js";
 
 export type FieldType = "text" | "int" | "num" | "bool" | "date" | "ts" | "time" | "ref" | "enum" | "tags" | "json";
 
@@ -176,6 +177,7 @@ export const RESOURCES: readonly ResourceDef[] = [
   {
     name: "notification-endpoints", table: "notification_endpoints", view: ["alerts.manage", "reports.manage"], write: "alerts.manage", order: "label", search: ["label"],
     fields: [en("kind", "kind", ["email", "slack", "teams", "sms", "webhook"], { required: true }), t("label", "label", { required: true, max: 80 }), t("target", "target", { required: true, max: 500 }), b("enabled", "enabled")],
+    check: (v) => { const bad = checkTarget(v.kind as EndpointKind, String(v.target ?? "")); if (bad) throw new Error(bad); },
   },
   {
     name: "alert-rules", table: "alert_rules", view: ["alerts.view"], write: "alerts.manage", order: "name", search: ["name"],
@@ -194,6 +196,10 @@ export const RESOURCES: readonly ResourceDef[] = [
       i("weekday", "weekday", { min: 0, max: 6 }), i("monthday", "monthday", { min: 1, max: 28 }), en("format", "format", ["csv", "xlsx", "pdf"]),
       { key: "endpointIds", col: "endpoint_ids", type: "tags" }, b("active", "active"),
     ],
+    check: (v) => {
+      if (v.freq === "weekly" && v.weekday == null) throw new Error("a weekly schedule needs a weekday (0 is Sunday)");
+      if (v.freq === "monthly" && v.monthday == null) throw new Error("a monthly schedule needs a day of the month (1 to 28)");
+    },
   },
 ];
 
