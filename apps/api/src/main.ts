@@ -11,6 +11,9 @@ import { AnalyticsService } from "./analytics/analytics.service.js";
 import { runAlertTick } from "./alerts/engine.js";
 import { providersFromEnv } from "./notify/notifier.js";
 import { runDueReports } from "./reports/scheduler.js";
+import { BadRequestException } from "@nestjs/common";
+import { runAutomation } from "./automation/processor.js";
+import { PlanController } from "./plan/plan.controller.js";
 import { MemoryPositionBus, RedisPositionBus } from "./live/position-bus.js";
 
 const databaseUrl = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL;
@@ -41,11 +44,18 @@ setInterval(tick, 15 * 60_000).unref();
 // Alerts: check the rules every minute. Scheduled reports go out when their hour comes (checked every minute too).
 const notify = providersFromEnv();
 const analytics = app.get(AnalyticsService);
+const planner = app.get(PlanController);
+const automation = {
+  providers: notify, secret: jwtSecret,
+  // "No pending stops" just means there is nothing left to re-plan.
+  replan: async (c: pg.PoolClient, orgId: string, routeId: string) => { try { return await planner.reoptimize(c, orgId, routeId, null, { apply: true }); } catch (e) { if (e instanceof BadRequestException) return null; throw e; } },
+};
 let busy = false;
 const minute = () => {
   if (busy) return; // a slow pass must not overlap the next one
   busy = true;
   void (async () => {
+    await runAutomation(schedulerPool, automation, (m) => console.log(m)).catch((e) => console.error("automation", e));
     await runAlertTick(schedulerPool, analytics, notify, (m) => console.log(m)).catch((e) => console.error("alerts", e));
     await runDueReports(schedulerPool, analytics, notify, (m) => console.log(m)).catch((e) => console.error("report schedules", e));
   })().finally(() => { busy = false; });

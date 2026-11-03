@@ -1,5 +1,6 @@
 import type { Permission } from "@routenorth/shared";
 import { checkTarget, type EndpointKind } from "../notify/notifier.js";
+import { CUSTOMER_EVENTS, validateWorkflow } from "../automation/spec.js";
 
 export type FieldType = "text" | "int" | "num" | "bool" | "date" | "ts" | "time" | "ref" | "enum" | "tags" | "json";
 
@@ -153,6 +154,7 @@ export const RESOURCES: readonly ResourceDef[] = [
       { key: "skills", col: "skills", type: "tags" }, { key: "tags", col: "tags", type: "tags" }, t("notes", "notes", { max: 2000 }),
       ref("driverId", "driver_id", "drivers"), ref("vehicleId", "vehicle_id", "vehicles"), ref("routeId", "route_id", "@routes"),
       t("reasonCode", "reason_code", { max: 40 }), t("reasonNote", "reason_note", { max: 500 }),
+      n("price", "price", { min: 0, max: 10_000_000 }), t("customerInstructions", "customer_instructions", { max: 500 }),
     ],
   },
   {
@@ -180,6 +182,37 @@ export const RESOURCES: readonly ResourceDef[] = [
     check: (v) => { if (v.csat == null && v.nps == null) throw new Error("give a satisfaction score (1 to 5) or a recommend score (0 to 10)"); },
   },
   {
+    name: "workflows", table: "workflows", view: ["alerts.view"], write: "alerts.manage", order: "name", search: ["name"],
+    fields: [
+      t("name", "name", { required: true, max: 120 }), t("description", "description", { max: 500 }), b("active", "active"),
+      { key: "trigger", col: "trigger", type: "json", json: "object", required: true }, en("match", "match", ["all", "any"]),
+      { key: "conditions", col: "conditions", type: "json", json: "array" }, { key: "actions", col: "actions", type: "json", json: "array", required: true },
+      i("runCount", "run_count", { min: 0 }),
+    ],
+    check: (v) => { validateWorkflow(v as { trigger?: unknown; match?: unknown; conditions?: unknown; actions?: unknown }); },
+  },
+  {
+    name: "training-items", table: "training_items", view: ["settings.manage", "driver.app"], write: "settings.manage", order: "sort, title", search: ["title"],
+    fields: [t("title", "title", { required: true, max: 120 }), t("body", "body", { max: 2000 }), t("videoUrl", "video_url", { max: 500 }), en("lang", "lang", ["en", "fr"]), i("sort", "sort", { min: 0, max: 10000 }), b("active", "active")],
+    check: (v) => { if (v.videoUrl && !/^https:\/\/[^\s]+$/.test(String(v.videoUrl))) throw new Error("the video address must start with https://"); },
+  },
+  {
+    name: "status-notices", table: "status_notices", view: ["settings.manage", "customers.view"], write: "customers.manage", order: "starts_at DESC", search: ["title"],
+    fields: [en("level", "level", ["info", "minor", "major", "resolved"]), t("title", "title", { required: true, max: 160 }), t("body", "body", { max: 2000 }), { key: "startsAt", col: "starts_at", type: "ts" }, { key: "endsAt", col: "ends_at", type: "ts" }],
+  },
+  {
+    name: "faq-items", table: "faq_items", view: ["settings.manage", "customers.view"], write: "customers.manage", order: "sort, question", search: ["question", "answer"],
+    fields: [t("question", "question", { required: true, max: 300 }), t("answer", "answer", { required: true, max: 4000 }), en("lang", "lang", ["en", "fr"]), i("sort", "sort", { min: 0, max: 10000 }), b("published", "published")],
+  },
+  {
+    name: "message-templates", table: "message_templates", view: ["customers.view"], write: "customers.manage", order: "event, channel, locale", search: ["event"],
+    fields: [
+      t("event", "event", { required: true, max: 30 }), en("channel", "channel", ["email", "sms"], { required: true }), en("locale", "locale", ["en", "fr"], { required: true }),
+      t("subject", "subject", { max: 200 }), t("body", "body", { required: true, max: 2000 }),
+    ],
+    check: (v) => { if (!(CUSTOMER_EVENTS as readonly string[]).includes(String(v.event))) throw new Error(`event must be one of ${CUSTOMER_EVENTS.join(", ")}`); },
+  },
+  {
     name: "notification-endpoints", table: "notification_endpoints", view: ["alerts.manage", "reports.manage"], write: "alerts.manage", order: "label", search: ["label"],
     fields: [en("kind", "kind", ["email", "slack", "teams", "sms", "webhook"], { required: true }), t("label", "label", { required: true, max: 80 }), t("target", "target", { required: true, max: 500 }), b("enabled", "enabled")],
     check: (v) => { const bad = checkTarget(v.kind as EndpointKind, String(v.target ?? "")); if (bad) throw new Error(bad); },
@@ -188,7 +221,7 @@ export const RESOURCES: readonly ResourceDef[] = [
     name: "alert-rules", table: "alert_rules", view: ["alerts.view"], write: "alerts.manage", order: "name", search: ["name"],
     fields: [
       t("name", "name", { required: true, max: 120 }),
-      en("kind", "kind", ["late_risk", "off_route", "long_idle", "speeding", "geofence", "offline", "harsh_driving", "document_expiry", "maintenance_due", "cost_anomaly", "custom_metric"], { required: true }),
+      en("kind", "kind", ["late_risk", "off_route", "long_idle", "speeding", "geofence", "offline", "harsh_driving", "document_expiry", "maintenance_due", "cost_anomaly", "custom_metric", "needs_break", "help_request"], { required: true }),
       { key: "params", col: "params", type: "json", json: "object" }, en("severity", "severity", ["info", "warn", "critical"]),
       { key: "endpointIds", col: "endpoint_ids", type: "tags" }, b("notifyInapp", "notify_inapp"), { key: "quietStart", col: "quiet_start", type: "time" }, { key: "quietEnd", col: "quiet_end", type: "time" },
       i("groupMinutes", "group_minutes", { min: 0, max: 1440 }), b("active", "active"),

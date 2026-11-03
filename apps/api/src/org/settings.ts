@@ -1,3 +1,4 @@
+import { parseCustomerSettings } from "../customer/settings.js";
 /**
  * Organization settings live in organizations.settings (jsonb). This file is the one place that
  * says which keys exist, their defaults and what the browser may see.
@@ -101,5 +102,6 @@ export function parseSettingsPatch(body: unknown): Partial<OrgSettings> {
     }
     out.featureFlags = f as Record<string, boolean>;
   }
+  Object.assign(out, parseCustomerSettings(b));
   return out;
 }

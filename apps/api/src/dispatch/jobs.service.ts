@@ -1,5 +1,6 @@
 import { ConflictException, NotFoundException } from "@nestjs/common";
 import type { pg } from "@routenorth/db";
+import { emit } from "../automation/events.js";
 
 export interface JobRow {
   id: string; org_id: string; type: string; priority: string; status: string; title: string; address: string | null;
@@ -14,6 +15,8 @@ export const FAIL_REASONS = ["not_home", "refused", "wrong_address", "access_den
 
 export async function event(c: pg.PoolClient, orgId: string, jobId: string, kind: string, actorId: string | null, detail: Record<string, unknown> = {}): Promise<void> {
   await c.query("INSERT INTO job_events (org_id, job_id, actor_id, kind, detail) VALUES ($1,$2,$3,$4,$5)", [orgId, jobId, actorId, kind, JSON.stringify(detail)]);
+  // A reschedule is not a status the job keeps, so announce it here for customer messages and workflows.
+  if (kind === "rescheduled") await emit(c, orgId, "job.rescheduled", "job", jobId, detail);
 }
 
 export async function loadJob(c: pg.PoolClient, id: string, lock = false): Promise<JobRow> {

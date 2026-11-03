@@ -32,6 +32,7 @@ import { AnalyticsController } from "./analytics/analytics.controller.js";
 import { AlertsController } from "./alerts/alerts.controller.js";
 import { PublicReportController, ReportsController } from "./reports/reports.controller.js";
 import { AnalyticsService } from "./analytics/analytics.service.js";
+import { ApprovalsController, AutomationController, WebhooksController } from "./automation/automation.controller.js";
 import { VehiclesController } from "./vehicles/vehicles.controller.js";
 
 export interface AppOptions {
@@ -53,7 +54,7 @@ export class AppModule {
   static register(opts: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController],
+      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController, AutomationController, WebhooksController, ApprovalsController],
       providers: [
         { provide: PG_POOL, useValue: opts.pool },
         { provide: POSITION_BUS, useValue: opts.bus },

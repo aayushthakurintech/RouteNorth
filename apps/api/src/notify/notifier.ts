@@ -6,7 +6,13 @@
 export type EndpointKind = "email" | "slack" | "teams" | "sms" | "webhook";
 export interface Endpoint { id: string; kind: EndpointKind; target: string; label: string }
 export interface Attachment { name: string; contentType: string; data: Uint8Array }
-export interface Message { subject: string; text: string; link?: string; severity?: "info" | "warn" | "critical"; attachments?: Attachment[] }
+export interface Message {
+  subject: string; text: string; link?: string; severity?: "info" | "warn" | "critical"; attachments?: Attachment[];
+  /** Email only: a styled version of the message. */
+  html?: string;
+  /** SMS only: send the text as it is, without the subject in front. */
+  plain?: boolean;
+}
 export type Fetch = typeof fetch;
 
 export interface Providers {
@@ -16,11 +22,13 @@ export interface Providers {
   /** Twilio SMS. */
   sms?: { accountSid: string; authToken: string; from: string; url?: string } | null;
 }
-export type Result = { ok: true } | { ok: false; error: string };
+/** `unconfigured` means the server has no account for this channel (not that the send was tried and failed). */
+export type Result = { ok: true } | { ok: false; error: string; unconfigured?: boolean };
 
 export function providersFromEnv(env: NodeJS.ProcessEnv = process.env): Providers {
   return {
-    fetch,
+    // A slow server must not hold up the rest of the pass.
+    fetch: ((url, init) => fetch(url, { ...init, signal: init?.signal ?? AbortSignal.timeout(10_000) })) as Fetch,
     email: env.RESEND_API_KEY && env.EMAIL_FROM ? { apiKey: env.RESEND_API_KEY, from: env.EMAIL_FROM, url: env.EMAIL_API_URL } : null,
     sms: env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_FROM ? { accountSid: env.TWILIO_ACCOUNT_SID, authToken: env.TWILIO_AUTH_TOKEN, from: env.TWILIO_FROM, url: env.TWILIO_API_URL } : null,
   };
@@ -59,16 +67,16 @@ export async function deliver(ep: Endpoint, m: Message, p: Providers): Promise<R
         res = await p.fetch(ep.target, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ subject: m.subject, text: m.text, link: m.link ?? null, severity: m.severity ?? "info" }) });
         break;
       case "email": {
-        if (!p.email) return { ok: false, error: "email is not set up on this server (RESEND_API_KEY and EMAIL_FROM)" };
+        if (!p.email) return { ok: false, error: "email is not set up on this server (RESEND_API_KEY and EMAIL_FROM)", unconfigured: true };
         res = await p.fetch(p.email.url ?? "https://api.resend.com/emails", {
           method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${p.email.apiKey}` },
-          body: JSON.stringify({ from: p.email.from, to: [ep.target], subject: m.subject, text: `${m.text}${m.link ? `\n\n${m.link}` : ""}`, attachments: (m.attachments ?? []).map((a) => ({ filename: a.name, content: Buffer.from(a.data).toString("base64") })) }),
+          body: JSON.stringify({ from: p.email.from, to: [ep.target], subject: m.subject, text: `${m.text}${m.link ? `\n\n${m.link}` : ""}`, ...(m.html ? { html: m.html } : {}), attachments: (m.attachments ?? []).map((a) => ({ filename: a.name, content: Buffer.from(a.data).toString("base64") })) }),
         });
         break;
       }
       case "sms": {
-        if (!p.sms) return { ok: false, error: "SMS is not set up on this server (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM)" };
-        const body = new URLSearchParams({ From: p.sms.from, To: ep.target, Body: `${m.subject}: ${m.text}`.slice(0, 600) });
+        if (!p.sms) return { ok: false, error: "SMS is not set up on this server (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM)", unconfigured: true };
+        const body = new URLSearchParams({ From: p.sms.from, To: ep.target, Body: (m.plain ? m.text : `${m.subject}: ${m.text}`).slice(0, 600) });
         res = await p.fetch(p.sms.url ?? `https://api.twilio.com/2010-04-01/Accounts/${p.sms.accountSid}/Messages.json`, {
           method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", authorization: `Basic ${Buffer.from(`${p.sms.accountSid}:${p.sms.authToken}`).toString("base64")}` }, body,
         });

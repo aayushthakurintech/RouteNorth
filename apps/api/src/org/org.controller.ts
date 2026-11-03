@@ -5,7 +5,8 @@ import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.j
 import { PG_POOL } from "../tokens.js";
 import { parseSettingsPatch, withDefaults } from "./settings.js";
 
-const LOGO = /^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/;
+const NESTED = ["customerNotify", "customerPortal", "booking", "approvals"];
+const LOGO =/^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/;
 
 @Controller("org")
 @UseGuards(AuthGuard)
@@ -68,7 +69,10 @@ export class OrgController {
       let patch;
       try { patch = parseSettingsPatch(body.settings); } catch (e) { throw new BadRequestException((e as Error).message); }
       args.push(JSON.stringify(patch));
-      set.push(`settings = settings || $${args.length}::jsonb`);
+      // Grouped options (customer messages, booking ...) are merged one level deep, so saving one switch keeps the others.
+      let expr = `settings || $${args.length}::jsonb`;
+      for (const k of NESTED) if (k in patch) expr = `jsonb_set(${expr}, '{${k}}', coalesce(settings->'${k}', '{}'::jsonb) || ($${args.length}::jsonb->'${k}'))`;
+      set.push(`settings = ${expr}`);
     }
     if (set.length === 0) throw new BadRequestException("nothing to update");
     await withOrg(this.pool, orgId, (c) => c.query(`UPDATE organizations SET ${set.join(", ")} WHERE id = $1`, args));

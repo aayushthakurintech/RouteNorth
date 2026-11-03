@@ -243,38 +243,44 @@ export class PlanController {
   async optimizeRoute(@Req() req: AuthedRequest, @Param("id") id: string, @Body() body: { apply?: unknown; startTime?: unknown; objective?: unknown; avoid?: unknown }) {
     const orgId = requirePerm(req, "routes.write");
     const routeId = parseUuid(id);
-    return withOrg(this.pool, orgId, async (c) => {
-      const route = (await c.query(
-        `SELECT id, route_date::text AS date, vehicle_id, driver_id, depot_id, objective, avoid, start_time::text AS start_time FROM routes WHERE id = $1 FOR UPDATE`, [routeId])).rows[0];
-      if (!route) throw new NotFoundException();
-      const rows = (await c.query(
-        `SELECT id, lat, lng, window_start, window_end, service_min, weight_kg, volume_m3, packages, priority, kind, status FROM stops WHERE route_id = $1 ORDER BY sequence`, [routeId])).rows;
-      const open = rows.filter((s) => s.status === "pending");
-      const done = rows.filter((s) => s.status !== "pending");
-      if (open.length === 0) throw new BadRequestException("no pending stops to plan");
-      const stops: PlanStop[] = open.map((s) => ({
-        id: s.id, lat: s.lat, lng: s.lng, serviceMin: s.service_min, weightKg: s.weight_kg, volumeM3: s.volume_m3, items: s.packages, priority: s.priority, kind: s.kind,
-        windowStart: s.window_start ? s.window_start.getTime() : null, windowEnd: s.window_end ? s.window_end.getTime() : null,
-      }));
-      const r = parsePlanRequest({
-        date: route.date, vehicleId: route.vehicle_id, driverId: route.driver_id, depotId: route.depot_id,
-        startTime: body?.startTime ?? (route.start_time ? String(route.start_time).slice(0, 5) : "08:00"), objective: body?.objective ?? route.objective, avoid: body?.avoid ?? route.avoid, stops: [{ name: "x", lat: 0, lng: 0 }],
-      });
-      r.stops = stops;
-      const { ctx, plan } = await this.solve(c, orgId, r);
-      const out = this.present(plan, stops, ctx);
-      if (body?.apply === true) {
-        const before = await this.solve(c, orgId, { ...r, fixedOrder: true });
-        await c.query(
-          "INSERT INTO route_savings (org_id, route_id, saved_by, before_km, after_km, before_cost, after_cost) VALUES ($1,$2,$3,$4,$5,$6,$7)",
-          [orgId, routeId, req.session!.userId, before.plan.totals.distanceM / 1000, plan.totals.distanceM / 1000, planCost(before.plan.totals, before.ctx.rates), planCost(plan.totals, ctx.rates)]);
-        const order = [...done.map((s) => s.id), ...plan.order];
-        await c.query(
-          `UPDATE stops s SET sequence = x.seq FROM unnest($2::uuid[]) WITH ORDINALITY AS x(id, seq) WHERE s.id = x.id AND s.route_id = $1`, [routeId, order]);
-        for (const st of out.stops) await c.query("UPDATE stops SET eta = $2 WHERE id = $1", [st.id, st.arriveAt]);
-      }
-      return { ...out, applied: body?.apply === true };
+    return withOrg(this.pool, orgId, (c) => this.reoptimize(c, orgId, routeId, req.session!.userId, body ?? {}));
+  }
+
+  /**
+   * Re-plan the stops a route has left. Used by the Plan screen and by workflows ("re-plan when a stop is cancelled"), so both give the same answer.
+   * Without `apply: true` it only reports what it would do.
+   */
+  async reoptimize(c: pg.PoolClient, orgId: string, routeId: string, userId: string | null, body: { apply?: unknown; startTime?: unknown; objective?: unknown; avoid?: unknown }) {
+    const route = (await c.query(
+      `SELECT id, route_date::text AS date, vehicle_id, driver_id, depot_id, objective, avoid, start_time::text AS start_time FROM routes WHERE id = $1 FOR UPDATE`, [routeId])).rows[0];
+    if (!route) throw new NotFoundException();
+    const rows = (await c.query(
+      `SELECT id, lat, lng, window_start, window_end, service_min, weight_kg, volume_m3, packages, priority, kind, status FROM stops WHERE route_id = $1 ORDER BY sequence`, [routeId])).rows;
+    const open = rows.filter((s) => s.status === "pending");
+    const done = rows.filter((s) => s.status !== "pending");
+    if (open.length === 0) throw new BadRequestException("no pending stops to plan");
+    const stops: PlanStop[] = open.map((s) => ({
+      id: s.id, lat: s.lat, lng: s.lng, serviceMin: s.service_min, weightKg: s.weight_kg, volumeM3: s.volume_m3, items: s.packages, priority: s.priority, kind: s.kind,
+      windowStart: s.window_start ? s.window_start.getTime() : null, windowEnd: s.window_end ? s.window_end.getTime() : null,
+    }));
+    const r = parsePlanRequest({
+      date: route.date, vehicleId: route.vehicle_id, driverId: route.driver_id, depotId: route.depot_id,
+      startTime: body?.startTime ?? (route.start_time ? String(route.start_time).slice(0, 5) : "08:00"), objective: body?.objective ?? route.objective, avoid: body?.avoid ?? route.avoid, stops: [{ name: "x", lat: 0, lng: 0 }],
     });
+    r.stops = stops;
+    const { ctx, plan } = await this.solve(c, orgId, r);
+    const out = this.present(plan, stops, ctx);
+    if (body?.apply === true) {
+      const before = await this.solve(c, orgId, { ...r, fixedOrder: true });
+      await c.query(
+        "INSERT INTO route_savings (org_id, route_id, saved_by, before_km, after_km, before_cost, after_cost) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        [orgId, routeId, userId, before.plan.totals.distanceM / 1000, plan.totals.distanceM / 1000, planCost(before.plan.totals, before.ctx.rates), planCost(plan.totals, ctx.rates)]);
+      const order = [...done.map((s) => s.id), ...plan.order];
+      await c.query(
+        `UPDATE stops s SET sequence = x.seq FROM unnest($2::uuid[]) WITH ORDINALITY AS x(id, seq) WHERE s.id = x.id AND s.route_id = $1`, [routeId, order]);
+      for (const st of out.stops) await c.query("UPDATE stops SET eta = $2 WHERE id = $1", [st.id, st.arriveAt]);
+    }
+    return { ...out, applied: body?.apply === true };
   }
 
   /** Live ETAs for the rest of a route, from where its vehicle is right now. */
