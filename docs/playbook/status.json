@@ -648,8 +648,8 @@
     "note": "Short fade and slide transitions on dialogs, toasts and panels. No full page transitions."
   },
   "motion.3": {
-    "s": "todo",
-    "note": "Planned with the route map in Phase 2."
+    "s": "done",
+    "note": "Routes draw themselves on the route map and the trip replay when they first appear. Respects reduced motion."
   },
   "motion.4": {
     "s": "done",
@@ -668,20 +668,20 @@
     "note": "Check-mark animation component (SuccessMark)."
   },
   "motion.8": {
-    "s": "todo",
-    "note": "Planned with the driver app in Phase 4."
+    "s": "done",
+    "note": "Pull-to-refresh in the driver app: pull from the top to sync and reload routes. Only starts at the top of the page."
   },
   "motion.9": {
-    "s": "todo",
-    "note": "Planned with the dispatch board in Phase 2."
+    "s": "done",
+    "note": "Drag-and-drop with a drag state and drop highlights on the dispatch board, route stops and dashboard widgets."
   },
   "nav.1": {
     "s": "done",
     "note": "Collapsible side menu; becomes a drawer on phones."
   },
   "nav.10": {
-    "s": "todo",
-    "note": "Home dashboard with drag-and-drop widgets arrives with dashboards in Phase 3."
+    "s": "partial",
+    "note": "Dashboards (/analytics) can be rearranged by drag-and-drop and resized per widget, and saved. The home screen itself is still the live map; it is not a widget dashboard."
   },
   "nav.2": {
     "s": "done",
@@ -964,8 +964,8 @@
     "note": "Tokens and components follow a clean, minimal look (apps/web/src/app/tokens.css)."
   },
   "style.2": {
-    "s": "todo",
-    "note": "Bento dashboard cards arrive with the dashboards in Phase 3."
+    "s": "partial",
+    "note": "Dashboards use a grid of cards in several widths (bento-style). It is not applied to the home screen."
   },
   "style.3": {
     "s": "done",
@@ -1202,5 +1202,81 @@
   "billing.10": {
     "s": "done",
     "note": "Contracts with terms, SLA targets and the on-time rate measured from deliveries."
+  },
+  "security.1": {
+    "s": "partial",
+    "note": "Two-factor sign-in is built (authenticator app, recovery codes, require-for-everyone, admin reset). Single sign-on (SAML, OpenID Connect) is not built; it is on the public roadmap."
+  },
+  "security.3": {
+    "s": "partial",
+    "note": "Two-factor secrets are encrypted in the app (AES-256-GCM) and API keys are stored as hashes. Encryption in transit and disk encryption at rest come from the host and must be switched on there; see docs/OPERATIONS.md."
+  },
+  "security.4": {
+    "s": "partial",
+    "note": "`pnpm backup` and `pnpm restore` (checked dump, restore only into an empty database), documented in docs/OPERATIONS.md. Scheduling, off-site copies and restore tests are the operator's; there is no one-click restore button."
+  },
+  "security.5": {
+    "s": "done",
+    "note": "IP allowlist, session length, session list with sign-out of one device or everyone, sign out a person, and revoked tokens stop working at once."
+  },
+  "security.6": {
+    "s": "done",
+    "note": "Retention in days, message retention, daily cleanup job, JSON data export, erase a person, delete a whole organization (owner, password and name typed)."
+  },
+  "security.7": {
+    "s": "partial",
+    "note": "Tracking only during shifts: when on, the live map and history hide positions outside a person's scheduled shift. It filters what is shown; the tracker still reports and the data is kept until retention removes it."
+  },
+  "security.8": {
+    "s": "done",
+    "note": "Public status page with application and database checks and a 90 day incident history. Incidents are written by the operator (docs/OPERATIONS.md); there is no automatic detection or subscriptions."
+  },
+  "security.9": {
+    "s": "done",
+    "note": "Public /security page written to match what the product really does, including what is unfinished, in English and French."
+  },
+  "security.10": {
+    "s": "partial",
+    "note": "Live compliance checklist in Settings, Security, plus docs/COMPLIANCE_PLAN.md with the order of work. No certification exists and no audit has been done."
+  },
+  "quality.1": {
+    "s": "done",
+    "note": "Setup checklist on the home screen driven by real data (8 steps, hides when finished), plus the help center."
+  },
+  "quality.2": {
+    "s": "partial",
+    "note": "Help and feedback form: messages are stored, managers see them, and they are emailed to SUPPORT_EMAIL when set. There is no live chat and no reply workflow in the app."
+  },
+  "quality.3": {
+    "s": "done",
+    "note": "Feedback button on every screen, and a roadmap with one vote per person, public at /roadmap."
+  },
+  "quality.4": {
+    "s": "done",
+    "note": "What's new release notes cover the security, business, platform and smart-dispatch releases."
+  },
+  "quality.5": {
+    "s": "done",
+    "note": "Privacy-friendly usage counts per page and feature, per day and role. No user ids and no content; shown in Settings, Health and usage."
+  },
+  "quality.6": {
+    "s": "done",
+    "note": "Feature switches with stable percentage rollout and per-organization overrides (Settings, Features)."
+  },
+  "quality.7": {
+    "s": "done",
+    "note": "Demo company via `pnpm seed`, plus in-app sample jobs that can be added and removed in one click."
+  },
+  "quality.8": {
+    "s": "partial",
+    "note": "In-app help center (19 articles in English and French, searchable, grouped by topic) reachable from the menu and the Help and feedback page. Articles are not yet linked from each individual screen."
+  },
+  "quality.9": {
+    "s": "done",
+    "note": "Import wizard for vehicles, drivers and jobs (built earlier), plus a help article on preparing the file."
+  },
+  "quality.10": {
+    "s": "done",
+    "note": "Health page (Settings, Health): database, GPS feed, silent devices, webhooks, customer messages, workflows, server errors and outside services."
   }
 }

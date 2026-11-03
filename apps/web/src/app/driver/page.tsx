@@ -13,6 +13,7 @@ import { newId, queueStore, syncNow } from "@/lib/driver-sync";
 import { downscaleImage } from "@/lib/image";
 import { useI18n } from "@/lib/i18n-context";
 import { applyPending, type DriverRoute, type DriverStop, type QueueItem, type StatusBody } from "@/lib/offline-queue";
+import { usePullToRefresh } from "@/lib/pull-refresh";
 import { API_URL, loadSession, saveSession } from "@/lib/session";
 
 interface Stop extends DriverStop { name: string; address: string | null; lat: number; lng: number; sequence: number; notes: string | null; packages: number | null; customerInstructions?: string | null }
@@ -102,12 +103,17 @@ export default function DriverPage() {
     id: newId(), kind: "status", stopId: stop.id, body: { ...body, occurredAt: new Date().toISOString() },
   });
 
+  const refresher = usePullToRefresh(sync, ready);
+
   if (!ready) return null;
   const routes = applyPending(base, queue);
   const pending = queue.filter((q) => !q.failed).length;
 
   return (
     <main className="driver">
+      <div className="pull-indicator" style={{ height: refresher.busy ? 36 : refresher.pull }} role="status" aria-live="polite">
+        {(refresher.busy || refresher.pull > 0) && <span>{refresher.busy ? t("pull_refreshing") : refresher.ready ? t("pull_release") : t("pull_pull")}</span>}
+      </div>
       <header className="driver-bar">
         <strong>{t("driverToday")}</strong>
         <span className={online ? "pill ok" : "pill warn"} role="status">{online ? t("online") : t("offline")}</span>

@@ -4,11 +4,11 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | Status | Count |
 | --- | ---: |
-| ✅ Done | 219 |
-| 🟡 Partly built | 60 |
+| ✅ Done | 234 |
+| 🟡 Partly built | 69 |
 | 🔌 Needs outside accounts or hardware | 15 |
 | ➖ Chosen not to build | 2 |
-| ⬜ Not started | 24 |
+| ⬜ Not started | 0 |
 
 - **Done**: built, with tests or a manual run behind it.
 - **Partly built**: the useful core works; the note says what is missing.
@@ -24,7 +24,7 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
 | 1 | Clean minimal (Linear / Stripe style). Lots of white space, thin lines, one accent color. Best for a trusted, pro feel. | ✅ Done | Tokens and components follow a clean, minimal look (apps/web/src/app/tokens.css). |
-| 2 | Bento grid. Dashboard cards of different sizes, like a lunchbox. Very popular now. | ⬜ Not started | Bento dashboard cards arrive with the dashboards in Phase 3. |
+| 2 | Bento grid. Dashboard cards of different sizes, like a lunchbox. Very popular now. | 🟡 Partly built | Dashboards use a grid of cards in several widths (bento-style). It is not applied to the home screen. |
 | 3 | Glassmorphism, used lightly. Soft blurred panels over a map. Do not overuse it. | ✅ Done | Floating map panel uses a light blur; switched off in high-contrast mode. |
 | 4 | Dark-first "command center" look. Dark map, glowing routes. Feels like mission control. | 🟡 Partly built | Dark theme and a dark basemap work. Glowing route lines are not done. |
 | 5 | Soft neumorphic cards. Gentle shadows. Only for small widgets, since it can hurt | ➖ Chosen not to build | The Playbook says pick one direction and stay with it; soft shadows hurt readability. |
@@ -63,13 +63,13 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 | ---: | --- | --- | --- |
 | 1 | Skeleton loaders instead of spinners | ✅ Done | Skeleton loaders on every list and table. |
 | 2 | Smooth page and panel transitions | 🟡 Partly built | Short fade and slide transitions on dialogs, toasts and panels. No full page transitions. |
-| 3 | Animated route lines that draw themselves | ⬜ Not started | Planned with the route map in Phase 2. |
+| 3 | Animated route lines that draw themselves | ✅ Done | Routes draw themselves on the route map and the trip replay when they first appear. Respects reduced motion. |
 | 4 | Moving vehicle markers that glide, not jump | ✅ Done | Vehicle markers glide to each new fix (lib/glide.ts). |
 | 5 | Number count-up animation on KPI cards | ✅ Done | KPI numbers count up. |
 | 6 | Micro-interactions on buttons and toggles | ✅ Done | Buttons press, switches slide, menus fade. |
 | 7 | Success animations (a small check mark or confetti) | ✅ Done | Check-mark animation component (SuccessMark). |
-| 8 | Pull-to-refresh on mobile | ⬜ Not started | Planned with the driver app in Phase 4. |
-| 9 | Drag-and-drop with smooth feedback | ⬜ Not started | Planned with the dispatch board in Phase 2. |
+| 8 | Pull-to-refresh on mobile | ✅ Done | Pull-to-refresh in the driver app: pull from the top to sync and reload routes. Only starts at the top of the page. |
+| 9 | Drag-and-drop with smooth feedback | ✅ Done | Drag-and-drop with a drag state and drop highlights on the dispatch board, route stops and dashboard widgets. |
 | 10 | Reduced-motion option for people who need it | ✅ Done | Account menu has Follow device / Reduce motion / Full motion; it also respects the device setting. |
 
 ### Layout and navigation
@@ -85,7 +85,7 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 | 7 | Pinned and favorite items | ✅ Done | Pin any page; pins show in the menu and in the palette. |
 | 8 | Keyboard shortcuts with a cheat sheet | ✅ Done | ? opens the cheat sheet; g then l/r/p jumps; T switches theme; [ collapses the menu. |
 | 9 | Saved views and custom tabs | 🟡 Partly built | Tables save named views (sort, filters, columns, grouping). Custom tabs are not built. |
-| 10 | Customizable home dashboard with drag-and-drop widgets | ⬜ Not started | Home dashboard with drag-and-drop widgets arrives with dashboards in Phase 3. |
+| 10 | Customizable home dashboard with drag-and-drop widgets | 🟡 Partly built | Dashboards (/analytics) can be rearranged by drag-and-drop and resized per widget, and saved. The home screen itself is still the live map; it is not a widget dashboard. |
 
 ### Polish that people notice
 
@@ -462,28 +462,28 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Single sign-on (SSO) and two-factor sign-in | ⬜ Not started |  |
+| 1 | Single sign-on (SSO) and two-factor sign-in | 🟡 Partly built | Two-factor sign-in is built (authenticator app, recovery codes, require-for-everyone, admin reset). Single sign-on (SAML, OpenID Connect) is not built; it is on the public roadmap. |
 | 2 | Full audit log of every change | ✅ Done | Append-only audit log of every change with who, what, when and IP; the app role cannot edit or delete it. |
-| 3 | Data encryption at rest and in transit | ⬜ Not started |  |
-| 4 | Automatic backups and one-click restore | ⬜ Not started |  |
-| 5 | IP allow lists and session controls | ⬜ Not started |  |
-| 6 | Data retention rules and one-click export or delete (privacy laws such as PIPEDA and GDPR) | ⬜ Not started |  |
-| 7 | Driver privacy controls (tracking only during shifts) | ⬜ Not started |  |
-| 8 | Uptime status page and incident history | ⬜ Not started |  |
-| 9 | Security page that lists your practices | ⬜ Not started |  |
-| 10 | Compliance work plan: SOC 2 and ISO 27001 over time | ⬜ Not started |  |
+| 3 | Data encryption at rest and in transit | 🟡 Partly built | Two-factor secrets are encrypted in the app (AES-256-GCM) and API keys are stored as hashes. Encryption in transit and disk encryption at rest come from the host and must be switched on there; see docs/OPERATIONS.md. |
+| 4 | Automatic backups and one-click restore | 🟡 Partly built | `pnpm backup` and `pnpm restore` (checked dump, restore only into an empty database), documented in docs/OPERATIONS.md. Scheduling, off-site copies and restore tests are the operator's; there is no one-click restore button. |
+| 5 | IP allow lists and session controls | ✅ Done | IP allowlist, session length, session list with sign-out of one device or everyone, sign out a person, and revoked tokens stop working at once. |
+| 6 | Data retention rules and one-click export or delete (privacy laws such as PIPEDA and GDPR) | ✅ Done | Retention in days, message retention, daily cleanup job, JSON data export, erase a person, delete a whole organization (owner, password and name typed). |
+| 7 | Driver privacy controls (tracking only during shifts) | 🟡 Partly built | Tracking only during shifts: when on, the live map and history hide positions outside a person's scheduled shift. It filters what is shown; the tracker still reports and the data is kept until retention removes it. |
+| 8 | Uptime status page and incident history | ✅ Done | Public status page with application and database checks and a 90 day incident history. Incidents are written by the operator (docs/OPERATIONS.md); there is no automatic detection or subscriptions. |
+| 9 | Security page that lists your practices | ✅ Done | Public /security page written to match what the product really does, including what is unfinished, in English and French. |
+| 10 | Compliance work plan: SOC 2 and ISO 27001 over time | 🟡 Partly built | Live compliance checklist in Settings, Security, plus docs/COMPLIANCE_PLAN.md with the order of work. No certification exists and no audit has been done. |
 
 ### Quality and support
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Built-in help center and search | ⬜ Not started |  |
-| 2 | In-app chat with support | ⬜ Not started |  |
-| 3 | Feedback button and public roadmap | ⬜ Not started |  |
-| 4 | Release notes ("What's new") | ⬜ Not started |  |
-| 5 | Product analytics to learn what users really click | ⬜ Not started |  |
-| 6 | Feature flags to ship safely and test with a few users first | ⬜ Not started |  |
-| 7 | Sample data and a demo account so new users can explore | ⬜ Not started |  |
-| 8 | Onboarding checklist and guided setup | ⬜ Not started |  |
-| 9 | Data import and migration help | ⬜ Not started |  |
-| 10 | Health check page showing sync status and errors | ⬜ Not started |  |
+| 1 | Built-in help center and search | ✅ Done | Setup checklist on the home screen driven by real data (8 steps, hides when finished), plus the help center. |
+| 2 | In-app chat with support | 🟡 Partly built | Help and feedback form: messages are stored, managers see them, and they are emailed to SUPPORT_EMAIL when set. There is no live chat and no reply workflow in the app. |
+| 3 | Feedback button and public roadmap | ✅ Done | Feedback button on every screen, and a roadmap with one vote per person, public at /roadmap. |
+| 4 | Release notes ("What's new") | ✅ Done | What's new release notes cover the security, business, platform and smart-dispatch releases. |
+| 5 | Product analytics to learn what users really click | ✅ Done | Privacy-friendly usage counts per page and feature, per day and role. No user ids and no content; shown in Settings, Health and usage. |
+| 6 | Feature flags to ship safely and test with a few users first | ✅ Done | Feature switches with stable percentage rollout and per-organization overrides (Settings, Features). |
+| 7 | Sample data and a demo account so new users can explore | ✅ Done | Demo company via `pnpm seed`, plus in-app sample jobs that can be added and removed in one click. |
+| 8 | Onboarding checklist and guided setup | 🟡 Partly built | In-app help center (19 articles in English and French, searchable, grouped by topic) reachable from the menu and the Help and feedback page. Articles are not yet linked from each individual screen. |
+| 9 | Data import and migration help | ✅ Done | Import wizard for vehicles, drivers and jobs (built earlier), plus a help article on preparing the file. |
+| 10 | Health check page showing sync status and errors | ✅ Done | Health page (Settings, Health): database, GPS feed, silent devices, webhooks, customer messages, workflows, server errors and outside services. |
