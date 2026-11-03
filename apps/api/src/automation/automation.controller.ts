@@ -175,7 +175,7 @@ export class WebhooksController {
   @HttpCode(200)
   async retry(@Req() req: AuthedRequest, @Param("id") id: string) {
     const orgId = requirePerm(req, "integrations.manage");
-    const n = (await withOrg(this.pool, orgId, (c) => c.query("UPDATE webhook_deliveries SET status = 'pending', attempts = 0, next_attempt_at = now() WHERE id = $1 AND status = 'failed'", [parseUuid(id)]))).rowCount;
+    const n = (await withOrg(this.pool, orgId, (c) => c.query("UPDATE webhook_deliveries SET status = 'pending', attempts = 0, next_attempt_at = now() - interval '1 second' WHERE id = $1 AND status = 'failed'", [parseUuid(id)]))).rowCount;
     if (!n) throw new NotFoundException();
     await deliverWebhooks(this.pool, { providers: this.notify }, orgId);
     return { ok: true };
