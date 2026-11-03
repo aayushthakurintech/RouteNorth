@@ -1,4 +1,5 @@
 import { parseCustomerSettings } from "../customer/settings.js";
+import { extraDefaults, mergeExtra, parseExtraSettings } from "./extra-settings.js";
 /**
  * Organization settings live in organizations.settings (jsonb). This file is the one place that
  * says which keys exist, their defaults and what the browser may see.
@@ -24,6 +25,11 @@ export interface OrgSettings {
   /** Hours of work in a day before overtime starts. */
   overtimeAfterH: number;
   featureFlags: Record<string, boolean>;
+  safety: { leaderboard: boolean; anonymous: boolean; coaching: boolean; crashDetection: boolean; fatigueWarnMin: number; fatigueStopMin: number; shiftWarnMin: number; shiftMaxMin: number; checkinGraceMin: number };
+  billing: { province: string; taxMode: string; paymentTermsDays: number; quoteValidDays: number; payPerStop: number; payPerKm: number; overtimeMultiplier: number; budgetAlertPct: number; companyName: string; taxNumber: string };
+  costing: { fuelPricePerL: number; wearPerKm: number; tollPerKm: number; evCostPerKm: number };
+  onboarding: { dismissed: boolean; sampleLoaded: boolean };
+  platform: { widgetOrigins: string; whiteLabel: boolean; poweredBy: boolean; analyticsOptOut: boolean; mapTileUrl: string };
   [key: string]: unknown;
 }
 
@@ -42,11 +48,12 @@ export const DEFAULT_SETTINGS: OrgSettings = {
   costPerHour: 35,
   overtimeAfterH: 8,
   featureFlags: {},
+  ...(extraDefaults() as Pick<OrgSettings, "safety" | "billing" | "costing" | "onboarding" | "platform">),
 };
 
 export function withDefaults(raw: unknown): OrgSettings {
   const o = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
-  return { ...DEFAULT_SETTINGS, ...o, featureFlags: { ...DEFAULT_SETTINGS.featureFlags, ...((o.featureFlags as object) ?? {}) } } as OrgSettings;
+  return { ...DEFAULT_SETTINGS, ...o, featureFlags: { ...DEFAULT_SETTINGS.featureFlags, ...((o.featureFlags as object) ?? {}) }, ...mergeExtra(o) } as OrgSettings;
 }
 
 /** The subset every signed-in person's browser receives. Security details stay server-side. */
@@ -102,6 +109,6 @@ export function parseSettingsPatch(body: unknown): Partial<OrgSettings> {
     }
     out.featureFlags = f as Record<string, boolean>;
   }
-  Object.assign(out, parseCustomerSettings(b));
+  Object.assign(out, parseCustomerSettings(b), parseExtraSettings(b));
   return out;
 }

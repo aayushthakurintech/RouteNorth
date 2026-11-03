@@ -181,7 +181,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
           )) : pageLabel ? <span aria-current="page">{pageLabel}</span> : null}
         </nav>
         <div className="top-actions">
-          <button type="button" className="search-trigger" onClick={() => setPalette(true)} aria-label={`${t("search")} Ctrl K`}>
+          <button type="button" className="search-trigger" onClick={() => setPalette(true)}>
             <Search size={16} aria-hidden /><span className="label">{t("search")}</span><span className="kbd">Ctrl K</span>
           </button>
           {pageLabel && (

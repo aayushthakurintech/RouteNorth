@@ -4,11 +4,11 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | Status | Count |
 | --- | ---: |
-| ✅ Done | 175 |
-| 🟡 Partly built | 34 |
-| 🔌 Needs outside accounts or hardware | 9 |
+| ✅ Done | 198 |
+| 🟡 Partly built | 41 |
+| 🔌 Needs outside accounts or hardware | 10 |
 | ➖ Chosen not to build | 2 |
-| ⬜ Not started | 100 |
+| ⬜ Not started | 69 |
 
 - **Done**: built, with tests or a manual run behind it.
 - **Partly built**: the useful core works; the note says what is missing.
@@ -270,18 +270,18 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Chat assistant: "Move all of Sam's stops to Alex and tell the customers" | ⬜ Not started |  |
-| 2 | Plain-language report builder: describe a report and it builds it | ⬜ Not started |  |
-| 3 | Daily briefing: "Here is what needs your attention today" | ⬜ Not started |  |
-| 4 | Auto-explain delays: "Route 7 was late because of a crash on Highway 401" | ⬜ Not started |  |
-| 5 | Predict late deliveries before they happen | ⬜ Not started |  |
-| 6 | Predict vehicle breakdowns from trip and fuel patterns | ⬜ Not started |  |
-| 7 | Suggest the best driver for each job (skills, location, past results) | ⬜ Not started |  |
-| 8 | Learn real stop times per customer instead of using one fixed number | ⬜ Not started |  |
-| 9 | Learn real driving speeds per driver, road, and time of day | ⬜ Not started |  |
-| 10 | Demand forecast to plan how many drivers you need next week | ⬜ Not started |  |
-| 11 | Smart address fixing (reads messy addresses and finds the right spot) | ⬜ Not started |  |
-| 12 | Read photos: scan a delivery note or receipt and fill in the job | ⬜ Not started |  |
+| 1 | Chat assistant: "Move all of Sam's stops to Alex and tell the customers" | 🟡 Partly built | Assistant tab: EN/FR rule-based commands (move stops with customer notice, briefing, late stops, forecast, reports). Changes ask for confirmation. An AI key adds a model fallback whose answer is checked the same way; not tested against the real service. |
+| 2 | Plain-language report builder: describe a report and it builds it | 🟡 Partly built | Describe a report in words (template, period, grouping) and save it to Reports. Rule-based; the model fallback needs an AI key and is untested against the real service. |
+| 3 | Daily briefing: "Here is what needs your attention today" | ✅ Done | Daily briefing on the Assistant page, most urgent first, with links. |
+| 4 | Auto-explain delays: "Route 7 was late because of a crash on Highway 401" | 🟡 Partly built | Explains lateness from late start, long or failed stops, help requests, weather, idling and slower driving. No live traffic feed, so traffic is never named as a cause. |
+| 5 | Predict late deliveries before they happen | ✅ Done | Late-risk list from remaining time against windows, with a chance and a level. A transparent calculation, not a trained model. |
+| 6 | Predict vehicle breakdowns from trip and fuel patterns | 🟡 Partly built | Vehicle health score from service history, defects, fuel use, repairs, downtime, incidents and age. A transparent score, not a trained model. |
+| 7 | Suggest the best driver for each job (skills, location, past results) | ✅ Done | Auto-assign and suggestions score skills, distance, load, on-time record, customer rating and past visits to the customer. |
+| 8 | Learn real stop times per customer instead of using one fixed number | ✅ Done | Learned stop time per customer (after 3 visits), shown next to the planned time with a one-click apply. |
+| 9 | Learn real driving speeds per driver, road, and time of day | ✅ Done | Planner learns speed by hour of day from your trips; per-driver speed is used too. Shown on the Learned tab. |
+| 10 | Demand forecast to plan how many drivers you need next week | ✅ Done | Jobs per day and drivers needed for the next week from history, with a range and a shortfall warning. |
+| 11 | Smart address fixing (reads messy addresses and finds the right spot) | ✅ Done | Address tidy (street types, capitals, postal code spacing, province codes, unit order) then look-up in saved places and the map provider. |
+| 12 | Read photos: scan a delivery note or receipt and fill in the job | 🔌 Needs outside accounts or hardware | Reading photos needs an AI key (ANTHROPIC_API_KEY); without it the endpoint answers 503 and the UI says so. Not tested against the real service. |
 
 ### Automation
 
@@ -302,30 +302,30 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Multi-depot planning | ⬜ Not started |  |
-| 2 | Territory design: split the map fairly among drivers | ⬜ Not started |  |
-| 3 | Balanced workloads so one driver is not overloaded | ⬜ Not started |  |
-| 4 | Cost-based optimization: fuel, wages, tolls, vehicle wear | ⬜ Not started |  |
-| 5 | Green routing: lowest CO2 option | ⬜ Not started |  |
-| 6 | Backhaul and return-load matching | ⬜ Not started |  |
-| 7 | Carpool and shared-ride grouping | ⬜ Not started |  |
-| 8 | Pickup-and-delivery pairing with order rules | ⬜ Not started |  |
-| 9 | Simulation mode: test a new depot, vehicle, or schedule before you spend money | ⬜ Not started |  |
-| 10 | Driver preference and skill matching | ⬜ Not started |  |
+| 1 | Multi-depot planning | ✅ Done | Multi-depot preview and apply: each job goes to the nearest depot and its drivers. |
+| 2 | Territory design: split the map fairly among drivers | ✅ Done | Suggested compact areas (clustering), saved areas with a driver each; the planner keeps drivers in their areas. |
+| 3 | Balanced workloads so one driver is not overloaded | ✅ Done | Workload spread and fairness check with suggested stop moves that can be applied. |
+| 4 | Cost-based optimization: fuel, wages, tolls, vehicle wear | ✅ Done | Compare as-planned, fastest and shortest order with fuel, wages, wear and tolls; apply the cheapest order. |
+| 5 | Green routing: lowest CO2 option | ✅ Done | Lowest-CO2 option flagged, plus CO2 if another vehicle drove the route. |
+| 6 | Backhaul and return-load matching | ✅ Done | Open pick-ups near the road back to the depot, within spare capacity. |
+| 7 | Carpool and shared-ride grouping | ✅ Done | Ride requests grouped by seats. |
+| 8 | Pickup-and-delivery pairing with order rules | ✅ Done | Pickup before delivery with the same driver; the planner enforces it and a fix button repairs broken pairs. |
+| 9 | Simulation mode: test a new depot, vehicle, or schedule before you spend money | ✅ Done | What-if: add or remove vehicles, change shift length, capacity or depot and compare against today's plan. |
+| 10 | Driver preference and skill matching | ✅ Done | Driver wishes (most stops, days off, customers to avoid) and skills are respected in auto-assign. Customers to avoid affect suggestions only. |
 
 ### Safety and driver coaching
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Driver safety score from speed, braking, phone use, and cornering | ⬜ Not started |  |
-| 2 | In-app coaching tips after each trip | ⬜ Not started |  |
-| 3 | Leaderboards and badges (kept fair and optional) | ⬜ Not started |  |
-| 4 | Rewards and bonus tracking | ⬜ Not started |  |
-| 5 | Fatigue warning based on hours driven | ⬜ Not started |  |
-| 6 | SOS and panic button | ⬜ Not started |  |
-| 7 | Crash detection with auto-alert to the manager | ⬜ Not started |  |
-| 8 | Dash cam clips linked to events | ⬜ Not started |  |
-| 9 | Lone-worker check-ins for field staff | ⬜ Not started |  |
+| 1 | Driver safety score from speed, braking, phone use, and cornering | 🟡 Partly built | Score from speeding, hard braking, hard acceleration and cornering per 100 km. Phone-use detection needs a native app and is not built. |
+| 2 | In-app coaching tips after each trip | ✅ Done | Driver app shows up to 3 tips after trips, based on the driver's own numbers. |
+| 3 | Leaderboards and badges (kept fair and optional) | ✅ Done | Opt-in ranking, names hidden by default, with positive badges only. |
+| 4 | Rewards and bonus tracking | ✅ Done | Bonus rules per week or month; Calculate creates each bonus once; marking paid stays manual. |
+| 5 | Fatigue warning based on hours driven | ✅ Done | Warns after the set hours without a break; shown to the driver and on the Live tab; raises an alert rule. |
+| 6 | SOS and panic button | ✅ Done | SOS button in the driver app; works offline (queued) and appears in the inbox with position. |
+| 7 | Crash detection with auto-alert to the manager | 🟡 Partly built | Phone motion and GPS crash check asks the driver first, then tells dispatch. Not tested in a real crash or on real devices. |
+| 8 | Dash cam clips linked to events | 🟡 Partly built | Stores links to dash-cam clips beside events; the video itself is never stored or fetched. |
+| 9 | Lone-worker check-ins for field staff | ✅ Done | Lone-worker check-ins with a schedule; a missed check-in raises an alert. |
 
 ## Mobile and driver app
 

@@ -3,7 +3,7 @@ import {
 } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
 import {
-  isRecurrence, makeTravel, occursOn, planFleet, upcoming, whatIfAdd, type PlanStop, type PlanVehicle, type Recurrence,
+  isRecurrence, makeTravel, occursOn, planFleet, pointInPolygon, upcoming, whatIfAdd, type PlanStop, type PlanVehicle, type Recurrence,
 } from "@routenorth/shared";
 import type { Response } from "express";
 import { AuthGuard, requirePerm, type AuthedRequest, requireAny } from "../auth/auth.guard.js";
@@ -133,7 +133,9 @@ export class DispatchController {
       if (jobs.length === 0) return { proposals: [], unassigned: [], applied: false };
       const drivers = (await c.query(
         `SELECT u.id, coalesce(u.display_name, u.email) AS name, dp.skills, dp.max_shift_min, dp.break_after_min, dp.break_min FROM users u
-         LEFT JOIN driver_profiles dp ON dp.user_id = u.id WHERE u.role = 'driver' AND u.disabled_at IS NULL ORDER BY name`)).rows;
+         LEFT JOIN driver_profiles dp ON dp.user_id = u.id WHERE u.role = 'driver' AND u.disabled_at IS NULL AND NOT coalesce(dp.preferences->'daysOff' ? $1::text, false) ORDER BY name`, [day])).rows;
+      const areas = (await c.query<{ id: string; polygon: [number, number][]; driver_id: string | null }>("SELECT id, polygon, driver_id FROM territories")).rows;
+      const areaOf = (lat: number, lng: number) => areas.find((a) => pointInPolygon(lat, lng, a.polygon))?.id;
       if (drivers.length === 0) return { proposals: [], unassigned: jobs.map((j) => ({ jobId: j.id, reason: "no drivers" })), applied: false };
       const depot = (await c.query("SELECT lat, lng FROM depots ORDER BY created_at LIMIT 1")).rows[0];
       const centre = { lat: jobs.reduce((a, j) => a + j.lat!, 0) / jobs.length, lng: jobs.reduce((a, j) => a + j.lng!, 0) / jobs.length };
@@ -154,11 +156,18 @@ export class DispatchController {
         vehicles.push({
           id: d.id, start: depot ?? centre, shiftStart, maxShiftMin: d.max_shift_min ?? 600, breakAfterMin: d.break_after_min ?? undefined, breakMin: d.break_min ?? undefined,
           capacityKg: r?.capacity_kg ?? undefined, capacityM3: r?.capacity_m3 ?? undefined, capacityItems: r?.capacity_items ?? undefined, skills: d.skills ?? [],
+          // A driver with their own area serves it; a driver without one leaves other drivers' areas alone.
+          ...(areas.length ? { territories: (areas.some((a) => a.driver_id === d.id) ? areas.filter((a) => a.driver_id === d.id) : areas.filter((a) => !a.driver_id)).map((a) => a.id) } : {}),
         });
       }
+      const byId = new Map(jobs.map((j) => [j.id, j]));
+      const pairedIds = new Set(jobs.filter((j) => j.type === "delivery" && j.parent_job_id && byId.get(j.parent_job_id)?.type === "pickup").flatMap((j) => [j.id, j.parent_job_id!]));
       const stops: PlanStop[] = jobs.map((j) => ({
         id: j.id, lat: j.lat!, lng: j.lng!, serviceMin: j.service_min, weightKg: j.weight_kg, volumeM3: j.volume_m3, items: j.items, priority: j.priority as PlanStop["priority"],
         kind: j.type === "pickup" ? "pickup" : "delivery", skills: j.skills, windowStart: j.window_start?.getTime() ?? null, windowEnd: j.window_end?.getTime() ?? null,
+        territory: areaOf(j.lat!, j.lng!),
+        // A pickup and the delivery linked to it go to the same driver, pickup first.
+        ...(pairedIds.has(j.id) ? { pairId: j.type === "pickup" ? j.id : j.parent_job_id! } : {}),
       }));
       const plan = planFleet(vehicles, stops, makeTravel({ hourOf: hourIn(org.timezone) }), { seed });
       const jobIds = new Set(jobs.map((j) => j.id));

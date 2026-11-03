@@ -6,7 +6,7 @@ export interface JobRow {
   id: string; org_id: string; type: string; priority: string; status: string; title: string; address: string | null;
   lat: number | null; lng: number | null; window_start: Date | null; window_end: Date | null; service_min: number; weight_kg: number;
   volume_m3: number; items: number; notes: string | null; driver_id: string | null; vehicle_id: string | null; route_id: string | null;
-  stop_id: string | null; scheduled_date: string | null; skills: string[]; customer_name: string | null;
+  stop_id: string | null; scheduled_date: string | null; skills: string[]; customer_name: string | null; parent_job_id?: string | null;
 }
 
 export const CANCEL_REASONS = ["customer_cancelled", "duplicate", "address_invalid", "no_capacity", "weather", "vehicle_issue", "other"] as const;

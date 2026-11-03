@@ -3,9 +3,10 @@ import { pg, withOrg } from "@routenorth/db";
 import { LOCALES } from "@routenorth/shared";
 import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { PG_POOL } from "../tokens.js";
+import { EXTRA_KEYS } from "./extra-settings.js";
 import { parseSettingsPatch, withDefaults } from "./settings.js";
 
-const NESTED = ["customerNotify", "customerPortal", "booking", "approvals"];
+const NESTED = ["customerNotify", "customerPortal", "booking", "approvals", ...EXTRA_KEYS];
 const LOGO =/^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/;
 
 @Controller("org")

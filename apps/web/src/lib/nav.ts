@@ -1,7 +1,7 @@
 import type { Permission } from "@routenorth/shared";
 import type { MessageKey } from "@routenorth/shared";
 import {
-  Activity, AlertTriangle, MessageSquareHeart, BarChart3, Banknote, Clock, Inbox, Receipt, Workflow, CheckSquare, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
+  Activity, AlertTriangle, Sparkles, Scale, ShieldCheck, MessageSquareHeart, BarChart3, Banknote, Clock, Inbox, Receipt, Workflow, CheckSquare, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
   ScrollText, Settings, Truck, UsersRound, Warehouse, Wrench, type LucideIcon,
 } from "lucide-react";
 
@@ -30,6 +30,9 @@ export const NAV: NavItem[] = [
   { href: "/inbox", label: "navInbox", icon: Inbox, perms: ["routes.dispatch", "customers.manage"], group: "main", badge: "inbox", keywords: "messages chat drivers customers help messagerie clients aide" },
   { href: "/approvals", label: "navApprovals", icon: CheckSquare, perms: ["reports.view"], group: "main", badge: "approvals", keywords: "approve overtime expenses approbations" },
   { href: "/automation", label: "navAutomation", icon: Workflow, perms: ["alerts.view"], group: "main", keywords: "workflows rules webhooks no-code if then automatisation flux" },
+  { href: "/assistant", label: "navAssistant", icon: Sparkles, perms: ["routes.view"], group: "main", keywords: "ai briefing ask predict forecast assistant assistant intelligent prévisions" },
+  { href: "/optimize", label: "navOptimize", icon: Scale, perms: ["routes.view"], group: "main", keywords: "areas territories balance depots cost co2 simulate what-if zones équilibre simulation" },
+  { href: "/safety", label: "navSafety", icon: ShieldCheck, perms: ["reports.view"], group: "main", keywords: "safety score coaching rewards fatigue sos check-in dash cam sécurité récompenses" },
   { href: "/reports", label: "navReports", icon: FileText, perms: ["reports.view"], group: "main", keywords: "distance idle export rapports" },
   { href: "/fleet/vehicles", label: "navFleetVehicles", icon: Truck, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "trucks buses vans camions autobus" },
   { href: "/drivers", label: "navDrivers", icon: IdCard, perms: ["users.view", "routes.view"], group: "fleet", keywords: "licence license skills chauffeurs" },

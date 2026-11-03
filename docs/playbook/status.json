@@ -1,902 +1,1026 @@
 {
- "ds.1": {
-  "s": "done",
-  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
- },
- "ds.10": {
-  "s": "done",
-  "note": "One radius family (--r-sm, --r, --r-lg)."
- },
- "ds.2": {
-  "s": "done",
-  "note": "Dashboard cards come in 1 to 4 column sizes on a grid (Dashboards page)."
- },
- "ds.3": {
-  "s": "done",
-  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
- },
- "ds.4": {
-  "s": "done",
-  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
- },
- "ds.5": {
-  "s": "done",
-  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
- },
- "ds.6": {
-  "s": "done",
-  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
- },
- "ds.7": {
-  "s": "done",
-  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
- },
- "ds.8": {
-  "s": "done",
-  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
- },
- "ds.9": {
-  "s": "partial",
-  "note": "A living style guide page at /styleguide. Storybook itself was not added."
- },
- "motion.1": {
-  "s": "done",
-  "note": "Skeleton loaders on every list and table."
- },
- "motion.10": {
-  "s": "done",
-  "note": "Account menu has Follow device / Reduce motion / Full motion; it also respects the device setting."
- },
- "motion.2": {
-  "s": "partial",
-  "note": "Short fade and slide transitions on dialogs, toasts and panels. No full page transitions."
- },
- "motion.3": {
-  "s": "todo",
-  "note": "Planned with the route map in Phase 2."
- },
- "motion.4": {
-  "s": "done",
-  "note": "Vehicle markers glide to each new fix (lib/glide.ts)."
- },
- "motion.5": {
-  "s": "done",
-  "note": "KPI numbers count up."
- },
- "motion.6": {
-  "s": "done",
-  "note": "Buttons press, switches slide, menus fade."
- },
- "motion.7": {
-  "s": "done",
-  "note": "Check-mark animation component (SuccessMark)."
- },
- "motion.8": {
-  "s": "todo",
-  "note": "Planned with the driver app in Phase 4."
- },
- "motion.9": {
-  "s": "todo",
-  "note": "Planned with the dispatch board in Phase 2."
- },
- "nav.1": {
-  "s": "done",
-  "note": "Collapsible side menu; becomes a drawer on phones."
- },
- "nav.10": {
-  "s": "todo",
-  "note": "Home dashboard with drag-and-drop widgets arrives with dashboards in Phase 3."
- },
- "nav.2": {
-  "s": "done",
-  "note": "Ctrl/Cmd+K, or /."
- },
- "nav.3": {
-  "s": "partial",
-  "note": "Searches vehicles, drivers, routes and stops. Customers join when customer records are added."
- },
- "nav.4": {
-  "s": "done",
-  "note": "Breadcrumbs in the top bar."
- },
- "nav.5": {
-  "s": "done",
-  "note": "History and route pages: list on the left, map on the right."
- },
- "nav.6": {
-  "s": "done",
-  "note": "Drag the divider (or use the arrow keys); the width is remembered."
- },
- "nav.7": {
-  "s": "done",
-  "note": "Pin any page; pins show in the menu and in the palette."
- },
- "nav.8": {
-  "s": "done",
-  "note": "? opens the cheat sheet; g then l/r/p jumps; T switches theme; [ collapses the menu."
- },
- "nav.9": {
-  "s": "partial",
-  "note": "Tables save named views (sort, filters, columns, grouping). Custom tabs are not built."
- },
- "polish.1": {
-  "s": "done",
-  "note": "Empty states say what to do next."
- },
- "polish.10": {
-  "s": "done",
-  "note": "Five-step product tour and a getting-started checklist for owners and admins."
- },
- "polish.11": {
-  "s": "done",
-  "note": "Tooltips and a What's new panel."
- },
- "polish.2": {
-  "s": "done",
-  "note": "Plain-language error states with a retry button and a separate \"no access\" state."
- },
- "polish.3": {
-  "s": "partial",
-  "note": "Undo for deleting a stop (toast with Undo). Other deletes and edits get it as their screens are built."
- },
- "polish.4": {
-  "s": "done",
-  "note": "Double-click a cell to edit (people names)."
- },
- "polish.5": {
-  "s": "done",
-  "note": "Sort, filter, group, pin, hide and resize columns, CSV export, saved views."
- },
- "polish.6": {
-  "s": "done",
-  "note": "Sticky headers; lists over 150 rows are windowed."
- },
- "polish.7": {
-  "s": "done",
-  "note": "Checked on a phone-sized screen."
- },
- "polish.8": {
-  "s": "partial",
-  "note": "Keyboard use, labels and focus are in place; axe found no contrast problems in the three themes. Not tested with a real screen reader."
- },
- "polish.9": {
-  "s": "partial",
-  "note": "English and French complete. Punjabi and Arabic cover sign-in, navigation and the driver app; Arabic mirrors the layout. Both were drafted without a native reviewer."
- },
- "report.14": {
-  "s": "done",
-  "note": "Audit log page with filters and CSV export."
- },
- "security.2": {
-  "s": "done",
-  "note": "Append-only audit log of every change with who, what, when and IP; the app role cannot edit or delete it."
- },
- "style.1": {
-  "s": "done",
-  "note": "Tokens and components follow a clean, minimal look (apps/web/src/app/tokens.css)."
- },
- "style.2": {
-  "s": "todo",
-  "note": "Bento dashboard cards arrive with the dashboards in Phase 3."
- },
- "style.3": {
-  "s": "done",
-  "note": "Floating map panel uses a light blur; switched off in high-contrast mode."
- },
- "style.4": {
-  "s": "partial",
-  "note": "Dark theme and a dark basemap work. Glowing route lines are not done."
- },
- "style.5": {
-  "s": "skip",
-  "note": "The Playbook says pick one direction and stay with it; soft shadows hurt readability."
- },
- "style.6": {
-  "s": "done",
-  "note": "Live map fills the page with panels floating on top."
- },
- "teams.1": {
-  "s": "done",
-  "note": "Owner, admin, dispatcher, manager, driver, customer and read-only. Customer and driver land in their own apps (the customer portal arrives in Phase 4)."
- },
- "teams.2": {
-  "s": "done",
-  "note": "Custom roles with fine-grained permissions (Settings > People & roles)."
- },
- "teams.4": {
-  "s": "done",
-  "note": "Every table is tenant-isolated with Row-Level Security (since Milestone 1); tests prove it."
- },
- "theme.1": {
-  "s": "done",
-  "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
- },
- "theme.2": {
-  "s": "done",
-  "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
- },
- "theme.3": {
-  "s": "done",
-  "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
- },
- "theme.4": {
-  "s": "done",
-  "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
- },
- "theme.5": {
-  "s": "done",
-  "note": "Each company sets a brand color and logo in Settings. The color is adjusted so text stays readable (tests in lib/color.test.ts)."
- },
- "theme.6": {
-  "s": "done",
-  "note": "Okabe-Ito palette in --chart-1 to --chart-8, used by every chart."
- },
- "theme.7": {
-  "s": "partial",
-  "note": "The palette exists; route lines on maps adopt it in Phase 2."
- },
- "route.1": {
-  "s": "done",
-  "note": "Drag stops to reorder on the route page (keyboard works too). apps/web/src/app/(app)/routes/[id]."
- },
- "route.2": {
-  "s": "done",
-  "note": "Optimizer for shortest time or distance (cheapest insertion + 2-opt/or-opt), unit-tested. Uses real road times when a routing engine is set (ROUTING_URL); otherwise straight-line estimates, and the screen says so."
- },
- "route.3": {
-  "s": "done",
-  "note": "Time windows per stop, treated as hard limits by the optimizer and flagged when late."
- },
- "route.4": {
-  "s": "done",
-  "note": "Weight, volume and item limits per vehicle; over-capacity is flagged on the board and respected by auto-assign."
- },
- "route.5": {
-  "s": "done",
-  "note": "Max shift length and mandatory breaks per driver; the optimizer inserts breaks."
- },
- "route.6": {
-  "s": "partial",
-  "note": "Predicted ETAs use hourly speed patterns learned from your own vehicles' positions. Live traffic needs an outside traffic data source."
- },
- "route.7": {
-  "s": "external",
-  "note": "Avoid tolls, highways, ferries and unpaved roads are sent to the routing engine (OSRM or Valhalla). Enforcing them needs a routing engine; not run in the sandbox."
- },
- "route.8": {
-  "s": "external",
-  "note": "Height, weight and hazmat limits are sent to Valhalla's truck profile. Needs a Valhalla server; tested only against a stub."
- },
- "route.9": {
-  "s": "partial",
-  "note": "Planner tracks battery range and adds charging stops. Real charger locations need an outside data source, so charge points are entered by you."
- },
- "route.10": {
-  "s": "done",
-  "note": "Save any route as a template; create routes from templates."
- },
- "route.11": {
-  "s": "done",
-  "note": "Daily, weekly and custom repeats; the scheduler creates each day's routes once (no duplicates)."
- },
- "route.12": {
-  "s": "partial",
-  "note": "CSV import of jobs, with errors listed by row. Excel files are not read directly: save as CSV first."
- },
- "route.13": {
-  "s": "external",
-  "note": "Address search with saved places and 'did you mean' fixes. Live address lookup needs a geocoding service (Nominatim or similar); tested only against a stub."
- },
- "route.14": {
-  "s": "done",
-  "note": "Current order vs optimized order shown side by side with cost, time and late stops."
- },
- "route.15": {
-  "s": "done",
-  "note": "Drop a pin and see where an extra stop fits and what becomes late, before saving."
- },
- "dispatch.1": {
-  "s": "done",
-  "note": "Dispatch board: unassigned jobs and one lane per driver; drag a job onto a lane or use the menu."
- },
- "dispatch.2": {
-  "s": "done",
-  "note": "Auto-assign suggests the best driver by skills, capacity, shift and distance, then applies on one click."
- },
- "dispatch.3": {
-  "s": "done",
-  "note": "Pickup, delivery, service call and inspection jobs."
- },
- "dispatch.4": {
-  "s": "done",
-  "note": "Low to urgent priority; the rush button inserts an urgent job and says what it delays."
- },
- "dispatch.5": {
-  "s": "done",
-  "note": "Reassign from the board or the job panel; the driver's route updates and the change is logged."
- },
- "dispatch.6": {
-  "s": "done",
-  "note": "Unassigned, assigned, started, arrived, done, failed; stop changes update the job automatically."
- },
- "dispatch.7": {
-  "s": "done",
-  "note": "Photo and signature (earlier milestone) plus package-code scans. Camera scanning needs a browser with BarcodeDetector (Chrome on Android); typing the code works everywhere. Not tried on a real phone."
- },
- "dispatch.8": {
-  "s": "done",
-  "note": "Notes, tags and file attachments on jobs."
- },
- "dispatch.9": {
-  "s": "done",
-  "note": "Cancel and reschedule ask for a reason code; history is kept."
- },
- "dispatch.10": {
-  "s": "done",
-  "note": "Select stops to split onto a new route, or merge another route in."
- },
- "live.1": {
-  "s": "done",
-  "note": "Live map with every vehicle."
- },
- "live.2": {
-  "s": "done",
-  "note": "Trail on the map and day-by-day replay (milestone 3)."
- },
- "live.3": {
-  "s": "partial",
-  "note": "Draw circle or polygon zones on a map; enter and exit events are recorded as vehicles move. Sending them out as alerts comes with Phase 4 alerts."
- },
- "live.4": {
-  "s": "partial",
-  "note": "ETAs refresh as vehicles move. They react to real traffic only once a live traffic source is connected."
- },
- "live.5": {
-  "s": "done",
-  "note": "Moving, idle, stopped and offline colours."
- },
- "live.6": {
-  "s": "done",
-  "note": "Markers cluster when zoomed out."
- },
- "live.7": {
-  "s": "done",
-  "note": "Heat layers for stops, late deliveries and speeding on the live map."
- },
- "live.8": {
-  "s": "done",
-  "note": "Street and satellite switch, plus a Street View link."
- },
- "live.9": {
-  "s": "external",
-  "note": "Weather at a vehicle and at each stop's arrival time, from Open-Meteo. Needs internet access to that service; tested only against a stub."
- },
- "live.10": {
-  "s": "done",
-  "note": "Expiring, revocable share links with a public tracking page. It shows no driver name or plate and is rate-limited."
- },
- "fleet.1": {
-  "s": "done",
-  "note": "Vehicle records with photo, plate, VIN, capacity, fuel type, EV range and more."
- },
- "fleet.2": {
-  "s": "done",
-  "note": "Driver profiles: licence, emergency contact, shift limits, skills, training; documents attach to drivers too."
- },
- "fleet.3": {
-  "s": "done",
-  "note": "Document and licence expiry reminders on the Maintenance page. Emailing them out comes with Phase 4 alerts."
- },
- "fleet.4": {
-  "s": "done",
-  "note": "Maintenance plans by days or kilometres, due and overdue state, mark-done history."
- },
- "fleet.5": {
-  "s": "done",
-  "note": "Fuel logs, fuel economy per vehicle and CSV import of fuel-card statements. Live feeds from card companies need their accounts."
- },
- "fleet.6": {
-  "s": "done",
-  "note": "Trailers and equipment with status and assignment."
- },
- "fleet.7": {
-  "s": "done",
-  "note": "Check-out and check-in checklist in the driver app; a failed item records a defect and shows in reminders."
- },
- "fleet.8": {
-  "s": "done",
-  "note": "Incident reports from the driver app with location and photos, tracked from open to closed on the office side."
- },
- "fleet.9": {
-  "s": "partial",
-  "note": "Depot records with parking spots; live occupancy is calculated by the API but not shown in the screens yet."
- },
- "fleet.10": {
-  "s": "done",
-  "note": "Trip log from vehicle movement with business or personal tags and CSV export."
- },
- "dash.1": {
-  "s": "done",
-  "note": "Executive template: cost, on-time rate, utilization, customer score, trends, goals, insights and forecast. Cost uses the per-km and per-hour rates in settings."
- },
- "dash.2": {
-  "s": "done",
-  "note": "Operations template: live jobs, late stops, idling vehicles (refreshes every 30 seconds)."
- },
- "dash.3": {
-  "s": "done",
-  "note": "Driver template, and a \"My numbers\" sheet in the driver app: score, stops, on-time rate, distance, safety events and an estimated pay."
- },
- "dash.4": {
-  "s": "partial",
-  "note": "A customer-service template (deliveries, delays, failed reasons, ratings by customer) for your staff. A dashboard that customers sign in to comes with the customer portal in Phase 4."
- },
- "dash.5": {
-  "s": "done",
-  "note": "Finance template: cost per route, stop, kilometre, hour and vehicle."
- },
- "dash.6": {
-  "s": "done",
-  "note": "Safety template: speeding, harsh braking and acceleration found in GPS tracks, incidents, driver score."
- },
- "dash.7": {
-  "s": "done",
-  "note": "Sustainability template: fuel, CO2, fuel economy, idle share and savings from applied route optimization (assumes 30 L per 100 km)."
- },
- "dash.8": {
-  "s": "done",
-  "note": "Customize: add, remove, resize and drag widgets (or use the up and down buttons), then save as your own dashboard and share it with the team."
- },
- "dash.9": {
-  "s": "done",
-  "note": "Seven templates by role; the page opens on the one that fits your role."
- },
- "dash.10": {
-  "s": "done",
-  "note": "TV wall mode: full screen, big numbers, refreshes every minute, Esc to leave."
- },
- "dash.11": {
-  "s": "partial",
-  "note": "One set of filters (dates, depot, driver, vehicle) for every widget. There is no separate \"region\" or \"team\" field yet, so depots stand in for them."
- },
- "dash.12": {
-  "s": "done",
-  "note": "Compare with the previous period or the same dates last year; every key number shows the change."
- },
- "kpi.1": {
-  "s": "done",
-  "note": "On-time delivery rate, from stop arrival times against time windows."
- },
- "kpi.2": {
-  "s": "done",
-  "note": "First-attempt success rate."
- },
- "kpi.3": {
-  "s": "done",
-  "note": "Average delay and worst delay in minutes."
- },
- "kpi.4": {
-  "s": "done",
-  "note": "Cost per stop, per kilometre and per hour. These are estimates from the rates in settings; fuel and repair costs are shown as their own numbers."
- },
- "kpi.5": {
-  "s": "done",
-  "note": "Utilization (engine hours against a shift) and load fill (weight against vehicle capacity)."
- },
- "kpi.6": {
-  "s": "done",
-  "note": "Idle time, idle share and engine-on time from GPS."
- },
- "kpi.7": {
-  "s": "done",
-  "note": "Planned versus actual distance and time per route."
- },
- "kpi.8": {
-  "s": "done",
-  "note": "Stops per hour."
- },
- "kpi.9": {
-  "s": "done",
-  "note": "Fuel economy (L per 100 km) per vehicle from fuel logs, and per driver where the fill-up names the driver."
- },
- "kpi.10": {
-  "s": "done",
-  "note": "Customer satisfaction (1 to 5) and NPS from ratings on the tracking page or entered by the office."
- },
- "kpi.11": {
-  "s": "done",
-  "note": "Missed time windows."
- },
- "kpi.12": {
-  "s": "done",
-  "note": "Failed delivery reasons, ranked."
- },
- "kpi.14": {
-  "s": "done",
-  "note": "Vehicle downtime hours and repair cost from maintenance logs."
- },
- "kpi.15": {
-  "s": "done",
-  "note": "Driver overtime hours (after the daily hours set in settings)."
- },
- "kpi.13": {
-  "s": "partial",
-  "note": "Route adherence is measured against straight lines between stops (within 600 m), so it is a rough guide. A road-based check needs the routing service switched on."
- },
- "report.1": {
-  "s": "done",
-  "note": "Daily operations summary template."
- },
- "report.2": {
-  "s": "done",
-  "note": "Weekly and monthly performance templates."
- },
- "report.3": {
-  "s": "done",
-  "note": "Driver scorecard template."
- },
- "report.4": {
-  "s": "done",
-  "note": "Vehicle health and cost template."
- },
- "report.5": {
-  "s": "done",
-  "note": "Route efficiency template (plan versus actual)."
- },
- "report.6": {
-  "s": "done",
-  "note": "Customer service template."
- },
- "report.7": {
-  "s": "done",
-  "note": "Exceptions template: late, failed and skipped stops."
- },
- "report.9": {
-  "s": "done",
-  "note": "Fuel and emissions template (CO2 from fuel type)."
- },
- "report.10": {
-  "s": "done",
-  "note": "Geofence visits template with time spent in each zone."
- },
- "report.11": {
-  "s": "done",
-  "note": "Idle and stop-time template."
- },
- "report.15": {
-  "s": "done",
-  "note": "One-page executive summary as a branded PDF (button on the Dashboards page)."
- },
- "report.8": {
-  "s": "partial",
-  "note": "A mileage template (km and engine hours per vehicle). The business and personal split lives in the Trip log, not yet in this report."
- },
- "report.12": {
-  "s": "partial",
-  "note": "Compliance report lists shift hours, failed inspections and expiring documents. Legal hours-of-service rules are not built."
- },
- "report.13": {
-  "s": "partial",
-  "note": "A billing template with a price-per-stop formula you can change. Invoice numbers, tax and customer contracts are not built."
- },
- "builder.1": {
-  "s": "done",
-  "note": "Report builder: pick data, columns, filters, grouping and sorting."
- },
- "builder.2": {
-  "s": "done",
-  "note": "Save reports, keep versions, share with the team, and start from 16 templates."
- },
- "builder.4": {
-  "s": "done",
-  "note": "Pivot tables."
- },
- "builder.5": {
-  "s": "done",
-  "note": "Calculated fields with a safe formula box (for example cost / stops)."
- },
- "builder.6": {
-  "s": "done",
-  "note": "Charts: line, bar, stacked, pie, heat map, funnel, scatter and map, each with a table view."
- },
- "builder.7": {
-  "s": "done",
-  "note": "Map reports: a heat map of stops or driving events."
- },
- "builder.10": {
-  "s": "done",
-  "note": "PDF reports carry the company logo, name and colour from settings."
- },
- "builder.11": {
-  "s": "done",
-  "note": "Public share links with an expiry date, a visible list and one-click turn-off."
- },
- "builder.12": {
-  "s": "done",
-  "note": "Embed a shared report in another page with an iframe (add ?embed=1)."
- },
- "builder.14": {
-  "s": "done",
-  "note": "Every save keeps a version; restore any earlier one."
- },
- "builder.3": {
-  "s": "partial",
-  "note": "Click a chart mark or a grouped row to drill into the rows behind it (scorecards open their stops). It stops at the route; it does not yet jump to a single trip replay."
- },
- "builder.8": {
-  "s": "external",
-  "note": "Daily, weekly and monthly schedules to Slack, Teams, webhooks, email or SMS are built and tested against a stand-in server. Email and SMS need a mail-service key or a Twilio account set up on the server, and none of it was tried against the real services."
- },
- "builder.9": {
-  "s": "partial",
-  "note": "PDF, Excel and CSV exports work. For Google Sheets, a shared report CSV link can be pulled in with the IMPORTDATA formula; there is no direct Google connection."
- },
- "builder.13": {
-  "s": "partial",
-  "note": "A shared link can be limited to one driver, vehicle or depot. Restricting what each signed-in person sees by depot or team is not built."
- },
- "alerts.1": {
-  "s": "done",
-  "note": "Alert rules for late risk, off route, long idle, speeding and geofence entry or exit, plus offline vehicles, harsh driving, expiring documents, due maintenance, cost spikes and any number crossing a limit."
- },
- "alerts.2": {
-  "s": "done",
-  "note": "Rule builder with plain-words summary and a \"test the rule\" button."
- },
- "alerts.4": {
-  "s": "done",
-  "note": "Quiet hours (critical alerts still go out) and grouping so the same problem is not repeated."
- },
- "alerts.5": {
-  "s": "done",
-  "note": "Morning summary at 7:00 of what was held back."
- },
- "alerts.6": {
-  "s": "done",
-  "note": "Cost anomaly rule and insight cards use a robust statistic against the last month."
- },
- "alerts.7": {
-  "s": "done",
-  "note": "Insight cards in plain English or French (for example: a route late on most recent days)."
- },
- "alerts.8": {
-  "s": "done",
-  "note": "Goals with targets and progress bars for a day, week or month."
- },
- "alerts.9": {
-  "s": "done",
-  "note": "Benchmarks compare drivers, vehicles, depots and routes against the middle of the group."
- },
- "alerts.10": {
-  "s": "done",
-  "note": "Forecast of next week stops, cost and drive hours with what is already booked."
- },
- "alerts.3": {
-  "s": "external",
-  "note": "In-app inbox, Slack, Teams and webhooks are built and tested against a stand-in server. Email and SMS need an email key or Twilio account on the server and were not tried live. Browser or phone push is not built."
- },
- "alerts.11": {
-  "s": "partial",
-  "note": "The ask box understands common questions such as \"which driver had the most delays last month?\" with a rule-based reader and answers with a number or chart. Free-form questions come with the AI helper in Phase 5."
- },
- "auto.1": {
-  "s": "done",
-  "note": "No-code workflows: pick a trigger, match rules (all/any) and actions; templates gallery and a Try it test run. Automation page."
- },
- "auto.2": {
-  "s": "done",
-  "note": "Built-in minutes-away trigger plus a customer message in the customer's language; also available as a workflow template."
- },
- "auto.3": {
-  "s": "partial",
-  "note": "Routes are replanned when a stop is cancelled or removed. Live traffic and crash detection need a traffic feed and are not built."
- },
- "auto.4": {
-  "s": "done",
-  "note": "Invoice INV-YYYY-NNNN is created when a job is marked done (workflow action and default setting); PDF download in the portal."
- },
- "auto.5": {
-  "s": "partial",
-  "note": "Public booking form creates orders and a workflow can assign them. Email, store and form connectors need outside accounts."
- },
- "auto.6": {
-  "s": "done",
-  "note": "Needs-break alert rule (hours without a break) feeds the event feed, workflows and the dispatcher inbox."
- },
- "auto.7": {
-  "s": "done",
-  "note": "Unaccepted-job escalation as a workflow trigger with a minutes setting (default 15); notifies the manager."
- },
- "auto.8": {
-  "s": "done",
-  "note": "Recurring route templates, maintenance plans and scheduled reports."
- },
- "auto.9": {
-  "s": "done",
-  "note": "Approvals queue for overtime, expenses over the limit and workflow approvals; decide with a note; sidebar count."
- },
- "auto.10": {
-  "s": "done",
-  "note": "HMAC-signed webhooks on any event, delivery log, retries with back-off (1, 5, 30, 120, 720 minutes), ping, secret rotation."
- },
- "driver.5": {
-  "s": "partial",
-  "note": "Voice commands (EN/FR) with a confirm step and voice notes use browser speech and recording support; not verified on real phones."
- },
- "driver.7": {
-  "s": "partial",
-  "note": "Driving mode (big buttons, locked controls) while moving; browsers cannot truly lock the phone screen. Not verified on devices."
- },
- "driver.13": {
-  "s": "partial",
-  "note": "In-app alerts use the browser Notification API when the app is open. Background push needs a push provider account."
- },
- "driver.19": {
-  "s": "partial",
-  "note": "Battery-saver mode lowers update rate and turns animations off; savings not measured on devices."
- },
- "driver.21": {
-  "s": "external",
-  "note": "Biometric sign-in needs the native app or passkeys on real hardware; not built in the web app."
- },
- "driver.22": {
-  "s": "external",
-  "note": "Apple Watch, CarPlay and Android Auto need native apps and platform approval; not built."
- },
- "driver.11": {
-  "s": "done",
-  "note": "Chat with the dispatcher in the driver app, offline-safe through the outbox; dispatcher inbox replies."
- },
- "driver.12": {
-  "s": "done",
-  "note": "Quick replies (late, arrived, need help ...) in EN/FR with one tap."
- },
- "driver.14": {
-  "s": "done",
-  "note": "Shift clock: start, end, breaks, overtime flags; timesheets page for managers with approval."
- },
- "driver.15": {
-  "s": "done",
-  "note": "Break and lunch timer with a reminder when a break is due."
- },
- "driver.17": {
-  "s": "done",
-  "note": "Expense sheet with receipt photo; auto-approved under the limit, otherwise sent for approval; reimburse in Expenses."
- },
- "driver.18": {
-  "s": "done",
-  "note": "Tips sheet and trip/earnings summary in the driver app."
- },
- "driver.24": {
-  "s": "done",
-  "note": "Help request (flat tire, wrong address, customer not home) with notes; dispatcher acknowledges or resolves in Inbox."
- },
- "driver.25": {
-  "s": "done",
-  "note": "Training items and tips managed in Settings and shown in the driver app."
- },
- "driver.1": {
-  "s": "partial",
-  "note": "Installable web app (manifest and service worker). Native iOS and Android store apps are not built."
- },
- "driver.2": {
-  "s": "done",
-  "note": "Offline outbox and service worker; actions sync when signal returns."
- },
- "driver.3": {
-  "s": "done",
-  "note": "Big-button next-stop screen."
- },
- "driver.4": {
-  "s": "partial",
-  "note": "One-tap open in Google Maps, Waze or Apple Maps. No built-in turn-by-turn."
- },
- "driver.6": {
-  "s": "done",
-  "note": "Dark mode and contrast themes."
- },
- "driver.8": {
-  "s": "done",
-  "note": "Barcode and QR scanner (uses the browser's detector where available)."
- },
- "driver.9": {
-  "s": "done",
-  "note": "Photo capture with timestamp and location on proofs."
- },
- "driver.10": {
-  "s": "done",
-  "note": "Signature pad on delivery."
- },
- "driver.16": {
-  "s": "done",
-  "note": "Daily vehicle inspection checklist."
- },
- "driver.20": {
-  "s": "done",
-  "note": "Driver app in English and French."
- },
- "driver.23": {
-  "s": "done",
-  "note": "Mark a stop failed with a reason and photo."
- },
- "cust.1": {
-  "s": "done",
-  "note": "Branded live tracking page /j/<token> with map, ETA and company colours."
- },
- "cust.2": {
-  "s": "done",
-  "note": "Customer picks a delivery slot when rescheduling or booking."
- },
- "cust.3": {
-  "s": "partial",
-  "note": "In-product messages and templates work; email and SMS send through your provider keys, WhatsApp is not built. Needs outside accounts."
- },
- "cust.4": {
-  "s": "done",
-  "note": "Driver-is-N-stops-away notice on the tracking page and as a trigger."
- },
- "cust.5": {
-  "s": "done",
-  "note": "Reschedule and cancel from the tracking link, with the rules you set."
- },
- "cust.6": {
-  "s": "done",
-  "note": "Customers leave delivery instructions (gate code, leave at door); shown on the driver's stop."
- },
- "cust.7": {
-  "s": "done",
-  "note": "Driver name, photo and vehicle on the tracking page."
- },
- "cust.8": {
-  "s": "external",
-  "note": "Chat with dispatch is built. A masked phone number needs a telephony account."
- },
- "cust.9": {
-  "s": "done",
-  "note": "Proof of delivery link with photo and signature on the job page."
- },
- "cust.10": {
-  "s": "done",
-  "note": "Rating and comment after each delivery; shown to managers."
- },
- "cust.11": {
-  "s": "done",
-  "note": "Customer portal with orders, invoices (PDF) and support chat."
- },
- "cust.12": {
-  "s": "done",
-  "note": "Public booking page with quote and spam protection."
- },
- "cust.13": {
-  "s": "done",
-  "note": "Public status page with your own notices."
- },
- "cust.14": {
-  "s": "done",
-  "note": "Per-customer notification preferences on the tracking link."
- },
- "cust.15": {
-  "s": "done",
-  "note": "Message templates in EN/FR with company logo and colours; wording editor with preview."
- },
- "cust.16": {
-  "s": "done",
-  "note": "Proof photos shown as a gallery on the job page."
- },
- "cust.17": {
-  "s": "done",
-  "note": "Help centre FAQ page and support chat in the portal and job page."
- },
- "cust.18": {
-  "s": "skip",
-  "note": "Loyalty and referral features chosen not to build for now."
- },
- "cust.19": {
-  "s": "done",
-  "note": "Return and pickup requests from the tracking link."
- },
- "cust.20": {
-  "s": "done",
-  "note": "All public pages in English and French."
- }
+  "ai.1": {
+    "s": "partial",
+    "note": "Assistant tab: EN/FR rule-based commands (move stops with customer notice, briefing, late stops, forecast, reports). Changes ask for confirmation. An AI key adds a model fallback whose answer is checked the same way; not tested against the real service."
+  },
+  "ai.10": {
+    "s": "done",
+    "note": "Jobs per day and drivers needed for the next week from history, with a range and a shortfall warning."
+  },
+  "ai.11": {
+    "s": "done",
+    "note": "Address tidy (street types, capitals, postal code spacing, province codes, unit order) then look-up in saved places and the map provider."
+  },
+  "ai.12": {
+    "s": "external",
+    "note": "Reading photos needs an AI key (ANTHROPIC_API_KEY); without it the endpoint answers 503 and the UI says so. Not tested against the real service."
+  },
+  "ai.2": {
+    "s": "partial",
+    "note": "Describe a report in words (template, period, grouping) and save it to Reports. Rule-based; the model fallback needs an AI key and is untested against the real service."
+  },
+  "ai.3": {
+    "s": "done",
+    "note": "Daily briefing on the Assistant page, most urgent first, with links."
+  },
+  "ai.4": {
+    "s": "partial",
+    "note": "Explains lateness from late start, long or failed stops, help requests, weather, idling and slower driving. No live traffic feed, so traffic is never named as a cause."
+  },
+  "ai.5": {
+    "s": "done",
+    "note": "Late-risk list from remaining time against windows, with a chance and a level. A transparent calculation, not a trained model."
+  },
+  "ai.6": {
+    "s": "partial",
+    "note": "Vehicle health score from service history, defects, fuel use, repairs, downtime, incidents and age. A transparent score, not a trained model."
+  },
+  "ai.7": {
+    "s": "done",
+    "note": "Auto-assign and suggestions score skills, distance, load, on-time record, customer rating and past visits to the customer."
+  },
+  "ai.8": {
+    "s": "done",
+    "note": "Learned stop time per customer (after 3 visits), shown next to the planned time with a one-click apply."
+  },
+  "ai.9": {
+    "s": "done",
+    "note": "Planner learns speed by hour of day from your trips; per-driver speed is used too. Shown on the Learned tab."
+  },
+  "alerts.1": {
+    "s": "done",
+    "note": "Alert rules for late risk, off route, long idle, speeding and geofence entry or exit, plus offline vehicles, harsh driving, expiring documents, due maintenance, cost spikes and any number crossing a limit."
+  },
+  "alerts.10": {
+    "s": "done",
+    "note": "Forecast of next week stops, cost and drive hours with what is already booked."
+  },
+  "alerts.11": {
+    "s": "partial",
+    "note": "The ask box understands common questions such as \"which driver had the most delays last month?\" with a rule-based reader and answers with a number or chart. Free-form questions come with the AI helper in Phase 5."
+  },
+  "alerts.2": {
+    "s": "done",
+    "note": "Rule builder with plain-words summary and a \"test the rule\" button."
+  },
+  "alerts.3": {
+    "s": "external",
+    "note": "In-app inbox, Slack, Teams and webhooks are built and tested against a stand-in server. Email and SMS need an email key or Twilio account on the server and were not tried live. Browser or phone push is not built."
+  },
+  "alerts.4": {
+    "s": "done",
+    "note": "Quiet hours (critical alerts still go out) and grouping so the same problem is not repeated."
+  },
+  "alerts.5": {
+    "s": "done",
+    "note": "Morning summary at 7:00 of what was held back."
+  },
+  "alerts.6": {
+    "s": "done",
+    "note": "Cost anomaly rule and insight cards use a robust statistic against the last month."
+  },
+  "alerts.7": {
+    "s": "done",
+    "note": "Insight cards in plain English or French (for example: a route late on most recent days)."
+  },
+  "alerts.8": {
+    "s": "done",
+    "note": "Goals with targets and progress bars for a day, week or month."
+  },
+  "alerts.9": {
+    "s": "done",
+    "note": "Benchmarks compare drivers, vehicles, depots and routes against the middle of the group."
+  },
+  "auto.1": {
+    "s": "done",
+    "note": "No-code workflows: pick a trigger, match rules (all/any) and actions; templates gallery and a Try it test run. Automation page."
+  },
+  "auto.10": {
+    "s": "done",
+    "note": "HMAC-signed webhooks on any event, delivery log, retries with back-off (1, 5, 30, 120, 720 minutes), ping, secret rotation."
+  },
+  "auto.2": {
+    "s": "done",
+    "note": "Built-in minutes-away trigger plus a customer message in the customer's language; also available as a workflow template."
+  },
+  "auto.3": {
+    "s": "partial",
+    "note": "Routes are replanned when a stop is cancelled or removed. Live traffic and crash detection need a traffic feed and are not built."
+  },
+  "auto.4": {
+    "s": "done",
+    "note": "Invoice INV-YYYY-NNNN is created when a job is marked done (workflow action and default setting); PDF download in the portal."
+  },
+  "auto.5": {
+    "s": "partial",
+    "note": "Public booking form creates orders and a workflow can assign them. Email, store and form connectors need outside accounts."
+  },
+  "auto.6": {
+    "s": "done",
+    "note": "Needs-break alert rule (hours without a break) feeds the event feed, workflows and the dispatcher inbox."
+  },
+  "auto.7": {
+    "s": "done",
+    "note": "Unaccepted-job escalation as a workflow trigger with a minutes setting (default 15); notifies the manager."
+  },
+  "auto.8": {
+    "s": "done",
+    "note": "Recurring route templates, maintenance plans and scheduled reports."
+  },
+  "auto.9": {
+    "s": "done",
+    "note": "Approvals queue for overtime, expenses over the limit and workflow approvals; decide with a note; sidebar count."
+  },
+  "builder.1": {
+    "s": "done",
+    "note": "Report builder: pick data, columns, filters, grouping and sorting."
+  },
+  "builder.10": {
+    "s": "done",
+    "note": "PDF reports carry the company logo, name and colour from settings."
+  },
+  "builder.11": {
+    "s": "done",
+    "note": "Public share links with an expiry date, a visible list and one-click turn-off."
+  },
+  "builder.12": {
+    "s": "done",
+    "note": "Embed a shared report in another page with an iframe (add ?embed=1)."
+  },
+  "builder.13": {
+    "s": "partial",
+    "note": "A shared link can be limited to one driver, vehicle or depot. Restricting what each signed-in person sees by depot or team is not built."
+  },
+  "builder.14": {
+    "s": "done",
+    "note": "Every save keeps a version; restore any earlier one."
+  },
+  "builder.2": {
+    "s": "done",
+    "note": "Save reports, keep versions, share with the team, and start from 16 templates."
+  },
+  "builder.3": {
+    "s": "partial",
+    "note": "Click a chart mark or a grouped row to drill into the rows behind it (scorecards open their stops). It stops at the route; it does not yet jump to a single trip replay."
+  },
+  "builder.4": {
+    "s": "done",
+    "note": "Pivot tables."
+  },
+  "builder.5": {
+    "s": "done",
+    "note": "Calculated fields with a safe formula box (for example cost / stops)."
+  },
+  "builder.6": {
+    "s": "done",
+    "note": "Charts: line, bar, stacked, pie, heat map, funnel, scatter and map, each with a table view."
+  },
+  "builder.7": {
+    "s": "done",
+    "note": "Map reports: a heat map of stops or driving events."
+  },
+  "builder.8": {
+    "s": "external",
+    "note": "Daily, weekly and monthly schedules to Slack, Teams, webhooks, email or SMS are built and tested against a stand-in server. Email and SMS need a mail-service key or a Twilio account set up on the server, and none of it was tried against the real services."
+  },
+  "builder.9": {
+    "s": "partial",
+    "note": "PDF, Excel and CSV exports work. For Google Sheets, a shared report CSV link can be pulled in with the IMPORTDATA formula; there is no direct Google connection."
+  },
+  "cust.1": {
+    "s": "done",
+    "note": "Branded live tracking page /j/<token> with map, ETA and company colours."
+  },
+  "cust.10": {
+    "s": "done",
+    "note": "Rating and comment after each delivery; shown to managers."
+  },
+  "cust.11": {
+    "s": "done",
+    "note": "Customer portal with orders, invoices (PDF) and support chat."
+  },
+  "cust.12": {
+    "s": "done",
+    "note": "Public booking page with quote and spam protection."
+  },
+  "cust.13": {
+    "s": "done",
+    "note": "Public status page with your own notices."
+  },
+  "cust.14": {
+    "s": "done",
+    "note": "Per-customer notification preferences on the tracking link."
+  },
+  "cust.15": {
+    "s": "done",
+    "note": "Message templates in EN/FR with company logo and colours; wording editor with preview."
+  },
+  "cust.16": {
+    "s": "done",
+    "note": "Proof photos shown as a gallery on the job page."
+  },
+  "cust.17": {
+    "s": "done",
+    "note": "Help centre FAQ page and support chat in the portal and job page."
+  },
+  "cust.18": {
+    "s": "skip",
+    "note": "Loyalty and referral features chosen not to build for now."
+  },
+  "cust.19": {
+    "s": "done",
+    "note": "Return and pickup requests from the tracking link."
+  },
+  "cust.2": {
+    "s": "done",
+    "note": "Customer picks a delivery slot when rescheduling or booking."
+  },
+  "cust.20": {
+    "s": "done",
+    "note": "All public pages in English and French."
+  },
+  "cust.3": {
+    "s": "partial",
+    "note": "In-product messages and templates work; email and SMS send through your provider keys, WhatsApp is not built. Needs outside accounts."
+  },
+  "cust.4": {
+    "s": "done",
+    "note": "Driver-is-N-stops-away notice on the tracking page and as a trigger."
+  },
+  "cust.5": {
+    "s": "done",
+    "note": "Reschedule and cancel from the tracking link, with the rules you set."
+  },
+  "cust.6": {
+    "s": "done",
+    "note": "Customers leave delivery instructions (gate code, leave at door); shown on the driver's stop."
+  },
+  "cust.7": {
+    "s": "done",
+    "note": "Driver name, photo and vehicle on the tracking page."
+  },
+  "cust.8": {
+    "s": "external",
+    "note": "Chat with dispatch is built. A masked phone number needs a telephony account."
+  },
+  "cust.9": {
+    "s": "done",
+    "note": "Proof of delivery link with photo and signature on the job page."
+  },
+  "dash.1": {
+    "s": "done",
+    "note": "Executive template: cost, on-time rate, utilization, customer score, trends, goals, insights and forecast. Cost uses the per-km and per-hour rates in settings."
+  },
+  "dash.10": {
+    "s": "done",
+    "note": "TV wall mode: full screen, big numbers, refreshes every minute, Esc to leave."
+  },
+  "dash.11": {
+    "s": "partial",
+    "note": "One set of filters (dates, depot, driver, vehicle) for every widget. There is no separate \"region\" or \"team\" field yet, so depots stand in for them."
+  },
+  "dash.12": {
+    "s": "done",
+    "note": "Compare with the previous period or the same dates last year; every key number shows the change."
+  },
+  "dash.2": {
+    "s": "done",
+    "note": "Operations template: live jobs, late stops, idling vehicles (refreshes every 30 seconds)."
+  },
+  "dash.3": {
+    "s": "done",
+    "note": "Driver template, and a \"My numbers\" sheet in the driver app: score, stops, on-time rate, distance, safety events and an estimated pay."
+  },
+  "dash.4": {
+    "s": "partial",
+    "note": "A customer-service template (deliveries, delays, failed reasons, ratings by customer) for your staff. A dashboard that customers sign in to comes with the customer portal in Phase 4."
+  },
+  "dash.5": {
+    "s": "done",
+    "note": "Finance template: cost per route, stop, kilometre, hour and vehicle."
+  },
+  "dash.6": {
+    "s": "done",
+    "note": "Safety template: speeding, harsh braking and acceleration found in GPS tracks, incidents, driver score."
+  },
+  "dash.7": {
+    "s": "done",
+    "note": "Sustainability template: fuel, CO2, fuel economy, idle share and savings from applied route optimization (assumes 30 L per 100 km)."
+  },
+  "dash.8": {
+    "s": "done",
+    "note": "Customize: add, remove, resize and drag widgets (or use the up and down buttons), then save as your own dashboard and share it with the team."
+  },
+  "dash.9": {
+    "s": "done",
+    "note": "Seven templates by role; the page opens on the one that fits your role."
+  },
+  "dispatch.1": {
+    "s": "done",
+    "note": "Dispatch board: unassigned jobs and one lane per driver; drag a job onto a lane or use the menu."
+  },
+  "dispatch.10": {
+    "s": "done",
+    "note": "Select stops to split onto a new route, or merge another route in."
+  },
+  "dispatch.2": {
+    "s": "done",
+    "note": "Auto-assign suggests the best driver by skills, capacity, shift and distance, then applies on one click."
+  },
+  "dispatch.3": {
+    "s": "done",
+    "note": "Pickup, delivery, service call and inspection jobs."
+  },
+  "dispatch.4": {
+    "s": "done",
+    "note": "Low to urgent priority; the rush button inserts an urgent job and says what it delays."
+  },
+  "dispatch.5": {
+    "s": "done",
+    "note": "Reassign from the board or the job panel; the driver's route updates and the change is logged."
+  },
+  "dispatch.6": {
+    "s": "done",
+    "note": "Unassigned, assigned, started, arrived, done, failed; stop changes update the job automatically."
+  },
+  "dispatch.7": {
+    "s": "done",
+    "note": "Photo and signature (earlier milestone) plus package-code scans. Camera scanning needs a browser with BarcodeDetector (Chrome on Android); typing the code works everywhere. Not tried on a real phone."
+  },
+  "dispatch.8": {
+    "s": "done",
+    "note": "Notes, tags and file attachments on jobs."
+  },
+  "dispatch.9": {
+    "s": "done",
+    "note": "Cancel and reschedule ask for a reason code; history is kept."
+  },
+  "driver.1": {
+    "s": "partial",
+    "note": "Installable web app (manifest and service worker). Native iOS and Android store apps are not built."
+  },
+  "driver.10": {
+    "s": "done",
+    "note": "Signature pad on delivery."
+  },
+  "driver.11": {
+    "s": "done",
+    "note": "Chat with the dispatcher in the driver app, offline-safe through the outbox; dispatcher inbox replies."
+  },
+  "driver.12": {
+    "s": "done",
+    "note": "Quick replies (late, arrived, need help ...) in EN/FR with one tap."
+  },
+  "driver.13": {
+    "s": "partial",
+    "note": "In-app alerts use the browser Notification API when the app is open. Background push needs a push provider account."
+  },
+  "driver.14": {
+    "s": "done",
+    "note": "Shift clock: start, end, breaks, overtime flags; timesheets page for managers with approval."
+  },
+  "driver.15": {
+    "s": "done",
+    "note": "Break and lunch timer with a reminder when a break is due."
+  },
+  "driver.16": {
+    "s": "done",
+    "note": "Daily vehicle inspection checklist."
+  },
+  "driver.17": {
+    "s": "done",
+    "note": "Expense sheet with receipt photo; auto-approved under the limit, otherwise sent for approval; reimburse in Expenses."
+  },
+  "driver.18": {
+    "s": "done",
+    "note": "Tips sheet and trip/earnings summary in the driver app."
+  },
+  "driver.19": {
+    "s": "partial",
+    "note": "Battery-saver mode lowers update rate and turns animations off; savings not measured on devices."
+  },
+  "driver.2": {
+    "s": "done",
+    "note": "Offline outbox and service worker; actions sync when signal returns."
+  },
+  "driver.20": {
+    "s": "done",
+    "note": "Driver app in English and French."
+  },
+  "driver.21": {
+    "s": "external",
+    "note": "Biometric sign-in needs the native app or passkeys on real hardware; not built in the web app."
+  },
+  "driver.22": {
+    "s": "external",
+    "note": "Apple Watch, CarPlay and Android Auto need native apps and platform approval; not built."
+  },
+  "driver.23": {
+    "s": "done",
+    "note": "Mark a stop failed with a reason and photo."
+  },
+  "driver.24": {
+    "s": "done",
+    "note": "Help request (flat tire, wrong address, customer not home) with notes; dispatcher acknowledges or resolves in Inbox."
+  },
+  "driver.25": {
+    "s": "done",
+    "note": "Training items and tips managed in Settings and shown in the driver app."
+  },
+  "driver.3": {
+    "s": "done",
+    "note": "Big-button next-stop screen."
+  },
+  "driver.4": {
+    "s": "partial",
+    "note": "One-tap open in Google Maps, Waze or Apple Maps. No built-in turn-by-turn."
+  },
+  "driver.5": {
+    "s": "partial",
+    "note": "Voice commands (EN/FR) with a confirm step and voice notes use browser speech and recording support; not verified on real phones."
+  },
+  "driver.6": {
+    "s": "done",
+    "note": "Dark mode and contrast themes."
+  },
+  "driver.7": {
+    "s": "partial",
+    "note": "Driving mode (big buttons, locked controls) while moving; browsers cannot truly lock the phone screen. Not verified on devices."
+  },
+  "driver.8": {
+    "s": "done",
+    "note": "Barcode and QR scanner (uses the browser's detector where available)."
+  },
+  "driver.9": {
+    "s": "done",
+    "note": "Photo capture with timestamp and location on proofs."
+  },
+  "ds.1": {
+    "s": "done",
+    "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+  },
+  "ds.10": {
+    "s": "done",
+    "note": "One radius family (--r-sm, --r, --r-lg)."
+  },
+  "ds.2": {
+    "s": "done",
+    "note": "Dashboard cards come in 1 to 4 column sizes on a grid (Dashboards page)."
+  },
+  "ds.3": {
+    "s": "done",
+    "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+  },
+  "ds.4": {
+    "s": "done",
+    "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+  },
+  "ds.5": {
+    "s": "done",
+    "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+  },
+  "ds.6": {
+    "s": "done",
+    "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+  },
+  "ds.7": {
+    "s": "done",
+    "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+  },
+  "ds.8": {
+    "s": "done",
+    "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+  },
+  "ds.9": {
+    "s": "partial",
+    "note": "A living style guide page at /styleguide. Storybook itself was not added."
+  },
+  "fleet.1": {
+    "s": "done",
+    "note": "Vehicle records with photo, plate, VIN, capacity, fuel type, EV range and more."
+  },
+  "fleet.10": {
+    "s": "done",
+    "note": "Trip log from vehicle movement with business or personal tags and CSV export."
+  },
+  "fleet.2": {
+    "s": "done",
+    "note": "Driver profiles: licence, emergency contact, shift limits, skills, training; documents attach to drivers too."
+  },
+  "fleet.3": {
+    "s": "done",
+    "note": "Document and licence expiry reminders on the Maintenance page. Emailing them out comes with Phase 4 alerts."
+  },
+  "fleet.4": {
+    "s": "done",
+    "note": "Maintenance plans by days or kilometres, due and overdue state, mark-done history."
+  },
+  "fleet.5": {
+    "s": "done",
+    "note": "Fuel logs, fuel economy per vehicle and CSV import of fuel-card statements. Live feeds from card companies need their accounts."
+  },
+  "fleet.6": {
+    "s": "done",
+    "note": "Trailers and equipment with status and assignment."
+  },
+  "fleet.7": {
+    "s": "done",
+    "note": "Check-out and check-in checklist in the driver app; a failed item records a defect and shows in reminders."
+  },
+  "fleet.8": {
+    "s": "done",
+    "note": "Incident reports from the driver app with location and photos, tracked from open to closed on the office side."
+  },
+  "fleet.9": {
+    "s": "partial",
+    "note": "Depot records with parking spots; live occupancy is calculated by the API but not shown in the screens yet."
+  },
+  "kpi.1": {
+    "s": "done",
+    "note": "On-time delivery rate, from stop arrival times against time windows."
+  },
+  "kpi.10": {
+    "s": "done",
+    "note": "Customer satisfaction (1 to 5) and NPS from ratings on the tracking page or entered by the office."
+  },
+  "kpi.11": {
+    "s": "done",
+    "note": "Missed time windows."
+  },
+  "kpi.12": {
+    "s": "done",
+    "note": "Failed delivery reasons, ranked."
+  },
+  "kpi.13": {
+    "s": "partial",
+    "note": "Route adherence is measured against straight lines between stops (within 600 m), so it is a rough guide. A road-based check needs the routing service switched on."
+  },
+  "kpi.14": {
+    "s": "done",
+    "note": "Vehicle downtime hours and repair cost from maintenance logs."
+  },
+  "kpi.15": {
+    "s": "done",
+    "note": "Driver overtime hours (after the daily hours set in settings)."
+  },
+  "kpi.2": {
+    "s": "done",
+    "note": "First-attempt success rate."
+  },
+  "kpi.3": {
+    "s": "done",
+    "note": "Average delay and worst delay in minutes."
+  },
+  "kpi.4": {
+    "s": "done",
+    "note": "Cost per stop, per kilometre and per hour. These are estimates from the rates in settings; fuel and repair costs are shown as their own numbers."
+  },
+  "kpi.5": {
+    "s": "done",
+    "note": "Utilization (engine hours against a shift) and load fill (weight against vehicle capacity)."
+  },
+  "kpi.6": {
+    "s": "done",
+    "note": "Idle time, idle share and engine-on time from GPS."
+  },
+  "kpi.7": {
+    "s": "done",
+    "note": "Planned versus actual distance and time per route."
+  },
+  "kpi.8": {
+    "s": "done",
+    "note": "Stops per hour."
+  },
+  "kpi.9": {
+    "s": "done",
+    "note": "Fuel economy (L per 100 km) per vehicle from fuel logs, and per driver where the fill-up names the driver."
+  },
+  "live.1": {
+    "s": "done",
+    "note": "Live map with every vehicle."
+  },
+  "live.10": {
+    "s": "done",
+    "note": "Expiring, revocable share links with a public tracking page. It shows no driver name or plate and is rate-limited."
+  },
+  "live.2": {
+    "s": "done",
+    "note": "Trail on the map and day-by-day replay (milestone 3)."
+  },
+  "live.3": {
+    "s": "partial",
+    "note": "Draw circle or polygon zones on a map; enter and exit events are recorded as vehicles move. Sending them out as alerts comes with Phase 4 alerts."
+  },
+  "live.4": {
+    "s": "partial",
+    "note": "ETAs refresh as vehicles move. They react to real traffic only once a live traffic source is connected."
+  },
+  "live.5": {
+    "s": "done",
+    "note": "Moving, idle, stopped and offline colours."
+  },
+  "live.6": {
+    "s": "done",
+    "note": "Markers cluster when zoomed out."
+  },
+  "live.7": {
+    "s": "done",
+    "note": "Heat layers for stops, late deliveries and speeding on the live map."
+  },
+  "live.8": {
+    "s": "done",
+    "note": "Street and satellite switch, plus a Street View link."
+  },
+  "live.9": {
+    "s": "external",
+    "note": "Weather at a vehicle and at each stop's arrival time, from Open-Meteo. Needs internet access to that service; tested only against a stub."
+  },
+  "motion.1": {
+    "s": "done",
+    "note": "Skeleton loaders on every list and table."
+  },
+  "motion.10": {
+    "s": "done",
+    "note": "Account menu has Follow device / Reduce motion / Full motion; it also respects the device setting."
+  },
+  "motion.2": {
+    "s": "partial",
+    "note": "Short fade and slide transitions on dialogs, toasts and panels. No full page transitions."
+  },
+  "motion.3": {
+    "s": "todo",
+    "note": "Planned with the route map in Phase 2."
+  },
+  "motion.4": {
+    "s": "done",
+    "note": "Vehicle markers glide to each new fix (lib/glide.ts)."
+  },
+  "motion.5": {
+    "s": "done",
+    "note": "KPI numbers count up."
+  },
+  "motion.6": {
+    "s": "done",
+    "note": "Buttons press, switches slide, menus fade."
+  },
+  "motion.7": {
+    "s": "done",
+    "note": "Check-mark animation component (SuccessMark)."
+  },
+  "motion.8": {
+    "s": "todo",
+    "note": "Planned with the driver app in Phase 4."
+  },
+  "motion.9": {
+    "s": "todo",
+    "note": "Planned with the dispatch board in Phase 2."
+  },
+  "nav.1": {
+    "s": "done",
+    "note": "Collapsible side menu; becomes a drawer on phones."
+  },
+  "nav.10": {
+    "s": "todo",
+    "note": "Home dashboard with drag-and-drop widgets arrives with dashboards in Phase 3."
+  },
+  "nav.2": {
+    "s": "done",
+    "note": "Ctrl/Cmd+K, or /."
+  },
+  "nav.3": {
+    "s": "partial",
+    "note": "Searches vehicles, drivers, routes and stops. Customers join when customer records are added."
+  },
+  "nav.4": {
+    "s": "done",
+    "note": "Breadcrumbs in the top bar."
+  },
+  "nav.5": {
+    "s": "done",
+    "note": "History and route pages: list on the left, map on the right."
+  },
+  "nav.6": {
+    "s": "done",
+    "note": "Drag the divider (or use the arrow keys); the width is remembered."
+  },
+  "nav.7": {
+    "s": "done",
+    "note": "Pin any page; pins show in the menu and in the palette."
+  },
+  "nav.8": {
+    "s": "done",
+    "note": "? opens the cheat sheet; g then l/r/p jumps; T switches theme; [ collapses the menu."
+  },
+  "nav.9": {
+    "s": "partial",
+    "note": "Tables save named views (sort, filters, columns, grouping). Custom tabs are not built."
+  },
+  "opt.1": {
+    "s": "done",
+    "note": "Multi-depot preview and apply: each job goes to the nearest depot and its drivers."
+  },
+  "opt.10": {
+    "s": "done",
+    "note": "Driver wishes (most stops, days off, customers to avoid) and skills are respected in auto-assign. Customers to avoid affect suggestions only."
+  },
+  "opt.2": {
+    "s": "done",
+    "note": "Suggested compact areas (clustering), saved areas with a driver each; the planner keeps drivers in their areas."
+  },
+  "opt.3": {
+    "s": "done",
+    "note": "Workload spread and fairness check with suggested stop moves that can be applied."
+  },
+  "opt.4": {
+    "s": "done",
+    "note": "Compare as-planned, fastest and shortest order with fuel, wages, wear and tolls; apply the cheapest order."
+  },
+  "opt.5": {
+    "s": "done",
+    "note": "Lowest-CO2 option flagged, plus CO2 if another vehicle drove the route."
+  },
+  "opt.6": {
+    "s": "done",
+    "note": "Open pick-ups near the road back to the depot, within spare capacity."
+  },
+  "opt.7": {
+    "s": "done",
+    "note": "Ride requests grouped by seats."
+  },
+  "opt.8": {
+    "s": "done",
+    "note": "Pickup before delivery with the same driver; the planner enforces it and a fix button repairs broken pairs."
+  },
+  "opt.9": {
+    "s": "done",
+    "note": "What-if: add or remove vehicles, change shift length, capacity or depot and compare against today's plan."
+  },
+  "polish.1": {
+    "s": "done",
+    "note": "Empty states say what to do next."
+  },
+  "polish.10": {
+    "s": "done",
+    "note": "Five-step product tour and a getting-started checklist for owners and admins."
+  },
+  "polish.11": {
+    "s": "done",
+    "note": "Tooltips and a What's new panel."
+  },
+  "polish.2": {
+    "s": "done",
+    "note": "Plain-language error states with a retry button and a separate \"no access\" state."
+  },
+  "polish.3": {
+    "s": "partial",
+    "note": "Undo for deleting a stop (toast with Undo). Other deletes and edits get it as their screens are built."
+  },
+  "polish.4": {
+    "s": "done",
+    "note": "Double-click a cell to edit (people names)."
+  },
+  "polish.5": {
+    "s": "done",
+    "note": "Sort, filter, group, pin, hide and resize columns, CSV export, saved views."
+  },
+  "polish.6": {
+    "s": "done",
+    "note": "Sticky headers; lists over 150 rows are windowed."
+  },
+  "polish.7": {
+    "s": "done",
+    "note": "Checked on a phone-sized screen."
+  },
+  "polish.8": {
+    "s": "partial",
+    "note": "Keyboard use, labels and focus are in place; axe found no contrast problems in the three themes. Not tested with a real screen reader."
+  },
+  "polish.9": {
+    "s": "partial",
+    "note": "English and French complete. Punjabi and Arabic cover sign-in, navigation and the driver app; Arabic mirrors the layout. Both were drafted without a native reviewer."
+  },
+  "report.1": {
+    "s": "done",
+    "note": "Daily operations summary template."
+  },
+  "report.10": {
+    "s": "done",
+    "note": "Geofence visits template with time spent in each zone."
+  },
+  "report.11": {
+    "s": "done",
+    "note": "Idle and stop-time template."
+  },
+  "report.12": {
+    "s": "partial",
+    "note": "Compliance report lists shift hours, failed inspections and expiring documents. Legal hours-of-service rules are not built."
+  },
+  "report.13": {
+    "s": "partial",
+    "note": "A billing template with a price-per-stop formula you can change. Invoice numbers, tax and customer contracts are not built."
+  },
+  "report.14": {
+    "s": "done",
+    "note": "Audit log page with filters and CSV export."
+  },
+  "report.15": {
+    "s": "done",
+    "note": "One-page executive summary as a branded PDF (button on the Dashboards page)."
+  },
+  "report.2": {
+    "s": "done",
+    "note": "Weekly and monthly performance templates."
+  },
+  "report.3": {
+    "s": "done",
+    "note": "Driver scorecard template."
+  },
+  "report.4": {
+    "s": "done",
+    "note": "Vehicle health and cost template."
+  },
+  "report.5": {
+    "s": "done",
+    "note": "Route efficiency template (plan versus actual)."
+  },
+  "report.6": {
+    "s": "done",
+    "note": "Customer service template."
+  },
+  "report.7": {
+    "s": "done",
+    "note": "Exceptions template: late, failed and skipped stops."
+  },
+  "report.8": {
+    "s": "partial",
+    "note": "A mileage template (km and engine hours per vehicle). The business and personal split lives in the Trip log, not yet in this report."
+  },
+  "report.9": {
+    "s": "done",
+    "note": "Fuel and emissions template (CO2 from fuel type)."
+  },
+  "route.1": {
+    "s": "done",
+    "note": "Drag stops to reorder on the route page (keyboard works too). apps/web/src/app/(app)/routes/[id]."
+  },
+  "route.10": {
+    "s": "done",
+    "note": "Save any route as a template; create routes from templates."
+  },
+  "route.11": {
+    "s": "done",
+    "note": "Daily, weekly and custom repeats; the scheduler creates each day's routes once (no duplicates)."
+  },
+  "route.12": {
+    "s": "partial",
+    "note": "CSV import of jobs, with errors listed by row. Excel files are not read directly: save as CSV first."
+  },
+  "route.13": {
+    "s": "external",
+    "note": "Address search with saved places and 'did you mean' fixes. Live address lookup needs a geocoding service (Nominatim or similar); tested only against a stub."
+  },
+  "route.14": {
+    "s": "done",
+    "note": "Current order vs optimized order shown side by side with cost, time and late stops."
+  },
+  "route.15": {
+    "s": "done",
+    "note": "Drop a pin and see where an extra stop fits and what becomes late, before saving."
+  },
+  "route.2": {
+    "s": "done",
+    "note": "Optimizer for shortest time or distance (cheapest insertion + 2-opt/or-opt), unit-tested. Uses real road times when a routing engine is set (ROUTING_URL); otherwise straight-line estimates, and the screen says so."
+  },
+  "route.3": {
+    "s": "done",
+    "note": "Time windows per stop, treated as hard limits by the optimizer and flagged when late."
+  },
+  "route.4": {
+    "s": "done",
+    "note": "Weight, volume and item limits per vehicle; over-capacity is flagged on the board and respected by auto-assign."
+  },
+  "route.5": {
+    "s": "done",
+    "note": "Max shift length and mandatory breaks per driver; the optimizer inserts breaks."
+  },
+  "route.6": {
+    "s": "partial",
+    "note": "Predicted ETAs use hourly speed patterns learned from your own vehicles' positions. Live traffic needs an outside traffic data source."
+  },
+  "route.7": {
+    "s": "external",
+    "note": "Avoid tolls, highways, ferries and unpaved roads are sent to the routing engine (OSRM or Valhalla). Enforcing them needs a routing engine; not run in the sandbox."
+  },
+  "route.8": {
+    "s": "external",
+    "note": "Height, weight and hazmat limits are sent to Valhalla's truck profile. Needs a Valhalla server; tested only against a stub."
+  },
+  "route.9": {
+    "s": "partial",
+    "note": "Planner tracks battery range and adds charging stops. Real charger locations need an outside data source, so charge points are entered by you."
+  },
+  "safety.1": {
+    "s": "partial",
+    "note": "Score from speeding, hard braking, hard acceleration and cornering per 100 km. Phone-use detection needs a native app and is not built."
+  },
+  "safety.2": {
+    "s": "done",
+    "note": "Driver app shows up to 3 tips after trips, based on the driver's own numbers."
+  },
+  "safety.3": {
+    "s": "done",
+    "note": "Opt-in ranking, names hidden by default, with positive badges only."
+  },
+  "safety.4": {
+    "s": "done",
+    "note": "Bonus rules per week or month; Calculate creates each bonus once; marking paid stays manual."
+  },
+  "safety.5": {
+    "s": "done",
+    "note": "Warns after the set hours without a break; shown to the driver and on the Live tab; raises an alert rule."
+  },
+  "safety.6": {
+    "s": "done",
+    "note": "SOS button in the driver app; works offline (queued) and appears in the inbox with position."
+  },
+  "safety.7": {
+    "s": "partial",
+    "note": "Phone motion and GPS crash check asks the driver first, then tells dispatch. Not tested in a real crash or on real devices."
+  },
+  "safety.8": {
+    "s": "partial",
+    "note": "Stores links to dash-cam clips beside events; the video itself is never stored or fetched."
+  },
+  "safety.9": {
+    "s": "done",
+    "note": "Lone-worker check-ins with a schedule; a missed check-in raises an alert."
+  },
+  "security.2": {
+    "s": "done",
+    "note": "Append-only audit log of every change with who, what, when and IP; the app role cannot edit or delete it."
+  },
+  "style.1": {
+    "s": "done",
+    "note": "Tokens and components follow a clean, minimal look (apps/web/src/app/tokens.css)."
+  },
+  "style.2": {
+    "s": "todo",
+    "note": "Bento dashboard cards arrive with the dashboards in Phase 3."
+  },
+  "style.3": {
+    "s": "done",
+    "note": "Floating map panel uses a light blur; switched off in high-contrast mode."
+  },
+  "style.4": {
+    "s": "partial",
+    "note": "Dark theme and a dark basemap work. Glowing route lines are not done."
+  },
+  "style.5": {
+    "s": "skip",
+    "note": "The Playbook says pick one direction and stay with it; soft shadows hurt readability."
+  },
+  "style.6": {
+    "s": "done",
+    "note": "Live map fills the page with panels floating on top."
+  },
+  "teams.1": {
+    "s": "done",
+    "note": "Owner, admin, dispatcher, manager, driver, customer and read-only. Customer and driver land in their own apps (the customer portal arrives in Phase 4)."
+  },
+  "teams.2": {
+    "s": "done",
+    "note": "Custom roles with fine-grained permissions (Settings > People & roles)."
+  },
+  "teams.4": {
+    "s": "done",
+    "note": "Every table is tenant-isolated with Row-Level Security (since Milestone 1); tests prove it."
+  },
+  "theme.1": {
+    "s": "done",
+    "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
+  },
+  "theme.2": {
+    "s": "done",
+    "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
+  },
+  "theme.3": {
+    "s": "done",
+    "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
+  },
+  "theme.4": {
+    "s": "done",
+    "note": "Light, dark, follow-the-device and high-contrast themes; picked from the account menu or with the T key."
+  },
+  "theme.5": {
+    "s": "done",
+    "note": "Each company sets a brand color and logo in Settings. The color is adjusted so text stays readable (tests in lib/color.test.ts)."
+  },
+  "theme.6": {
+    "s": "done",
+    "note": "Okabe-Ito palette in --chart-1 to --chart-8, used by every chart."
+  },
+  "theme.7": {
+    "s": "partial",
+    "note": "The palette exists; route lines on maps adopt it in Phase 2."
+  }
 }

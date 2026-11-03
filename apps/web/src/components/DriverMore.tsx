@@ -18,13 +18,13 @@ const PREFS_KEY = "routenorth.driver.prefs";
 const newId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
 const auth = () => ({ Authorization: `Bearer ${loadSession()?.token}` });
 
-async function get<R>(path: string): Promise<R> {
+export async function driverGet<R>(path: string): Promise<R> {
   const res = await fetch(`${API_URL}${path}`, { headers: auth() });
   if (!res.ok) throw new Error((await res.json().catch(() => null))?.message ?? `HTTP ${res.status}`);
   return res.json();
 }
 /** Sends now; when there is no signal the request waits in the outbox and goes out later. */
-async function post<R>(path: string, body: unknown): Promise<{ queued: boolean; data?: R }> {
+export async function driverPost<R>(path: string, body: unknown): Promise<{ queued: boolean; data?: R }> {
   const item: OutboxItem = { id: (body as { clientId?: string })?.clientId ?? newId(), method: "POST", path, body, at: new Date().toISOString() };
   try {
     const res = await fetch(`${API_URL}${path}`, { method: "POST", headers: { ...auth(), "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -74,9 +74,9 @@ export function DriverMore({ nextStop, actions }: { nextStop: { id: string; name
 
   const refresh = useCallback(async () => {
     try {
-      const s = await get<ShiftState>("/driver/shift");
+      const s = await driverGet<ShiftState>("/driver/shift");
       setShift(s);
-      const u = await get<{ now: string; messages: number; unread: number; jobs: number; latest: string | null }>(`/driver/updates?since=${encodeURIComponent(since.current)}`);
+      const u = await driverGet<{ now: string; messages: number; unread: number; jobs: number; latest: string | null }>(`/driver/updates?since=${encodeURIComponent(since.current)}`);
       since.current = u.now; setUnread(u.unread);
       if ((u.messages > 0 || u.jobs > 0) && prefs.alerts && typeof Notification !== "undefined" && Notification.permission === "granted" && document.hidden) {
         new Notification(u.messages > 0 ? t("dx_newMessage") : t("dx_newWork"), { body: u.latest ?? undefined });
@@ -92,7 +92,7 @@ export function DriverMore({ nextStop, actions }: { nextStop: { id: string; name
   }, [refresh, prefs.batterySaver]);
 
   async function shiftCall(path: string, body: unknown = {}) {
-    try { const where = await here(); const r = await post<ShiftState>(path, { ...(where ?? {}), ...(body as object) }); if (r.data) setShift(r.data); else say(t("dx_saved")); }
+    try { const where = await here(); const r = await driverPost<ShiftState>(path, { ...(where ?? {}), ...(body as object) }); if (r.data) setShift(r.data); else say(t("dx_saved")); }
     catch (e) { say((e as Error).message); }
   }
   async function toggleAlerts() {
@@ -122,7 +122,7 @@ export function DriverMore({ nextStop, actions }: { nextStop: { id: string; name
       case "break_start": return shiftCall("/driver/shift/break", { action: "start", kind: "break" });
       case "break_end": return shiftCall("/driver/shift/break", { action: "end" });
       case "shift_end": return shiftCall("/driver/shift/end");
-      case "message": { try { await post("/driver/messages", { body: cmd.text, clientId: newId() }); say(t("dx_sent")); } catch (e) { say((e as Error).message); } }
+      case "message": { try { await driverPost("/driver/messages", { body: cmd.text, clientId: newId() }); say(t("dx_sent")); } catch (e) { say((e as Error).message); } }
     }
   }
 
@@ -182,13 +182,13 @@ function ChatSheet({ t, onClose }: { t: T; onClose: () => void }) {
   const [note, setNote] = useState<string | null>(null);
   const [rec, setRec] = useState<MediaRecorder | null>(null);
   const end = useRef<HTMLDivElement>(null);
-  const load = useCallback(() => { get<Msg[]>("/driver/messages").then(setMsgs).catch(() => {}); }, []);
+  const load = useCallback(() => { driverGet<Msg[]>("/driver/messages").then(setMsgs).catch(() => {}); }, []);
   useEffect(() => { load(); const id = setInterval(load, 10_000); return () => clearInterval(id); }, [load]);
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [msgs.length]);
 
   async function send(body: { body?: string; quickKey?: string; audioDataUrl?: string }) {
     try {
-      const r = await post("/driver/messages", { ...body, clientId: newId() });
+      const r = await driverPost("/driver/messages", { ...body, clientId: newId() });
       setText(""); setNote(r.queued ? t("dx_queued") : null);
       if (!r.queued) load(); else setMsgs((m) => [...m, { id: newId(), from: "driver", body: body.body ?? t("dx_voiceNote"), quickKey: null, hasAudio: !!body.audioDataUrl, at: new Date().toISOString() }]);
     } catch (e) { setNote((e as Error).message); }
@@ -241,7 +241,7 @@ function HelpSheet({ t, stopId, onClose, onDone }: { t: T; stopId: string | null
     <Sheet title={t("dx_help")} t={t} onClose={onClose}>
       <form className="stack" onSubmit={async (e) => {
         e.preventDefault(); setBusy(true); setErr(null);
-        try { const where = await here(); const r = await post("/driver/help", { kind, note: note || undefined, stopId: stopId ?? undefined, clientId: newId(), ...(where ?? {}) }); onDone(r.queued ? t("dx_helpQueued") : t("dx_helpSent")); }
+        try { const where = await here(); const r = await driverPost("/driver/help", { kind, note: note || undefined, stopId: stopId ?? undefined, clientId: newId(), ...(where ?? {}) }); onDone(r.queued ? t("dx_helpQueued") : t("dx_helpSent")); }
         catch (x) { setErr((x as Error).message); setBusy(false); }
       }}>
         <p className="meta">{t("dx_helpExplain")}</p>
@@ -262,13 +262,13 @@ function ExpenseSheet({ t, onClose, onDone }: { t: T; onClose: () => void; onDon
   const [vehicle, setVehicle] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  useEffect(() => { get<{ id: string } | null>("/driver/vehicle").then((v) => setVehicle(v?.id ?? null)).catch(() => {}); }, []);
+  useEffect(() => { driverGet<{ id: string } | null>("/driver/vehicle").then((v) => setVehicle(v?.id ?? null)).catch(() => {}); }, []);
   return (
     <Sheet title={t("dx_expense")} t={t} onClose={onClose}>
       <form className="stack" onSubmit={async (e) => {
         e.preventDefault(); setBusy(true); setErr(null);
         try {
-          const r = await post<{ needsApproval?: boolean }>("/driver/expenses", { ...f, vehicleId: vehicle ?? undefined, receiptDataUrl: receipt ?? undefined, clientId: newId() });
+          const r = await driverPost<{ needsApproval?: boolean }>("/driver/expenses", { ...f, vehicleId: vehicle ?? undefined, receiptDataUrl: receipt ?? undefined, clientId: newId() });
           onDone(r.queued ? t("dx_expenseQueued") : r.data?.needsApproval ? t("dx_expenseApproval") : t("dx_expenseSaved"));
         } catch (x) { setErr((x as Error).message); setBusy(false); }
       }}>
@@ -287,7 +287,7 @@ function ExpenseSheet({ t, onClose, onDone }: { t: T; onClose: () => void; onDon
 
 function TipsSheet({ t, locale, onClose }: { t: T; locale: string; onClose: () => void }) {
   const [items, setItems] = useState<Training[] | null>(null);
-  useEffect(() => { get<Training[]>(`/driver/training?lang=${locale}`).then(setItems).catch(() => setItems([])); }, [locale]);
+  useEffect(() => { driverGet<Training[]>(`/driver/training?lang=${locale}`).then(setItems).catch(() => setItems([])); }, [locale]);
   return (
     <Sheet title={t("dx_tips")} t={t} onClose={onClose}>
       {!items ? <p className="meta">…</p> : items.length === 0 ? <p className="meta">{t("dx_noTips")}</p> : items.map((i) => (

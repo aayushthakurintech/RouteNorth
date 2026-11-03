@@ -7,8 +7,8 @@ import { withDefaults } from "../org/settings.js";
 import { PG_POOL } from "../tokens.js";
 import { minutesSinceBreak, openShift, startShift, endShift, toggleBreak, workedMinutes } from "./shifts.js";
 
-export const HELP_KINDS = ["flat_tire", "breakdown", "accident", "medical", "wrong_address", "customer_not_home", "access_problem", "other"] as const;
-const URGENT_HELP = ["accident", "medical", "breakdown"];
+export const HELP_KINDS = ["flat_tire", "breakdown", "accident", "medical", "wrong_address", "customer_not_home", "access_problem", "other", "sos", "crash"] as const;
+const URGENT_HELP = ["accident", "medical", "breakdown", "sos", "crash"];
 export const EXPENSE_KINDS = ["fuel", "parking", "toll", "meal", "repair", "other"] as const;
 const DATA_IMAGE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
 const DATA_AUDIO = /^data:audio\/(webm|ogg|mp4|mpeg|wav|x-m4a|aac)(;codecs=[\w.,-]+)?;base64,[A-Za-z0-9+/=]+$/;

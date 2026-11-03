@@ -1,6 +1,8 @@
 import { pg, withOrg } from "@routenorth/db";
-import { anomaly, daysToExpiry, detectSafetyEvents, distanceToPath, documentState, inQuietHours, maintenanceDue, type Fix } from "@routenorth/shared";
+import { anomaly, daysToExpiry, detectCrash, detectSafetyEvents, distanceToPath, documentState, inQuietHours, maintenanceDue, type Fix } from "@routenorth/shared";
 import { minutesSinceBreak } from "../driver/shifts.js";
+import { fatigueOf } from "../smart/fatigue.js";
+import { withDefaults } from "../org/settings.js";
 import { breakdown, METRICS, summarize, type AnalyticsService } from "../analytics/analytics.service.js";
 import { deliver, type Endpoint, type Providers } from "../notify/notifier.js";
 
@@ -8,7 +10,7 @@ import { deliver, type Endpoint, type Providers } from "../notify/notifier.js";
  * Alert rules: "if this happens, tell these people". Each kind of rule looks at the live data and lists the things that match
  * right now. The engine then groups repeats, respects quiet hours, resolves alerts whose cause has gone away, and sends them.
  */
-export type RuleKind = "late_risk" | "off_route" | "long_idle" | "speeding" | "geofence" | "offline" | "harsh_driving" | "document_expiry" | "maintenance_due" | "cost_anomaly" | "custom_metric" | "needs_break" | "help_request";
+export type RuleKind = "late_risk" | "off_route" | "long_idle" | "speeding" | "geofence" | "offline" | "harsh_driving" | "document_expiry" | "maintenance_due" | "cost_anomaly" | "custom_metric" | "needs_break" | "help_request" | "fatigue" | "checkin_missed" | "crash";
 export interface Rule { id: string; name: string; kind: RuleKind; params: Record<string, unknown>; severity: "info" | "warn" | "critical"; endpointIds: string[]; quietStart: string | null; quietEnd: string | null; groupMinutes: number }
 export interface Candidate { key: string; title: string; detail: Record<string, unknown>; subjectKind?: string; subjectId?: string }
 interface Env { orgId: string; today: string; svc: AnalyticsService; now: Date }
@@ -65,6 +67,42 @@ export const EVALUATORS: Record<RuleKind, Evaluator> = {
       const rows = (await c.query(
         `SELECT h.id, h.kind, h.note, h.driver_id, coalesce(u.display_name, u.email) AS name FROM help_requests h JOIN users u ON u.id = h.driver_id WHERE h.status <> 'resolved' ORDER BY h.created_at LIMIT 50`)).rows;
       return rows.map((r) => ({ key: `helpreq:${r.id}`, title: `${r.name} needs help: ${String(r.kind).replace(/_/g, " ")}`, detail: { note: r.note }, subjectKind: "driver", subjectId: r.driver_id }));
+    },
+  },
+  fatigue: {
+    resolves: true,
+    async run(c) {
+      const lim = withDefaults((await c.query("SELECT settings FROM organizations LIMIT 1")).rows[0]?.settings).safety;
+      const open = (await c.query("SELECT s.driver_id, coalesce(u.display_name, u.email) AS name FROM shifts s JOIN users u ON u.id = s.driver_id WHERE s.ended_at IS NULL")).rows;
+      const out: Candidate[] = [];
+      for (const o of open) {
+        const f = await fatigueOf(c, o.driver_id, lim);
+        if (f.level !== "ok") out.push({ key: `fatigue:${o.driver_id}:${f.level}`, title: `${o.name} ${f.level === "now" ? "should stop and rest" : "is getting tired"}: ${(f.sinceBreakMin / 60).toFixed(1)} h since a break, ${(f.shiftMin / 60).toFixed(1)} h on shift`, detail: { ...f }, subjectKind: "driver", subjectId: o.driver_id });
+      }
+      return out;
+    },
+  },
+  checkin_missed: {
+    resolves: true,
+    async run(c) {
+      const grace = withDefaults((await c.query("SELECT settings FROM organizations LIMIT 1")).rows[0]?.settings).safety.checkinGraceMin;
+      const rows = (await c.query(
+        `SELECT k.id, k.user_id, k.last_ok_at, k.every_min, k.lat, k.lng, coalesce(u.display_name, u.email) AS name FROM checkins k JOIN users u ON u.id = k.user_id
+         WHERE k.ended_at IS NULL AND k.last_ok_at + make_interval(mins => k.every_min + $1::int) < now()`, [grace])).rows;
+      return rows.map((r) => ({ key: `checkin:${r.id}`, title: `${r.name} missed a safety check-in`, detail: { lastOkAt: r.last_ok_at, everyMin: r.every_min, lat: r.lat, lng: r.lng }, subjectKind: "user", subjectId: r.user_id }));
+    },
+  },
+  crash: {
+    resolves: false,
+    async run(c) {
+      const rows = (await c.query(
+        `SELECT p.device_id AS "deviceId", coalesce(v.name, d.external_id) AS name, p.time, p.lat, p.lng, p.speed, p.ignition FROM positions p JOIN devices d ON d.id = p.device_id LEFT JOIN vehicles v ON v.id = d.vehicle_id
+         WHERE p.time > now() - interval '20 minutes' ORDER BY p.device_id, p.time LIMIT 20000`)).rows;
+      const by = new Map<string, { name: string; fixes: Fix[] }>();
+      for (const r of rows) (by.get(r.deviceId) ?? by.set(r.deviceId, { name: r.name, fixes: [] }).get(r.deviceId)!).fixes.push({ time: new Date(r.time).toISOString(), lat: r.lat, lng: r.lng, speed: r.speed, ignition: r.ignition });
+      const out: Candidate[] = [];
+      for (const [id, v] of by) for (const e of detectCrash(v.fixes)) out.push({ key: `crash:${id}:${e.time}`, title: `${v.name}: sudden stop from ${e.fromKmh} km/h`, detail: { at: e.time, lat: e.lat, lng: e.lng, fromKmh: e.fromKmh }, subjectKind: "device", subjectId: id });
+      return out;
     },
   },
   long_idle: {

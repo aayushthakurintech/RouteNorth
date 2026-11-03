@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MessageKey } from "@routenorth/shared";
 import { DriverExtras } from "@/components/DriverExtras";
+import { DriverSafety } from "@/components/DriverSafety";
 import { DriverMore } from "@/components/DriverMore";
 import { Sheet } from "@/components/DriverSheet";
 import { LanguageToggle } from "@/components/LanguageToggle";
@@ -156,6 +157,7 @@ export default function DriverPage() {
           navigate: () => { const st = routes[0]?.stops[nextStopIndex(routes[0].stops)]; if (st) window.open(navigationLinks(st.lat, st.lng).google, "_blank", "noopener"); },
         }}
       />
+      <DriverSafety />
       <p className="meta">{t("installHint")}</p>
 
       {sheet?.kind === "complete" && (
