@@ -1,0 +1,2562 @@
+[
+ {
+  "group": "Look and feel",
+  "section": "Pick a visual style",
+  "key": "style",
+  "n": 1,
+  "text": "Clean minimal (Linear / Stripe style). Lots of white space, thin lines, one accent color. Best for a trusted, pro feel.",
+  "id": "style.1"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Pick a visual style",
+  "key": "style",
+  "n": 2,
+  "text": "Bento grid. Dashboard cards of different sizes, like a lunchbox. Very popular now.",
+  "id": "style.2"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Pick a visual style",
+  "key": "style",
+  "n": 3,
+  "text": "Glassmorphism, used lightly. Soft blurred panels over a map. Do not overuse it.",
+  "id": "style.3"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Pick a visual style",
+  "key": "style",
+  "n": 4,
+  "text": "Dark-first \"command center\" look. Dark map, glowing routes. Feels like mission control.",
+  "id": "style.4"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Pick a visual style",
+  "key": "style",
+  "n": 5,
+  "text": "Soft neumorphic cards. Gentle shadows. Only for small widgets, since it can hurt",
+  "id": "style.5"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Pick a visual style",
+  "key": "style",
+  "n": 6,
+  "text": "Map-first layout. The map fills the screen, and panels float on top.",
+  "id": "style.6"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Design system basics",
+  "key": "ds",
+  "n": 1,
+  "text": "Design tokens for color, spacing, radius, shadow, and type",
+  "id": "ds.1"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Design system basics",
+  "key": "ds",
+  "n": 2,
+  "text": "One accent color plus a neutral gray scale",
+  "id": "ds.2"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Design system basics",
+  "key": "ds",
+  "n": 3,
+  "text": "A semantic color set: success, warning, danger, info",
+  "id": "ds.3"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Design system basics",
+  "key": "ds",
+  "n": 4,
+  "text": "8-point spacing grid",
+  "id": "ds.4"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Design system basics",
+  "key": "ds",
+  "n": 5,
+  "text": "Modern font pair, such as Inter for UI and a display font for headings",
+  "id": "ds.5"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Design system basics",
+  "key": "ds",
+  "n": 6,
+  "text": "Type scale with clear sizes for title, heading, body, caption",
+  "id": "ds.6"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Design system basics",
+  "key": "ds",
+  "n": 7,
+  "text": "Icon set in one style (Lucide or Phosphor)",
+  "id": "ds.7"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Design system basics",
+  "key": "ds",
+  "n": 8,
+  "text": "Reusable component library (buttons, inputs, tables, modals, tabs, chips)",
+  "id": "ds.8"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Design system basics",
+  "key": "ds",
+  "n": 9,
+  "text": "A living style guide page (Storybook) so the team stays consistent",
+  "id": "ds.9"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Design system basics",
+  "key": "ds",
+  "n": 10,
+  "text": "Consistent corner radius across the app",
+  "id": "ds.10"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Themes and color",
+  "key": "theme",
+  "n": 1,
+  "text": "Light mode",
+  "id": "theme.1"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Themes and color",
+  "key": "theme",
+  "n": 2,
+  "text": "Dark mode",
+  "id": "theme.2"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Themes and color",
+  "key": "theme",
+  "n": 3,
+  "text": "Auto mode that follows the device",
+  "id": "theme.3"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Themes and color",
+  "key": "theme",
+  "n": 4,
+  "text": "High-contrast mode for accessibility",
+  "id": "theme.4"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Themes and color",
+  "key": "theme",
+  "n": 5,
+  "text": "Custom brand colors per company (white label)",
+  "id": "theme.5"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Themes and color",
+  "key": "theme",
+  "n": 6,
+  "text": "Color-blind-safe chart palettes",
+  "id": "theme.6"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Themes and color",
+  "key": "theme",
+  "n": 7,
+  "text": "Route colors that are easy to tell apart on a map",
+  "id": "theme.7"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Motion and feel",
+  "key": "motion",
+  "n": 1,
+  "text": "Skeleton loaders instead of spinners",
+  "id": "motion.1"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Motion and feel",
+  "key": "motion",
+  "n": 2,
+  "text": "Smooth page and panel transitions",
+  "id": "motion.2"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Motion and feel",
+  "key": "motion",
+  "n": 3,
+  "text": "Animated route lines that draw themselves",
+  "id": "motion.3"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Motion and feel",
+  "key": "motion",
+  "n": 4,
+  "text": "Moving vehicle markers that glide, not jump",
+  "id": "motion.4"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Motion and feel",
+  "key": "motion",
+  "n": 5,
+  "text": "Number count-up animation on KPI cards",
+  "id": "motion.5"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Motion and feel",
+  "key": "motion",
+  "n": 6,
+  "text": "Micro-interactions on buttons and toggles",
+  "id": "motion.6"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Motion and feel",
+  "key": "motion",
+  "n": 7,
+  "text": "Success animations (a small check mark or confetti)",
+  "id": "motion.7"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Motion and feel",
+  "key": "motion",
+  "n": 8,
+  "text": "Pull-to-refresh on mobile",
+  "id": "motion.8"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Motion and feel",
+  "key": "motion",
+  "n": 9,
+  "text": "Drag-and-drop with smooth feedback",
+  "id": "motion.9"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Motion and feel",
+  "key": "motion",
+  "n": 10,
+  "text": "Reduced-motion option for people who need it",
+  "id": "motion.10"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Layout and navigation",
+  "key": "nav",
+  "n": 1,
+  "text": "Collapsible side navigation with icons",
+  "id": "nav.1"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Layout and navigation",
+  "key": "nav",
+  "n": 2,
+  "text": "Command palette (Cmd/Ctrl + K) to jump anywhere",
+  "id": "nav.2"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Layout and navigation",
+  "key": "nav",
+  "n": 3,
+  "text": "Global search across routes, drivers, vehicles, and customers",
+  "id": "nav.3"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Layout and navigation",
+  "key": "nav",
+  "n": 4,
+  "text": "Breadcrumbs",
+  "id": "nav.4"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Layout and navigation",
+  "key": "nav",
+  "n": 5,
+  "text": "Split view: list on the left, map on the right",
+  "id": "nav.5"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Layout and navigation",
+  "key": "nav",
+  "n": 6,
+  "text": "Resizable panels",
+  "id": "nav.6"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Layout and navigation",
+  "key": "nav",
+  "n": 7,
+  "text": "Pinned and favorite items",
+  "id": "nav.7"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Layout and navigation",
+  "key": "nav",
+  "n": 8,
+  "text": "Keyboard shortcuts with a cheat sheet",
+  "id": "nav.8"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Layout and navigation",
+  "key": "nav",
+  "n": 9,
+  "text": "Saved views and custom tabs",
+  "id": "nav.9"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Layout and navigation",
+  "key": "nav",
+  "n": 10,
+  "text": "Customizable home dashboard with drag-and-drop widgets",
+  "id": "nav.10"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Polish that people notice",
+  "key": "polish",
+  "n": 1,
+  "text": "Friendly empty states with a clear next step",
+  "id": "polish.1"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Polish that people notice",
+  "key": "polish",
+  "n": 2,
+  "text": "Helpful error messages in plain words",
+  "id": "polish.2"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Polish that people notice",
+  "key": "polish",
+  "n": 3,
+  "text": "Undo for deletes and edits",
+  "id": "polish.3"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Polish that people notice",
+  "key": "polish",
+  "n": 4,
+  "text": "Inline editing in tables",
+  "id": "polish.4"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Polish that people notice",
+  "key": "polish",
+  "n": 5,
+  "text": "Smart tables: sort, filter, group, pin columns, resize columns",
+  "id": "polish.5"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Polish that people notice",
+  "key": "polish",
+  "n": 6,
+  "text": "Sticky headers and virtual scrolling for big lists",
+  "id": "polish.6"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Polish that people notice",
+  "key": "polish",
+  "n": 7,
+  "text": "Responsive layout for phone, tablet, and desktop",
+  "id": "polish.7"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Polish that people notice",
+  "key": "polish",
+  "n": 8,
+  "text": "Accessibility: keyboard use, screen reader labels, WCAG AA contrast",
+  "id": "polish.8"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Polish that people notice",
+  "key": "polish",
+  "n": 9,
+  "text": "Multi-language and right-to-left support",
+  "id": "polish.9"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Polish that people notice",
+  "key": "polish",
+  "n": 10,
+  "text": "Guided product tour and a setup checklist for new users",
+  "id": "polish.10"
+ },
+ {
+  "group": "Look and feel",
+  "section": "Polish that people notice",
+  "key": "polish",
+  "n": 11,
+  "text": "Tooltips and \"what's new\" announcements",
+  "id": "polish.11"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 1,
+  "text": "Multi-stop route builder with drag-and-drop stop order",
+  "id": "route.1"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 2,
+  "text": "One-click route optimization (shortest time or shortest distance)",
+  "id": "route.2"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 3,
+  "text": "Time windows per stop (\"deliver between 2 and 4 pm\")",
+  "id": "route.3"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 4,
+  "text": "Vehicle limits: weight, volume, number of items",
+  "id": "route.4"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 5,
+  "text": "Driver shift limits and mandatory break rules",
+  "id": "route.5"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 6,
+  "text": "Traffic-aware ETAs, live and predicted",
+  "id": "route.6"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 7,
+  "text": "Avoid options: tolls, highways, ferries, unpaved roads",
+  "id": "route.7"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 8,
+  "text": "Truck and heavy-vehicle routing (height, weight, hazmat limits)",
+  "id": "route.8"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 9,
+  "text": "Electric vehicle routing with charging stops",
+  "id": "route.9"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 10,
+  "text": "Route templates for repeat jobs",
+  "id": "route.10"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 11,
+  "text": "Recurring routes (daily, weekly, custom)",
+  "id": "route.11"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 12,
+  "text": "Bulk import of stops from CSV or Excel",
+  "id": "route.12"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 13,
+  "text": "Address auto-complete and geocoding with fix suggestions",
+  "id": "route.13"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 14,
+  "text": "Scenario compare: \"Plan A vs Plan B\" with cost and time side by side",
+  "id": "route.14"
+ },
+ {
+  "group": "Core features",
+  "section": "Route planning",
+  "key": "route",
+  "n": 15,
+  "text": "What-if mode: add a stop and see the effect before saving",
+  "id": "route.15"
+ },
+ {
+  "group": "Core features",
+  "section": "Dispatch and jobs",
+  "key": "dispatch",
+  "n": 1,
+  "text": "Drag-and-drop dispatch board (like a calendar for drivers)",
+  "id": "dispatch.1"
+ },
+ {
+  "group": "Core features",
+  "section": "Dispatch and jobs",
+  "key": "dispatch",
+  "n": 2,
+  "text": "Auto-assign jobs to the best driver",
+  "id": "dispatch.2"
+ },
+ {
+  "group": "Core features",
+  "section": "Dispatch and jobs",
+  "key": "dispatch",
+  "n": 3,
+  "text": "Job types: pickup, delivery, service call, inspection",
+  "id": "dispatch.3"
+ },
+ {
+  "group": "Core features",
+  "section": "Dispatch and jobs",
+  "key": "dispatch",
+  "n": 4,
+  "text": "Priority levels and urgent job insertion",
+  "id": "dispatch.4"
+ },
+ {
+  "group": "Core features",
+  "section": "Dispatch and jobs",
+  "key": "dispatch",
+  "n": 5,
+  "text": "Reassign jobs live when plans change",
+  "id": "dispatch.5"
+ },
+ {
+  "group": "Core features",
+  "section": "Dispatch and jobs",
+  "key": "dispatch",
+  "n": 6,
+  "text": "Job status flow: assigned, started, arrived, done, failed",
+  "id": "dispatch.6"
+ },
+ {
+  "group": "Core features",
+  "section": "Dispatch and jobs",
+  "key": "dispatch",
+  "n": 7,
+  "text": "Proof of delivery: photo, signature, barcode scan",
+  "id": "dispatch.7"
+ },
+ {
+  "group": "Core features",
+  "section": "Dispatch and jobs",
+  "key": "dispatch",
+  "n": 8,
+  "text": "Notes, tags, and attachments on every job",
+  "id": "dispatch.8"
+ },
+ {
+  "group": "Core features",
+  "section": "Dispatch and jobs",
+  "key": "dispatch",
+  "n": 9,
+  "text": "Cancel and reschedule with reason codes",
+  "id": "dispatch.9"
+ },
+ {
+  "group": "Core features",
+  "section": "Dispatch and jobs",
+  "key": "dispatch",
+  "n": 10,
+  "text": "Split and merge routes",
+  "id": "dispatch.10"
+ },
+ {
+  "group": "Core features",
+  "section": "Live tracking",
+  "key": "live",
+  "n": 1,
+  "text": "Live map with all vehicles and drivers",
+  "id": "live.1"
+ },
+ {
+  "group": "Core features",
+  "section": "Live tracking",
+  "key": "live",
+  "n": 2,
+  "text": "Breadcrumb trail and trip replay (play back any past day)",
+  "id": "live.2"
+ },
+ {
+  "group": "Core features",
+  "section": "Live tracking",
+  "key": "live",
+  "n": 3,
+  "text": "Geofences with enter and exit alerts",
+  "id": "live.3"
+ },
+ {
+  "group": "Core features",
+  "section": "Live tracking",
+  "key": "live",
+  "n": 4,
+  "text": "Live ETA updates as traffic changes",
+  "id": "live.4"
+ },
+ {
+  "group": "Core features",
+  "section": "Live tracking",
+  "key": "live",
+  "n": 5,
+  "text": "Status colors on markers (moving, idle, stopped, offline)",
+  "id": "live.5"
+ },
+ {
+  "group": "Core features",
+  "section": "Live tracking",
+  "key": "live",
+  "n": 6,
+  "text": "Cluster markers when zoomed out",
+  "id": "live.6"
+ },
+ {
+  "group": "Core features",
+  "section": "Live tracking",
+  "key": "live",
+  "n": 7,
+  "text": "Heat layers: stops, delays, speeding",
+  "id": "live.7"
+ },
+ {
+  "group": "Core features",
+  "section": "Live tracking",
+  "key": "live",
+  "n": 8,
+  "text": "Street view and satellite toggle",
+  "id": "live.8"
+ },
+ {
+  "group": "Core features",
+  "section": "Live tracking",
+  "key": "live",
+  "n": 9,
+  "text": "Weather layer along the route",
+  "id": "live.9"
+ },
+ {
+  "group": "Core features",
+  "section": "Live tracking",
+  "key": "live",
+  "n": 10,
+  "text": "Share a live tracking link with anyone",
+  "id": "live.10"
+ },
+ {
+  "group": "Core features",
+  "section": "Fleet and assets",
+  "key": "fleet",
+  "n": 1,
+  "text": "Vehicle profiles with photos, plate, VIN, capacity",
+  "id": "fleet.1"
+ },
+ {
+  "group": "Core features",
+  "section": "Fleet and assets",
+  "key": "fleet",
+  "n": 2,
+  "text": "Driver profiles with license, training, and documents",
+  "id": "fleet.2"
+ },
+ {
+  "group": "Core features",
+  "section": "Fleet and assets",
+  "key": "fleet",
+  "n": 3,
+  "text": "Document expiry reminders (license, insurance, inspection)",
+  "id": "fleet.3"
+ },
+ {
+  "group": "Core features",
+  "section": "Fleet and assets",
+  "key": "fleet",
+  "n": 4,
+  "text": "Maintenance schedule by date or by kilometers",
+  "id": "fleet.4"
+ },
+ {
+  "group": "Core features",
+  "section": "Fleet and assets",
+  "key": "fleet",
+  "n": 5,
+  "text": "Fuel logs and fuel card import",
+  "id": "fleet.5"
+ },
+ {
+  "group": "Core features",
+  "section": "Fleet and assets",
+  "key": "fleet",
+  "n": 6,
+  "text": "Trailer and equipment tracking",
+  "id": "fleet.6"
+ },
+ {
+  "group": "Core features",
+  "section": "Fleet and assets",
+  "key": "fleet",
+  "n": 7,
+  "text": "Vehicle check-in and check-out with a digital inspection checklist",
+  "id": "fleet.7"
+ },
+ {
+  "group": "Core features",
+  "section": "Fleet and assets",
+  "key": "fleet",
+  "n": 8,
+  "text": "Accident and incident reports with photos",
+  "id": "fleet.8"
+ },
+ {
+  "group": "Core features",
+  "section": "Fleet and assets",
+  "key": "fleet",
+  "n": 9,
+  "text": "Parking and depot management",
+  "id": "fleet.9"
+ },
+ {
+  "group": "Core features",
+  "section": "Fleet and assets",
+  "key": "fleet",
+  "n": 10,
+  "text": "Trip logs for tax and mileage claims",
+  "id": "fleet.10"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 1,
+  "text": "Executive dashboard: cost, on-time rate, utilization, customer score",
+  "id": "dash.1"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 2,
+  "text": "Operations dashboard: live jobs, late jobs, idle vehicles",
+  "id": "dash.2"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 3,
+  "text": "Driver dashboard: personal score, trips, safety, earnings",
+  "id": "dash.3"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 4,
+  "text": "Customer dashboard: shipments, delays, delivery history",
+  "id": "dash.4"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 5,
+  "text": "Finance dashboard: cost per route, per stop, per kilometer, per vehicle",
+  "id": "dash.5"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 6,
+  "text": "Safety dashboard: speeding, harsh braking, incidents",
+  "id": "dash.6"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 7,
+  "text": "Sustainability dashboard: fuel used, CO2, savings from better routes",
+  "id": "dash.7"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 8,
+  "text": "Custom dashboard builder with drag-and-drop widgets",
+  "id": "dash.8"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 9,
+  "text": "Dashboard templates by role",
+  "id": "dash.9"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 10,
+  "text": "TV wall mode for the dispatch office (auto-refresh, big numbers)",
+  "id": "dash.10"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 11,
+  "text": "Dashboard filters that apply to every widget (date, region, team)",
+  "id": "dash.11"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Dashboards",
+  "key": "dash",
+  "n": 12,
+  "text": "Compare periods: this week vs last week, this month vs last year",
+  "id": "dash.12"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 1,
+  "text": "On-time delivery rate",
+  "id": "kpi.1"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 2,
+  "text": "First-attempt success rate",
+  "id": "kpi.2"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 3,
+  "text": "Average delay and worst delay",
+  "id": "kpi.3"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 4,
+  "text": "Cost per stop, per kilometer, per hour",
+  "id": "kpi.4"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 5,
+  "text": "Fleet utilization (how full and how busy)",
+  "id": "kpi.5"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 6,
+  "text": "Idle time and engine-on time",
+  "id": "kpi.6"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 7,
+  "text": "Planned vs actual distance and time",
+  "id": "kpi.7"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 8,
+  "text": "Stops per hour",
+  "id": "kpi.8"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 9,
+  "text": "Fuel economy per vehicle and per driver",
+  "id": "kpi.9"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 10,
+  "text": "Customer satisfaction score and NPS",
+  "id": "kpi.10"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 11,
+  "text": "Missed time windows",
+  "id": "kpi.11"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 12,
+  "text": "Failed delivery reasons",
+  "id": "kpi.12"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 13,
+  "text": "Route adherence (did the driver follow the plan?)",
+  "id": "kpi.13"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 14,
+  "text": "Vehicle downtime and repair cost",
+  "id": "kpi.14"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Key numbers (KPIs) to track",
+  "key": "kpi",
+  "n": 15,
+  "text": "Driver overtime",
+  "id": "kpi.15"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 1,
+  "text": "Daily operations summary",
+  "id": "report.1"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 2,
+  "text": "Weekly and monthly performance report",
+  "id": "report.2"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 3,
+  "text": "Driver scorecard",
+  "id": "report.3"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 4,
+  "text": "Vehicle health and cost report",
+  "id": "report.4"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 5,
+  "text": "Route efficiency report (plan vs actual)",
+  "id": "report.5"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 6,
+  "text": "Customer service report",
+  "id": "report.6"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 7,
+  "text": "Exceptions report: late, failed, skipped, off-route",
+  "id": "report.7"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 8,
+  "text": "Mileage and tax report",
+  "id": "report.8"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 9,
+  "text": "Fuel and emissions report",
+  "id": "report.9"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 10,
+  "text": "Geofence visit report (who was where, and for how long)",
+  "id": "report.10"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 11,
+  "text": "Idle and stop-time report",
+  "id": "report.11"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 12,
+  "text": "Compliance report: hours of service, inspections, documents",
+  "id": "report.12"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 13,
+  "text": "Invoice and billing report",
+  "id": "report.13"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 14,
+  "text": "Audit log report (who changed what, and when)",
+  "id": "report.14"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report types",
+  "key": "report",
+  "n": 15,
+  "text": "Executive summary in one page",
+  "id": "report.15"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 1,
+  "text": "Build your own report: pick columns, filters, grouping, and sorting",
+  "id": "builder.1"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 2,
+  "text": "Save and share report templates",
+  "id": "builder.2"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 3,
+  "text": "Drill down from a chart to the table to the single trip",
+  "id": "builder.3"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 4,
+  "text": "Pivot tables",
+  "id": "builder.4"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 5,
+  "text": "Calculated fields (for example: cost divided by stops)",
+  "id": "builder.5"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 6,
+  "text": "Charts: line, bar, stacked, pie, heat map, funnel, map, scatter",
+  "id": "builder.6"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 7,
+  "text": "Map reports: heat maps and territory views",
+  "id": "builder.7"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 8,
+  "text": "Scheduled reports by email, Slack, or Teams (daily, weekly, monthly)",
+  "id": "builder.8"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 9,
+  "text": "Export to PDF, Excel, CSV, and Google Sheets",
+  "id": "builder.9"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 10,
+  "text": "Branded PDF reports with the customer's logo",
+  "id": "builder.10"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 11,
+  "text": "Public share links with expiry dates",
+  "id": "builder.11"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 12,
+  "text": "Embed charts into other tools",
+  "id": "builder.12"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 13,
+  "text": "Row-level permissions so people only see their own data",
+  "id": "builder.13"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Report builder",
+  "key": "builder",
+  "n": 14,
+  "text": "Report history: see old versions",
+  "id": "builder.14"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Alerts and insights",
+  "key": "alerts",
+  "n": 1,
+  "text": "Smart alerts: late risk, off-route, long idle, geofence, speeding",
+  "id": "alerts.1"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Alerts and insights",
+  "key": "alerts",
+  "n": 2,
+  "text": "Alert rules builder with \"if this, then that\"",
+  "id": "alerts.2"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Alerts and insights",
+  "key": "alerts",
+  "n": 3,
+  "text": "Alert delivery: push, SMS, email, Slack, Teams",
+  "id": "alerts.3"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Alerts and insights",
+  "key": "alerts",
+  "n": 4,
+  "text": "Quiet hours and alert grouping so people are not spammed",
+  "id": "alerts.4"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Alerts and insights",
+  "key": "alerts",
+  "n": 5,
+  "text": "Daily digest of what matters",
+  "id": "alerts.5"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Alerts and insights",
+  "key": "alerts",
+  "n": 6,
+  "text": "Anomaly detection: \"this route cost 30% more than usual\"",
+  "id": "alerts.6"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Alerts and insights",
+  "key": "alerts",
+  "n": 7,
+  "text": "Plain-language insight cards (\"Route 12 is late 4 days out of 5\")",
+  "id": "alerts.7"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Alerts and insights",
+  "key": "alerts",
+  "n": 8,
+  "text": "Goal tracking with targets and progress bars",
+  "id": "alerts.8"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Alerts and insights",
+  "key": "alerts",
+  "n": 9,
+  "text": "Benchmarks: compare drivers, depots, and regions",
+  "id": "alerts.9"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Alerts and insights",
+  "key": "alerts",
+  "n": 10,
+  "text": "Forecasts: expected volume, cost, and workload next week",
+  "id": "alerts.10"
+ },
+ {
+  "group": "Reporting and analytics",
+  "section": "Alerts and insights",
+  "key": "alerts",
+  "n": 11,
+  "text": "Ask-a-question box: type \"which driver had the most delays last month?\" and get a chart",
+  "id": "alerts.11"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 1,
+  "text": "Chat assistant: \"Move all of Sam's stops to Alex and tell the customers\"",
+  "id": "ai.1"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 2,
+  "text": "Plain-language report builder: describe a report and it builds it",
+  "id": "ai.2"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 3,
+  "text": "Daily briefing: \"Here is what needs your attention today\"",
+  "id": "ai.3"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 4,
+  "text": "Auto-explain delays: \"Route 7 was late because of a crash on Highway 401\"",
+  "id": "ai.4"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 5,
+  "text": "Predict late deliveries before they happen",
+  "id": "ai.5"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 6,
+  "text": "Predict vehicle breakdowns from trip and fuel patterns",
+  "id": "ai.6"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 7,
+  "text": "Suggest the best driver for each job (skills, location, past results)",
+  "id": "ai.7"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 8,
+  "text": "Learn real stop times per customer instead of using one fixed number",
+  "id": "ai.8"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 9,
+  "text": "Learn real driving speeds per driver, road, and time of day",
+  "id": "ai.9"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 10,
+  "text": "Demand forecast to plan how many drivers you need next week",
+  "id": "ai.10"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 11,
+  "text": "Smart address fixing (reads messy addresses and finds the right spot)",
+  "id": "ai.11"
+ },
+ {
+  "group": "Smart features",
+  "section": "AI helper",
+  "key": "ai",
+  "n": 12,
+  "text": "Read photos: scan a delivery note or receipt and fill in the job",
+  "id": "ai.12"
+ },
+ {
+  "group": "Smart features",
+  "section": "Automation",
+  "key": "auto",
+  "n": 1,
+  "text": "No-code workflow builder: triggers, conditions, actions",
+  "id": "auto.1"
+ },
+ {
+  "group": "Smart features",
+  "section": "Automation",
+  "key": "auto",
+  "n": 2,
+  "text": "Auto-send \"your driver is 10 minutes away\" messages",
+  "id": "auto.2"
+ },
+ {
+  "group": "Smart features",
+  "section": "Automation",
+  "key": "auto",
+  "n": 3,
+  "text": "Auto-replan routes when traffic, a crash, or a cancellation happens",
+  "id": "auto.3"
+ },
+ {
+  "group": "Smart features",
+  "section": "Automation",
+  "key": "auto",
+  "n": 4,
+  "text": "Auto-create invoices when a job is marked done",
+  "id": "auto.4"
+ },
+ {
+  "group": "Smart features",
+  "section": "Automation",
+  "key": "auto",
+  "n": 5,
+  "text": "Auto-assign new orders from email, forms, or a store",
+  "id": "auto.5"
+ },
+ {
+  "group": "Smart features",
+  "section": "Automation",
+  "key": "auto",
+  "n": 6,
+  "text": "Auto-flag drivers who need a break",
+  "id": "auto.6"
+ },
+ {
+  "group": "Smart features",
+  "section": "Automation",
+  "key": "auto",
+  "n": 7,
+  "text": "Auto-escalate a job if nobody picks it up in 15 minutes",
+  "id": "auto.7"
+ },
+ {
+  "group": "Smart features",
+  "section": "Automation",
+  "key": "auto",
+  "n": 8,
+  "text": "Recurring task scheduler",
+  "id": "auto.8"
+ },
+ {
+  "group": "Smart features",
+  "section": "Automation",
+  "key": "auto",
+  "n": 9,
+  "text": "Approval flows (for example: overtime needs manager approval)",
+  "id": "auto.9"
+ },
+ {
+  "group": "Smart features",
+  "section": "Automation",
+  "key": "auto",
+  "n": 10,
+  "text": "Webhooks that fire on any event",
+  "id": "auto.10"
+ },
+ {
+  "group": "Smart features",
+  "section": "Optimization extras",
+  "key": "opt",
+  "n": 1,
+  "text": "Multi-depot planning",
+  "id": "opt.1"
+ },
+ {
+  "group": "Smart features",
+  "section": "Optimization extras",
+  "key": "opt",
+  "n": 2,
+  "text": "Territory design: split the map fairly among drivers",
+  "id": "opt.2"
+ },
+ {
+  "group": "Smart features",
+  "section": "Optimization extras",
+  "key": "opt",
+  "n": 3,
+  "text": "Balanced workloads so one driver is not overloaded",
+  "id": "opt.3"
+ },
+ {
+  "group": "Smart features",
+  "section": "Optimization extras",
+  "key": "opt",
+  "n": 4,
+  "text": "Cost-based optimization: fuel, wages, tolls, vehicle wear",
+  "id": "opt.4"
+ },
+ {
+  "group": "Smart features",
+  "section": "Optimization extras",
+  "key": "opt",
+  "n": 5,
+  "text": "Green routing: lowest CO2 option",
+  "id": "opt.5"
+ },
+ {
+  "group": "Smart features",
+  "section": "Optimization extras",
+  "key": "opt",
+  "n": 6,
+  "text": "Backhaul and return-load matching",
+  "id": "opt.6"
+ },
+ {
+  "group": "Smart features",
+  "section": "Optimization extras",
+  "key": "opt",
+  "n": 7,
+  "text": "Carpool and shared-ride grouping",
+  "id": "opt.7"
+ },
+ {
+  "group": "Smart features",
+  "section": "Optimization extras",
+  "key": "opt",
+  "n": 8,
+  "text": "Pickup-and-delivery pairing with order rules",
+  "id": "opt.8"
+ },
+ {
+  "group": "Smart features",
+  "section": "Optimization extras",
+  "key": "opt",
+  "n": 9,
+  "text": "Simulation mode: test a new depot, vehicle, or schedule before you spend money",
+  "id": "opt.9"
+ },
+ {
+  "group": "Smart features",
+  "section": "Optimization extras",
+  "key": "opt",
+  "n": 10,
+  "text": "Driver preference and skill matching",
+  "id": "opt.10"
+ },
+ {
+  "group": "Smart features",
+  "section": "Safety and driver coaching",
+  "key": "safety",
+  "n": 1,
+  "text": "Driver safety score from speed, braking, phone use, and cornering",
+  "id": "safety.1"
+ },
+ {
+  "group": "Smart features",
+  "section": "Safety and driver coaching",
+  "key": "safety",
+  "n": 2,
+  "text": "In-app coaching tips after each trip",
+  "id": "safety.2"
+ },
+ {
+  "group": "Smart features",
+  "section": "Safety and driver coaching",
+  "key": "safety",
+  "n": 3,
+  "text": "Leaderboards and badges (kept fair and optional)",
+  "id": "safety.3"
+ },
+ {
+  "group": "Smart features",
+  "section": "Safety and driver coaching",
+  "key": "safety",
+  "n": 4,
+  "text": "Rewards and bonus tracking",
+  "id": "safety.4"
+ },
+ {
+  "group": "Smart features",
+  "section": "Safety and driver coaching",
+  "key": "safety",
+  "n": 5,
+  "text": "Fatigue warning based on hours driven",
+  "id": "safety.5"
+ },
+ {
+  "group": "Smart features",
+  "section": "Safety and driver coaching",
+  "key": "safety",
+  "n": 6,
+  "text": "SOS and panic button",
+  "id": "safety.6"
+ },
+ {
+  "group": "Smart features",
+  "section": "Safety and driver coaching",
+  "key": "safety",
+  "n": 7,
+  "text": "Crash detection with auto-alert to the manager",
+  "id": "safety.7"
+ },
+ {
+  "group": "Smart features",
+  "section": "Safety and driver coaching",
+  "key": "safety",
+  "n": 8,
+  "text": "Dash cam clips linked to events",
+  "id": "safety.8"
+ },
+ {
+  "group": "Smart features",
+  "section": "Safety and driver coaching",
+  "key": "safety",
+  "n": 9,
+  "text": "Lone-worker check-ins for field staff",
+  "id": "safety.9"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 1,
+  "text": "Installable app (PWA) or native iOS and Android",
+  "id": "driver.1"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 2,
+  "text": "Works offline and syncs when signal returns",
+  "id": "driver.2"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 3,
+  "text": "Big buttons and a simple \"next stop\" screen",
+  "id": "driver.3"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 4,
+  "text": "Built-in turn-by-turn navigation, or one-tap open in Google Maps, Waze, or Apple Maps",
+  "id": "driver.4"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 5,
+  "text": "Voice commands and voice notes",
+  "id": "driver.5"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 6,
+  "text": "Dark mode for night driving",
+  "id": "driver.6"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 7,
+  "text": "Driver-friendly mode that locks the screen while the vehicle moves",
+  "id": "driver.7"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 8,
+  "text": "Barcode and QR scanner",
+  "id": "driver.8"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 9,
+  "text": "Photo capture with auto timestamp and location",
+  "id": "driver.9"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 10,
+  "text": "Signature capture",
+  "id": "driver.10"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 11,
+  "text": "In-app chat between driver and dispatcher",
+  "id": "driver.11"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 12,
+  "text": "Pre-written quick replies (\"Running 10 minutes late\")",
+  "id": "driver.12"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 13,
+  "text": "Push notifications for new or changed jobs",
+  "id": "driver.13"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 14,
+  "text": "Digital timesheet and automatic shift start and stop",
+  "id": "driver.14"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 15,
+  "text": "Break and lunch timer",
+  "id": "driver.15"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 16,
+  "text": "Daily vehicle inspection checklist",
+  "id": "driver.16"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 17,
+  "text": "Expense capture: fuel receipts, parking, tolls",
+  "id": "driver.17"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 18,
+  "text": "Earnings and trip summary for the driver",
+  "id": "driver.18"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 19,
+  "text": "Battery-saver tracking mode",
+  "id": "driver.19"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 20,
+  "text": "Multi-language driver app",
+  "id": "driver.20"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 21,
+  "text": "Biometric sign-in (face or fingerprint)",
+  "id": "driver.21"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 22,
+  "text": "Wearable and car-screen support (Apple Watch, CarPlay, Android Auto)",
+  "id": "driver.22"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 23,
+  "text": "Ability to mark a stop as failed with a reason and photo",
+  "id": "driver.23"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 24,
+  "text": "Request help from the app (flat tire, wrong address, customer not home)",
+  "id": "driver.24"
+ },
+ {
+  "group": "Mobile and driver app",
+  "section": "Mobile, offline, and driver app",
+  "key": "driver",
+  "n": 25,
+  "text": "Learning tips and short training videos inside the app",
+  "id": "driver.25"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 1,
+  "text": "Branded live tracking page (like Uber or Domino's)",
+  "id": "cust.1"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 2,
+  "text": "Delivery time window picker for the customer",
+  "id": "cust.2"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 3,
+  "text": "SMS, email, and WhatsApp updates at every step",
+  "id": "cust.3"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 4,
+  "text": "\"Driver is 5 stops away\" notice",
+  "id": "cust.4"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 5,
+  "text": "Reschedule or cancel from the tracking link",
+  "id": "cust.5"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 6,
+  "text": "Leave delivery instructions (gate code, leave at door)",
+  "id": "cust.6"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 7,
+  "text": "Driver name, photo, and vehicle shown for trust",
+  "id": "cust.7"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 8,
+  "text": "Chat or call the driver through a masked number",
+  "id": "cust.8"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 9,
+  "text": "Proof of delivery link with photo and signature",
+  "id": "cust.9"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 10,
+  "text": "Rating and feedback after each delivery",
+  "id": "cust.10"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 11,
+  "text": "Customer portal with order history and invoices",
+  "id": "cust.11"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 12,
+  "text": "Self-service booking and quote form",
+  "id": "cust.12"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 13,
+  "text": "Public status page for your own service health",
+  "id": "cust.13"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 14,
+  "text": "Notification preferences per customer",
+  "id": "cust.14"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 15,
+  "text": "Branded emails and SMS with your logo and colors",
+  "id": "cust.15"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 16,
+  "text": "Delivery photo gallery",
+  "id": "cust.16"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 17,
+  "text": "FAQ and help center, with in-app support chat",
+  "id": "cust.17"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 18,
+  "text": "Loyalty and referral features",
+  "id": "cust.18"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 19,
+  "text": "Return and pickup scheduling",
+  "id": "cust.19"
+ },
+ {
+  "group": "Customer-facing features",
+  "section": "Customer-facing features",
+  "key": "cust",
+  "n": 20,
+  "text": "Multi-language tracking pages",
+  "id": "cust.20"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 1,
+  "text": "Public REST API with clear docs and API keys",
+  "id": "integ.1"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 2,
+  "text": "Webhooks for every event",
+  "id": "integ.2"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 3,
+  "text": "Zapier and Make connectors",
+  "id": "integ.3"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 4,
+  "text": "Google Maps, Mapbox, and HERE map providers (switchable)",
+  "id": "integ.4"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 5,
+  "text": "Accounting: QuickBooks, Xero, Sage",
+  "id": "integ.5"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 6,
+  "text": "CRM: Salesforce, HubSpot, Zoho",
+  "id": "integ.6"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 7,
+  "text": "E-commerce: Shopify, WooCommerce, Amazon, Etsy",
+  "id": "integ.7"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 8,
+  "text": "ERP and warehouse: SAP, NetSuite, Odoo",
+  "id": "integ.8"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 9,
+  "text": "Telematics and GPS devices: Geotab, Samsara, OBD trackers",
+  "id": "integ.9"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 10,
+  "text": "Fuel cards and toll tags",
+  "id": "integ.10"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 11,
+  "text": "Messaging: Twilio, WhatsApp Business, SendGrid",
+  "id": "integ.11"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 12,
+  "text": "Team chat: Slack and Microsoft Teams",
+  "id": "integ.12"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 13,
+  "text": "Calendar sync: Google and Outlook",
+  "id": "integ.13"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 14,
+  "text": "Payment: Stripe and PayPal",
+  "id": "integ.14"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 15,
+  "text": "Email-to-job: forward an email and it becomes a job",
+  "id": "integ.15"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 16,
+  "text": "Google Sheets and Excel live sync",
+  "id": "integ.16"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 17,
+  "text": "BI tools: Power BI, Tableau, Looker Studio, Metabase",
+  "id": "integ.17"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 18,
+  "text": "Data warehouse export: BigQuery, Snowflake, S3",
+  "id": "integ.18"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 19,
+  "text": "Single sign-on: Google, Microsoft, Okta",
+  "id": "integ.19"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Connect to other tools",
+  "key": "integ",
+  "n": 20,
+  "text": "Weather and traffic data feeds",
+  "id": "integ.20"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Platform ideas",
+  "key": "platform",
+  "n": 1,
+  "text": "App marketplace where partners add plug-ins",
+  "id": "platform.1"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Platform ideas",
+  "key": "platform",
+  "n": 2,
+  "text": "Custom fields on every record",
+  "id": "platform.2"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Platform ideas",
+  "key": "platform",
+  "n": 3,
+  "text": "Custom statuses and workflows",
+  "id": "platform.3"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Platform ideas",
+  "key": "platform",
+  "n": 4,
+  "text": "Embeddable tracking widget for customer websites",
+  "id": "platform.4"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Platform ideas",
+  "key": "platform",
+  "n": 5,
+  "text": "SDK for developers",
+  "id": "platform.5"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Platform ideas",
+  "key": "platform",
+  "n": 6,
+  "text": "Sandbox environment for testing",
+  "id": "platform.6"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Platform ideas",
+  "key": "platform",
+  "n": 7,
+  "text": "Import wizard from competitors' formats",
+  "id": "platform.7"
+ },
+ {
+  "group": "Integrations and open platform",
+  "section": "Platform ideas",
+  "key": "platform",
+  "n": 8,
+  "text": "White-label option for resellers and partners",
+  "id": "platform.8"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Teams and roles",
+  "key": "teams",
+  "n": 1,
+  "text": "Roles: owner, admin, dispatcher, manager, driver, customer, read-only",
+  "id": "teams.1"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Teams and roles",
+  "key": "teams",
+  "n": 2,
+  "text": "Custom roles with fine-grained permissions",
+  "id": "teams.2"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Teams and roles",
+  "key": "teams",
+  "n": 3,
+  "text": "Multiple depots, regions, and teams in one account",
+  "id": "teams.3"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Teams and roles",
+  "key": "teams",
+  "n": 4,
+  "text": "Multi-company (multi-tenant) support with separate data",
+  "id": "teams.4"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Teams and roles",
+  "key": "teams",
+  "n": 5,
+  "text": "Team invites by email or link",
+  "id": "teams.5"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Teams and roles",
+  "key": "teams",
+  "n": 6,
+  "text": "User activity feed",
+  "id": "teams.6"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Teams and roles",
+  "key": "teams",
+  "n": 7,
+  "text": "In-app comments and @mentions on jobs",
+  "id": "teams.7"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Teams and roles",
+  "key": "teams",
+  "n": 8,
+  "text": "Tasks and to-do lists for dispatchers",
+  "id": "teams.8"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Teams and roles",
+  "key": "teams",
+  "n": 9,
+  "text": "Shift schedule and time-off calendar",
+  "id": "teams.9"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Teams and roles",
+  "key": "teams",
+  "n": 10,
+  "text": "Approval requests and sign-off",
+  "id": "teams.10"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Billing and business tools",
+  "key": "billing",
+  "n": 1,
+  "text": "Free trial, plans, and usage-based pricing",
+  "id": "billing.1"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Billing and business tools",
+  "key": "billing",
+  "n": 2,
+  "text": "Self-service billing portal",
+  "id": "billing.2"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Billing and business tools",
+  "key": "billing",
+  "n": 3,
+  "text": "Invoice and quote builder",
+  "id": "billing.3"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Billing and business tools",
+  "key": "billing",
+  "n": 4,
+  "text": "Rate cards by distance, weight, zone, or time",
+  "id": "billing.4"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Billing and business tools",
+  "key": "billing",
+  "n": 5,
+  "text": "Driver pay and payroll export",
+  "id": "billing.5"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Billing and business tools",
+  "key": "billing",
+  "n": 6,
+  "text": "Expense approval",
+  "id": "billing.6"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Billing and business tools",
+  "key": "billing",
+  "n": 7,
+  "text": "Profit per job, per customer, and per route",
+  "id": "billing.7"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Billing and business tools",
+  "key": "billing",
+  "n": 8,
+  "text": "Budget tracking and cost alerts",
+  "id": "billing.8"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Billing and business tools",
+  "key": "billing",
+  "n": 9,
+  "text": "Tax and currency support",
+  "id": "billing.9"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Billing and business tools",
+  "key": "billing",
+  "n": 10,
+  "text": "Contract and SLA tracking",
+  "id": "billing.10"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Security and trust",
+  "key": "security",
+  "n": 1,
+  "text": "Single sign-on (SSO) and two-factor sign-in",
+  "id": "security.1"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Security and trust",
+  "key": "security",
+  "n": 2,
+  "text": "Full audit log of every change",
+  "id": "security.2"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Security and trust",
+  "key": "security",
+  "n": 3,
+  "text": "Data encryption at rest and in transit",
+  "id": "security.3"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Security and trust",
+  "key": "security",
+  "n": 4,
+  "text": "Automatic backups and one-click restore",
+  "id": "security.4"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Security and trust",
+  "key": "security",
+  "n": 5,
+  "text": "IP allow lists and session controls",
+  "id": "security.5"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Security and trust",
+  "key": "security",
+  "n": 6,
+  "text": "Data retention rules and one-click export or delete (privacy laws such as PIPEDA and GDPR)",
+  "id": "security.6"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Security and trust",
+  "key": "security",
+  "n": 7,
+  "text": "Driver privacy controls (tracking only during shifts)",
+  "id": "security.7"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Security and trust",
+  "key": "security",
+  "n": 8,
+  "text": "Uptime status page and incident history",
+  "id": "security.8"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Security and trust",
+  "key": "security",
+  "n": 9,
+  "text": "Security page that lists your practices",
+  "id": "security.9"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Security and trust",
+  "key": "security",
+  "n": 10,
+  "text": "Compliance work plan: SOC 2 and ISO 27001 over time",
+  "id": "security.10"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Quality and support",
+  "key": "quality",
+  "n": 1,
+  "text": "Built-in help center and search",
+  "id": "quality.1"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Quality and support",
+  "key": "quality",
+  "n": 2,
+  "text": "In-app chat with support",
+  "id": "quality.2"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Quality and support",
+  "key": "quality",
+  "n": 3,
+  "text": "Feedback button and public roadmap",
+  "id": "quality.3"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Quality and support",
+  "key": "quality",
+  "n": 4,
+  "text": "Release notes (\"What's new\")",
+  "id": "quality.4"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Quality and support",
+  "key": "quality",
+  "n": 5,
+  "text": "Product analytics to learn what users really click",
+  "id": "quality.5"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Quality and support",
+  "key": "quality",
+  "n": 6,
+  "text": "Feature flags to ship safely and test with a few users first",
+  "id": "quality.6"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Quality and support",
+  "key": "quality",
+  "n": 7,
+  "text": "Sample data and a demo account so new users can explore",
+  "id": "quality.7"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Quality and support",
+  "key": "quality",
+  "n": 8,
+  "text": "Onboarding checklist and guided setup",
+  "id": "quality.8"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Quality and support",
+  "key": "quality",
+  "n": 9,
+  "text": "Data import and migration help",
+  "id": "quality.9"
+ },
+ {
+  "group": "Team, admin, billing, security",
+  "section": "Quality and support",
+  "key": "quality",
+  "n": 10,
+  "text": "Health check page showing sync status and errors",
+  "id": "quality.10"
+ }
+]
