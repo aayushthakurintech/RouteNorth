@@ -2,6 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MessageKey } from "@routenorth/shared";
+import { DriverExtras } from "@/components/DriverExtras";
+import { Sheet } from "@/components/DriverSheet";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad";
 import { navigationLinks, nextStopIndex } from "@/lib/driver-nav";
@@ -143,6 +145,7 @@ export default function DriverPage() {
           </section>
         );
       })}
+      <DriverExtras nextStop={(() => { const r = routes[0]; if (!r) return null; const i = nextStopIndex(r.stops); const st = r.stops[i]; return st ? { id: st.id, name: st.name } : null; })()} />
       <p className="meta">{t("installHint")}</p>
 
       {sheet?.kind === "complete" && (
@@ -210,18 +213,6 @@ function StopCard(props: {
       )}
       {!open && s.proofCount > 0 && <p className="meta">{t("proofs")}: {s.proofCount}</p>}
     </li>
-  );
-}
-
-function Sheet(props: { title: string; t: T; onClose: () => void; children: React.ReactNode }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => { ref.current?.showModal(); }, []);
-  return (
-    <dialog ref={ref} className="sheet" onClose={props.onClose} aria-label={props.title}>
-      <h2>{props.title}</h2>
-      {props.children}
-      <button type="button" className="link" onClick={() => ref.current?.close()}>{props.t("closeSheet")}</button>
-    </dialog>
   );
 }
 

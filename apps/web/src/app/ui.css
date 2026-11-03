@@ -275,3 +275,15 @@ table.dt tr[data-clickable="true"] { cursor: pointer; }
 .linklike { background: none; border: 0; padding: 0; color: var(--fg); text-align: start; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; font: inherit; }
 .linklike:hover { color: var(--brand); text-decoration-color: currentColor; }
 @media (max-width: 800px) { .dispatch { grid-template-columns: 1fr !important; } }
+
+/* public tracking page */
+.track { min-height: 100dvh; display: flex; flex-direction: column; background: var(--bg); color: var(--ink); }
+.track-head { display: flex; align-items: center; gap: 10px; padding: 10px max(16px, env(safe-area-inset-left)); border-bottom: 1px solid var(--line); }
+.track-body { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 360px; min-height: 0; }
+.track-map { position: relative; min-height: 50vh; }
+.track-map .map { position: absolute; inset: 0; }
+.track-card { padding: 16px; overflow: auto; display: flex; flex-direction: column; gap: 10px; border-inline-start: 1px solid var(--line); }
+.track-card h1 { margin: 0; font-size: 20px; }
+.track-eta { font-weight: 600; font-size: 18px; color: var(--brand); margin: 0; }
+.track-note { padding: 32px 16px; text-align: center; }
+@media (max-width: 760px) { .track-body { grid-template-columns: 1fr; grid-template-rows: 50vh auto; } .track-card { border-inline-start: 0; border-top: 1px solid var(--line); } }

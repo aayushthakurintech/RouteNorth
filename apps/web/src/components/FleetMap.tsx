@@ -4,6 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
 import { STATUS_COLORS, type Fleet } from "@/lib/fleet";
 
+import { zoneFeature, type ZoneShape } from "@/components/GeofenceMap";
 import { applyBasemap, baseStyle, streetViewUrl, type Basemap } from "@/lib/basemap";
 import { glideFrame, type Pt } from "@/lib/glide";
 import { useI18n } from "@/lib/i18n-context";
@@ -17,6 +18,10 @@ interface Props {
   selectedId: string | null;
   follow: boolean;
   onSelect: (deviceId: string | null) => void;
+  /** Zones to outline on the map. */
+  zones?: ZoneShape[];
+  /** Heat-map cells: weight says how strong each is. */
+  heat?: { lat: number; lng: number; weight: number }[];
 }
 
 const colorExpr = [
@@ -27,7 +32,7 @@ const colorExpr = [
   STATUS_COLORS.offline,
 ] as maplibregl.ExpressionSpecification;
 
-export function FleetMap({ fleet, selectedId, follow, onSelect }: Props) {
+export function FleetMap({ fleet, selectedId, follow, onSelect, zones, heat }: Props) {
   const { t } = useI18n();
   const { resolved } = useTheme();
   const [basemap, setBasemap] = useState<Basemap>("street");
@@ -36,8 +41,8 @@ export function FleetMap({ fleet, selectedId, follow, onSelect }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
   const ready = useRef(false);
-  const latest = useRef({ fleet, selectedId, follow });
-  latest.current = { fleet, selectedId, follow };
+  const latest = useRef({ fleet, selectedId, follow, zones, heat });
+  latest.current = { fleet, selectedId, follow, zones, heat };
   const fitted = useRef(false);
   const basemapRef = useRef(basemap);
   const themeRef = useRef(resolved);
@@ -91,6 +96,19 @@ export function FleetMap({ fleet, selectedId, follow, onSelect }: Props) {
     if (followed) m.easeTo({ center: [followed.lng, followed.lat], duration: 500 });
   };
 
+  const pushOverlays = () => {
+    const m = map.current;
+    if (!m || !ready.current) return;
+    const { zones: zs, heat: h } = latest.current;
+    const feats = (zs ?? []).map((z) => zoneFeature(z, { active: z.active !== false })).filter((f) => !!f);
+    (m.getSource("zones") as GeoJSONSource).setData({ type: "FeatureCollection", features: feats } as never);
+    const max = Math.max(1, ...(h ?? []).map((c) => c.weight));
+    (m.getSource("heat") as GeoJSONSource).setData({
+      type: "FeatureCollection",
+      features: (h ?? []).map((c) => ({ type: "Feature", properties: { w: c.weight / max }, geometry: { type: "Point", coordinates: [c.lng, c.lat] } })),
+    });
+  };
+
   useEffect(() => {
     if (!el.current) return;
     const m = new maplibregl.Map({
@@ -102,6 +120,17 @@ export function FleetMap({ fleet, selectedId, follow, onSelect }: Props) {
     map.current = m;
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     m.on("load", () => {
+      m.addSource("heat", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      m.addLayer({
+        id: "heat", type: "heatmap", source: "heat",
+        paint: {
+          "heatmap-weight": ["get", "w"], "heatmap-radius": 28, "heatmap-opacity": 0.7,
+          "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(0,0,0,0)", 0.2, "#fde68a", 0.5, "#f97316", 1, "#b91c1c"],
+        },
+      });
+      m.addSource("zones", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      m.addLayer({ id: "zones-fill", type: "fill", source: "zones", paint: { "fill-color": "#2563eb", "fill-opacity": 0.12 } });
+      m.addLayer({ id: "zones-line", type: "line", source: "zones", paint: { "line-color": "#2563eb", "line-width": 1.5, "line-dasharray": [3, 2] } });
       m.addSource("trail", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       m.addLayer({ id: "trail", type: "line", source: "trail", paint: { "line-color": "#2563eb", "line-width": 3, "line-opacity": 0.8 } });
       m.addSource("vehicles", {
@@ -145,12 +174,14 @@ export function FleetMap({ fleet, selectedId, follow, onSelect }: Props) {
       ready.current = true;
       applyBasemap(m, basemapRef.current, themeRef.current);
       push();
+      pushOverlays();
     });
     return () => { cancelAnimationFrame(raf.current); ready.current = false; fitted.current = false; m.remove(); map.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(push, [fleet, selectedId, follow]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(pushOverlays, [zones, heat]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (ready.current && map.current) applyBasemap(map.current, basemap, resolved); }, [basemap, resolved]);
 
   const sel = selectedId ? fleet[selectedId] : undefined;

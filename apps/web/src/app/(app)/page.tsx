@@ -1,11 +1,16 @@
 "use client";
-import { Crosshair } from "lucide-react";
+import { Crosshair, Link2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import type { MessageKey } from "@routenorth/shared";
+import type { ZoneShape } from "@/components/GeofenceMap";
 import { EmptyState, SkeletonList } from "@/components/ui/primitives";
+import { apiSend } from "@/lib/api";
+import { useMe } from "@/lib/me-context";
+import { useToast } from "@/lib/toast";
+import { useApi } from "@/lib/use-api";
 import { filterFleet, STATUS_COLORS } from "@/lib/fleet";
 import { useI18n } from "@/lib/i18n-context";
 import { loadSession } from "@/lib/session";
@@ -26,21 +31,48 @@ function LiveView() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(params.get("v"));
   const [follow, setFollow] = useState(false);
+  const { can } = useMe();
+  const { toast } = useToast();
+  const [showZones, setShowZones] = useState(false);
+  const [heatKind, setHeatKind] = useState("");
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const zones = useApi<ZoneShape[]>(showZones ? "/r/geofences?limit=500" : null);
+  const heatRange = useMemo(() => `from=${encodeURIComponent(new Date(Date.now() - 7 * 86_400_000).toISOString())}&to=${encodeURIComponent(new Date().toISOString())}`, [heatKind]); // eslint-disable-line react-hooks/exhaustive-deps
+  const heat = useApi<{ lat: number; lng: number; weight: number }[]>(heatKind ? `/heat?kind=${heatKind}&${heatRange}` : null);
 
   useEffect(() => { setToken(loadSession()?.token ?? null); }, []);
   const { fleet, connected, loaded } = useFleet(token);
 
   const list = useMemo(() => filterFleet(fleet, query), [fleet, query]);
   const selected = selectedId ? fleet[selectedId] : undefined;
+  const weather = useApi<{ available: boolean; tempC?: number; label?: string; level?: string; reason?: string | null; windKmh?: number; precipProb?: number }>(selected ? `/weather?lat=${selected.lat.toFixed(3)}&lng=${selected.lng.toFixed(3)}` : null);
+  async function share() {
+    if (!selected) return;
+    try {
+      const r = await apiSend<{ path: string }>("POST", "/share", { deviceId: selected.deviceId, hours: 24 });
+      const url = `${location.origin}${r.path}`;
+      setShareUrl(url);
+      try { await navigator.clipboard.writeText(url); toast(t("share_copied")); } catch { /* shown below */ }
+    } catch (e) { toast((e as Error).message, { tone: "error" }); }
+  }
   const time = (iso: string) => new Date(iso).toLocaleTimeString(locale === "fr" ? "fr-CA" : "en-CA");
 
   return (
     <div className="mapfirst">
-      <FleetMap fleet={fleet} selectedId={selectedId} follow={follow} onSelect={(id) => { setSelectedId(id); setFollow(false); }} />
+      <FleetMap fleet={fleet} selectedId={selectedId} follow={follow} onSelect={(id) => { setSelectedId(id); setFollow(false); setShareUrl(null); }} zones={showZones ? zones.data ?? [] : []} heat={heatKind ? heat.data ?? [] : []} />
       <aside className="float-panel" aria-label={t("vehicles")}>
         <div className="row">
           <strong className="display" style={{ fontSize: 16 }}>{t("vehicles")}</strong>
           <span className={connected ? "pill ok" : "pill warn"} role="status">{connected ? t("connected") : t("reconnecting")}</span>
+        </div>
+        <div className="row" role="group" aria-label={t("live_layers")}>
+          <label className="row"><input type="checkbox" checked={showZones} onChange={(e) => setShowZones(e.target.checked)} />{t("navGeofences")}</label>
+          <select aria-label={t("live_heat")} value={heatKind} onChange={(e) => setHeatKind(e.target.value)}>
+            <option value="">{t("live_heatOff")}</option>
+            <option value="stops">{t("live_heatStops")}</option>
+            <option value="delays">{t("live_heatDelays")}</option>
+            <option value="speeding">{t("live_heatSpeeding")}</option>
+          </select>
         </div>
         <input type="search" placeholder={t("searchVehicles")} aria-label={t("searchVehicles")} value={query} onChange={(e) => setQuery(e.target.value)} />
         {!loaded && <SkeletonList rows={3} h={44} />}
@@ -66,10 +98,13 @@ function LiveView() {
               <dt>{t("speed")}</dt><dd>{Math.round(selected.speed)} km/h</dd>
               <dt>{t("heading")}</dt><dd>{Math.round(selected.heading)}°</dd>
               <dt>{t("lastUpdate")}</dt><dd>{time(selected.time)}</dd>
+              {weather.data?.available && <><dt>{t("planWeather")}</dt><dd>{Math.round(weather.data.tempC ?? 0)}°C · {weather.data.label}{weather.data.reason ? ` · ${weather.data.reason}` : ""}</dd></>}
             </dl>
+            {shareUrl && <input readOnly aria-label={t("shareLink")} value={shareUrl} onFocus={(e) => e.currentTarget.select()} />}
             <div className="row">
               <button type="button" className="btn alt sm" aria-pressed={follow} onClick={() => setFollow((f) => !f)}><Crosshair size={14} aria-hidden />{follow ? t("stopFollowing") : t("follow")}</button>
               <Link href={`/history/${selected.deviceId}`} className="btn sm">{t("history")}</Link>
+              {can("fleet.manage", "routes.dispatch") && <button type="button" className="btn alt sm" onClick={() => void share()}><Link2 size={14} aria-hidden />{t("share_title")}</button>}
             </div>
           </section>
         )}
