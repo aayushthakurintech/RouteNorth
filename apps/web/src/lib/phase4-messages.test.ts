@@ -21,6 +21,11 @@ const FAMILIES: Record<string, string[]> = {
   sf_m_: ["driverScore", "onTimeRate", "stopsDone", "csat", "speedingEvents", "harshBrakes"], sf_p_: ["week", "month"], sf_r_: ["earned", "paid", "void"],
   sf_tab_: ["scores", "live", "rewards", "clips", "settings"], sf_tip_: ["speed", "brake", "accel", "corner", "idle", "great"], sf_badge_: ["smooth", "no_speeding", "incident_free"],
   sf_set_: ["coaching", "leaderboard", "anonymous", "crash", "warnBreak", "stopBreak", "warnShift", "maxShift", "grace", "note"],
+  integ_g_: ["developers", "automation", "maps", "accounting", "crm", "ecommerce", "erp", "telematics", "fuel", "messaging", "chat", "calendar", "payments", "inbound", "data", "security"],
+  integ_m_: ["built_in", "api", "webhook", "feed", "external"], integ_tab_: ["catalog", "keys", "docs", "data", "email", "widget", "maps"], integ_p_: ["osm", "maptiler", "mapbox", "here", "google"],
+  integ_k_: ["api", "feed", "inbound"], integ_s_: ["read", "write"], cf_e_: ["job", "vehicle", "driver", "customer", "depot"], cf_t_: ["text", "number", "date", "bool", "select"],
+  imp_f_: ["title", "address", "customer_name", "customer_phone", "customer_email", "scheduled_date", "type", "priority", "notes", "weight_kg", "service_min", "ref"],
+  jobEvent_: ["created", "assigned", "unassigned", "status", "cancelled", "rescheduled", "urgent", "attachment", "customer", "workflow"],
   qr_: ["ok", "late_10", "late_30", "arrived", "loaded", "call_me", "cant_find", "customer_absent"],
   ex_s_: ["submitted", "approved", "rejected", "reimbursed"], ex_k_: ["fuel", "parking", "toll", "meal", "repair", "other"], iv_s_: ["draft", "sent", "paid", "void"],
   wh_s_: ["pending", "ok", "failed"], cj_s_: ["unassigned", "assigned", "started", "arrived", "done", "failed", "cancelled"],
@@ -40,6 +45,6 @@ describe("Phase 4 strings", () => {
   }
   it("keeps the same placeholders in both languages", () => {
     const names = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(",");
-    for (const k of Object.keys(en)) if (k in fr && /^(wf_|wh_|cx_|cj_|bk_|st_|pt_|dx_|ts_|ex_|iv_|ap_|ib_|ai_|op_|sf_)/.test(k)) expect(names(fr[k]!), k).toBe(names(en[k]!));
+    for (const k of Object.keys(en)) if (k in fr && /^(wf_|wh_|cx_|cj_|bk_|st_|pt_|dx_|ts_|ex_|iv_|ap_|ib_|ai_|op_|sf_|integ_|cf_|cs_|imp_)/.test(k)) expect(names(fr[k]!), k).toBe(names(en[k]!));
   });
 });

@@ -1,5 +1,6 @@
 "use client";
 import type { Permission } from "@routenorth/shared";
+import { configureBasemap } from "@/lib/basemap";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { apiGet, apiSend, Unauthorized } from "./api";
 import { loadSession, saveSession } from "./session";
@@ -11,7 +12,7 @@ export interface Me {
   home: string;
   org: {
     id: string; name: string; locale: string; timezone: string; brandName: string | null; brandColor: string | null; logoDataUrl: string | null;
-    settings: { idleThresholdMin: number; speedLimitKmh: number; trackOnlyDuringShift: boolean; defaultMapProvider: string; currency: string; taxRatePct: number; featureFlags: Record<string, boolean> };
+    settings: { idleThresholdMin: number; speedLimitKmh: number; trackOnlyDuringShift: boolean; defaultMapProvider: string; currency: string; taxRatePct: number; featureFlags: Record<string, boolean>; platform?: { mapKey: string; mapTileUrl: string; analyticsOptOut: boolean }; billing?: { province: string } };
   };
   prefs: Prefs;
 }
@@ -56,7 +57,7 @@ export function MeProvider({ children }: { children: ReactNode }) {
     if (!loadSession()) { setLoading(false); return; }
     let live = true;
     apiGet<Me>("/me")
-      .then((m) => { if (live) { setMe(m); setPrefsState(m.prefs ?? {}); latest.current = m.prefs ?? {}; setBrand(m.org.brandColor); setError(null); } })
+      .then((m) => { if (live) { configureBasemap(m.org.settings.defaultMapProvider, m.org.settings.platform?.mapKey ?? "", m.org.settings.platform?.mapTileUrl ?? ""); setMe(m); setPrefsState(m.prefs ?? {}); latest.current = m.prefs ?? {}; setBrand(m.org.brandColor); setError(null); } })
       .catch((e: unknown) => {
         if (!live) return;
         if (e instanceof Unauthorized) { saveSession(null); window.location.assign("/login"); return; }

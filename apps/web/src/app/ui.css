@@ -376,6 +376,8 @@ table.plain tr.median th, table.plain tr.median td { color: var(--muted); font-s
 /* Pages customers open from a link: job page, booking, status, help, portal. */
 .pub-body { width: 100%; max-width: 720px; margin: 0 auto; padding: var(--s4) max(16px, env(safe-area-inset-left)) var(--s8); display: grid; gap: var(--s4); align-content: start; }
 .pub-body.wide { max-width: 980px; }
+.pub.embed .track-head .lang, .pub.embed .track-head select { display: none; }
+.pub.embed .pub-body { padding-block: var(--s2); }
 .pub-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--s4); display: grid; gap: var(--s3); }
 .pub-card h1, .pub-card h2, .pub-card h3 { margin: 0; }
 .pub-status { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }

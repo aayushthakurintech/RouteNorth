@@ -29,7 +29,7 @@ export interface OrgSettings {
   billing: { province: string; taxMode: string; paymentTermsDays: number; quoteValidDays: number; payPerStop: number; payPerKm: number; overtimeMultiplier: number; budgetAlertPct: number; companyName: string; taxNumber: string };
   costing: { fuelPricePerL: number; wearPerKm: number; tollPerKm: number; evCostPerKm: number };
   onboarding: { dismissed: boolean; sampleLoaded: boolean };
-  platform: { widgetOrigins: string; whiteLabel: boolean; poweredBy: boolean; analyticsOptOut: boolean; mapTileUrl: string };
+  platform: { widgetOrigins: string; whiteLabel: boolean; poweredBy: boolean; analyticsOptOut: boolean; mapTileUrl: string; mapKey: string };
   [key: string]: unknown;
 }
 
@@ -62,6 +62,8 @@ export function publicSettings(raw: unknown) {
   return {
     idleThresholdMin: s.idleThresholdMin, speedLimitKmh: s.speedLimitKmh, trackOnlyDuringShift: s.trackOnlyDuringShift,
     defaultMapProvider: s.defaultMapProvider, currency: s.currency, taxRatePct: s.taxRatePct, featureFlags: s.featureFlags,
+    platform: { mapKey: s.platform.mapKey, mapTileUrl: s.platform.mapTileUrl, analyticsOptOut: s.platform.analyticsOptOut },
+    billing: { province: s.billing.province },
   };
 }
 

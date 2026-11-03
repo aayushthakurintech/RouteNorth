@@ -2,6 +2,7 @@
 import { Paperclip, Plus } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
 import type { MessageKey } from "@routenorth/shared";
+import { CustomFieldsPanel } from "@/components/CustomFieldsPanel";
 import { ProofGallery } from "@/components/ProofGallery";
 import { Chip, ErrorState, Modal, SkeletonList } from "@/components/ui/primitives";
 import { apiSend } from "@/lib/api";
@@ -26,6 +27,23 @@ const CANCEL = ["customer_cancelled", "duplicate", "address_invalid", "no_capaci
 const RESCHED = ["customer_request", "not_ready", "no_capacity", "weather", "vehicle_issue", "access_problem", "other"];
 const FAIL = ["not_home", "refused", "wrong_address", "access_denied", "damaged", "no_time", "other"];
 const tone = (s: string) => (s === "done" ? "ok" : s === "failed" || s === "cancelled" ? "danger" : s === "unassigned" ? "warn" : "info") as "ok" | "danger" | "warn" | "info";
+
+/** The company's own status label for a job, offered only while the job is in the state the label belongs to. */
+function JobLabel({ jobId, status, current, onChanged }: { jobId: string; status: string; current: string | null; onChanged: () => void }) {
+  const { t, locale } = useI18n(); const { can } = useMe(); const { toast } = useToast();
+  const list = useApi<{ key: string; label: string; labelFr: string | null; baseStatus: string; color: string; active: boolean }[]>("/platform/statuses");
+  const options = (list.data ?? []).filter((s) => s.active && s.baseStatus === status);
+  const shown = (list.data ?? []).find((s) => s.key === current);
+  if (!shown && options.length === 0) return null;
+  const name = (s: { label: string; labelFr: string | null }) => (locale === "fr" && s.labelFr ? s.labelFr : s.label);
+  async function set(key: string) { try { await apiSend("PUT", `/platform/jobs/${jobId}/status`, { key: key || null }); onChanged(); } catch (e) { toast((e as Error).message, { tone: "error" }); } }
+  return (
+    <div className="row">
+      <strong>{t("cs_label")}</strong>
+      {can("routes.write") ? <select aria-label={t("cs_label")} value={current ?? ""} onChange={(e) => void set(e.target.value)}><option value="">–</option>{options.map((s) => <option key={s.key} value={s.key}>{name(s)}</option>)}{shown && !options.some((o) => o.key === shown.key) && <option value={shown.key}>{name(shown)}</option>}</select> : shown && <Chip>{name(shown)}</Chip>}
+    </div>
+  );
+}
 
 /** Everything about one job: status flow, cancel and reschedule with reasons, files, history, delivery proof. */
 export function JobPanel({ jobId, onClose, onChanged }: { jobId: string; onClose: () => void; onChanged: () => void }) {
@@ -124,6 +142,9 @@ export function JobPanel({ jobId, onClose, onChanged }: { jobId: string; onClose
               <div className="row"><button type="button" className="btn alt sm" onClick={() => setMode(null)}>{t("cancel")}</button><button type="submit" className="btn sm">{t("confirm")}</button></div>
             </form>
           )}
+
+          <JobLabel jobId={jobId} status={job.status} current={job.custom_status ?? null} onChanged={() => { d.reload(); onChanged(); }} />
+          <CustomFieldsPanel entity="job" recordId={jobId} />
 
           {d.data.stop && ["done", "failed"].includes(d.data.stop.status) && d.data.stop.proofCount > 0 && <ProofGallery stopId={d.data.stop.id} label={t("proofs")} />}
           {d.data.stop?.recipientName && <p className="meta">{t("receivedBy")}: {d.data.stop.recipientName}</p>}

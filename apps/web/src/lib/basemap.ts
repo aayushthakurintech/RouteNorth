@@ -1,3 +1,4 @@
+import { tileChoice } from "@routenorth/shared";
 import type { StyleSpecification } from "maplibre-gl";
 
 /** Public development tile servers; self-host for production (NEXT_PUBLIC_TILE_URL / _DARK / _SATELLITE). */
@@ -10,13 +11,20 @@ export const GLYPHS_URL = process.env.NEXT_PUBLIC_GLYPHS_URL ?? "https://demotil
 
 export type Basemap = "street" | "satellite";
 
+/** The company's choice of map provider, set once the signed-in person's settings are known. */
+let chosen: { url: string; attribution: string } | null = null;
+export function configureBasemap(provider: string, key: string, customUrl: string) {
+  const c = tileChoice(provider, key, customUrl);
+  chosen = c.url ? { url: c.url, attribution: c.attribution } : null;
+}
+
 /** One style with all three raster layers; `basemapLayer` says which one is visible. */
 export function baseStyle(): StyleSpecification {
   return {
     version: 8,
     glyphs: GLYPHS_URL,
     sources: {
-      street: { type: "raster", tiles: [TILES.street], tileSize: 256, attribution: "© OpenStreetMap contributors" },
+      street: { type: "raster", tiles: [chosen?.url ?? TILES.street], tileSize: 256, attribution: chosen?.attribution || "© OpenStreetMap contributors" },
       dark: { type: "raster", tiles: [TILES.dark], tileSize: 256, attribution: "© OpenStreetMap contributors © CARTO" },
       satellite: { type: "raster", tiles: [TILES.satellite], tileSize: 256, attribution: "Imagery © Esri" },
     },

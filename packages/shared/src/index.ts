@@ -10,3 +10,4 @@ export * from "./fleet.js";
 export * from "./permissions.js";
 export * from "./analytics.js";
 export * from "./smart.js";
+export * from "./platform.js";

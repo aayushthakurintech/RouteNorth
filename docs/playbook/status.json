@@ -1022,5 +1022,117 @@
   "theme.7": {
     "s": "partial",
     "note": "The palette exists; route lines on maps adopt it in Phase 2."
+  },
+  "integ.1": {
+    "s": "done",
+    "note": "REST API with hashed read/write API keys, OpenAPI JSON and a docs page (Integrations > Developers)."
+  },
+  "integ.2": {
+    "s": "done",
+    "note": "Signed webhooks with retries and a delivery log (Phase 3), listed in the integrations catalog."
+  },
+  "integ.3": {
+    "s": "partial",
+    "note": "Zapier and Make connect through webhooks plus API keys and the OpenAPI spec; no listed Zapier/Make app (needs their review process)."
+  },
+  "integ.4": {
+    "s": "partial",
+    "note": "Map provider switch: OpenStreetMap, MapTiler, Mapbox and HERE tiles with the org key. Google tiles are not allowed in this stack and fall back to OSM."
+  },
+  "integ.5": {
+    "s": "partial",
+    "note": "Invoice exports in QuickBooks, Xero and Sage CSV formats. No live account sync (needs their OAuth apps)."
+  },
+  "integ.6": {
+    "s": "partial",
+    "note": "CRM sync through API keys and webhooks, with documented recipes. No native Salesforce/HubSpot/Zoho app."
+  },
+  "integ.7": {
+    "s": "partial",
+    "note": "Shopify and WooCommerce order webhooks create jobs via inbound feed keys and email-to-job. Amazon and Etsy need seller accounts."
+  },
+  "integ.8": {
+    "s": "partial",
+    "note": "ERP exchange via REST API, inbound feed and CSV import/export. No native SAP/NetSuite/Odoo connector."
+  },
+  "integ.9": {
+    "s": "partial",
+    "note": "Any Traccar-supported GPS device reports directly; Geotab and Samsara need their partner credentials."
+  },
+  "integ.10": {
+    "s": "external",
+    "note": "Needs fuel-card and toll-tag provider feeds; fuel entry and CSV import exist in Phase 3."
+  },
+  "integ.11": {
+    "s": "partial",
+    "note": "SMS and email notification channels built in (live sending needs Twilio or email keys); WhatsApp Business needs Meta approval."
+  },
+  "integ.12": {
+    "s": "partial",
+    "note": "Slack and Teams incoming-webhook alerts through the webhook system."
+  },
+  "integ.13": {
+    "s": "done",
+    "note": "Per-user and per-org ICS calendar feed to subscribe from Google or Outlook (subscription in those apps not tested here)."
+  },
+  "integ.14": {
+    "s": "external",
+    "note": "Stripe and PayPal need merchant accounts; invoices and payment status tracking exist."
+  },
+  "integ.15": {
+    "s": "done",
+    "note": "Email-to-job: inbound endpoint parses forwarded emails into jobs (a real inbound mail service must be pointed at it)."
+  },
+  "integ.16": {
+    "s": "partial",
+    "note": "Key-protected CSV feeds that Google Sheets IMPORTDATA and Excel Power Query can read live."
+  },
+  "integ.17": {
+    "s": "partial",
+    "note": "Key-protected CSV and JSON feeds usable from Power BI, Tableau, Looker Studio and Metabase."
+  },
+  "integ.18": {
+    "s": "partial",
+    "note": "Bulk CSV/JSON exports for loading into BigQuery, Snowflake or S3; no scheduled push."
+  },
+  "integ.19": {
+    "s": "external",
+    "note": "Needs identity-provider tenants; email login with optional TOTP is the built-in method."
+  },
+  "integ.20": {
+    "s": "partial",
+    "note": "Weather built in with a keyless provider; live traffic needs a paid feed."
+  },
+  "platform.1": {
+    "s": "external",
+    "note": "Integrations catalog page exists; a partner plug-in marketplace needs partners and a review process."
+  },
+  "platform.2": {
+    "s": "done",
+    "note": "Custom fields on jobs, vehicles, drivers, customers and more, with validation and a panel on each record."
+  },
+  "platform.3": {
+    "s": "done",
+    "note": "Custom job statuses per organization, shown on the job panel."
+  },
+  "platform.4": {
+    "s": "done",
+    "note": "Embeddable tracking widget (widget.js) with allowed origins and white-label option."
+  },
+  "platform.5": {
+    "s": "done",
+    "note": "TypeScript SDK package (@routenorth/sdk) over the REST API with tests."
+  },
+  "platform.6": {
+    "s": "partial",
+    "note": "Local demo organization via pnpm seed / pnpm demo; no hosted sandbox tenant."
+  },
+  "platform.7": {
+    "s": "done",
+    "note": "Import wizard with presets for common competitor exports, auto-mapping, preview and error report."
+  },
+  "platform.8": {
+    "s": "done",
+    "note": "White-label branding on public tracking and widget pages, with powered-by toggle."
   }
 }

@@ -20,7 +20,7 @@ export const EXTRA_GROUPS: Record<string, Record<string, Spec>> = {
   },
   costing: { fuelPricePerL: num(1.7, 0, 20), wearPerKm: num(0.12, 0, 10), tollPerKm: num(0, 0, 10), evCostPerKm: num(0.05, 0, 10) },
   onboarding: { dismissed: bool(false), sampleLoaded: bool(false) },
-  platform: { widgetOrigins: str("", 500), whiteLabel: bool(false), poweredBy: bool(true), analyticsOptOut: bool(false), mapTileUrl: str("", 300) },
+  platform: { widgetOrigins: str("", 500), whiteLabel: bool(false), poweredBy: bool(true), analyticsOptOut: bool(false), mapTileUrl: str("", 300), mapKey: str("", 200) },
 };
 
 export const EXTRA_KEYS = Object.keys(EXTRA_GROUPS);

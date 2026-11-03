@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Inject, Injectable, 
 import { pg, withOrg } from "@routenorth/db";
 import { effectivePermissions, type Permission } from "@routenorth/shared";
 import { JWT_SECRET, PG_POOL } from "../tokens.js";
+import { hashKey, isKeyToken } from "../platform/keys.js";
 import { verifySession, type Session } from "./jwt.js";
 
 export interface AuthedRequest {
@@ -29,6 +30,7 @@ export class AuthGuard implements CanActivate {
     const req = ctx.switchToHttp().getRequest<AuthedRequest>();
     const header = req.headers.authorization;
     const token = typeof header === "string" && header.startsWith("Bearer ") ? header.slice(7) : null;
+    if (token && isKeyToken(token)) return this.withApiKey(req, token);
     const session = token ? await verifySession(this.secret, token) : null;
     if (!session) throw new UnauthorizedException();
 
@@ -45,6 +47,18 @@ export class AuthGuard implements CanActivate {
     req.session = { ...session, role: user.role };
     req.perms = effectivePermissions(user.role, user.custom);
     req.actor = { email: user.email, displayName: user.display_name };
+    return true;
+  }
+
+  /** An API key acts as a read-only or a dispatcher-level user, never as an owner, and cannot manage users, billing or settings. */
+  private async withApiKey(req: AuthedRequest, token: string): Promise<boolean> {
+    const k = (await this.pool.query<{ key_id: string; org_id: string; kind: string; scope: string; created_by: string | null; name: string }>("SELECT * FROM find_api_key($1)", [hashKey(token)])).rows[0];
+    if (!k || k.kind !== "api") throw new UnauthorizedException();
+    const role = k.scope === "write" ? "dispatcher" : "viewer";
+    req.session = { userId: k.created_by ?? k.key_id, orgId: k.org_id, role };
+    req.perms = effectivePermissions(role, null);
+    req.actor = { email: `api-key:${k.name}`, displayName: `API key ${k.name}` };
+    void withOrg(this.pool, k.org_id, (c) => c.query("UPDATE api_keys SET last_used_at = now() WHERE id = $1 AND (last_used_at IS NULL OR last_used_at < now() - interval '5 minutes')", [k.key_id])).catch(() => {});
     return true;
   }
 }

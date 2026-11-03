@@ -3,6 +3,7 @@ import { Download, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { MessageKey } from "@routenorth/shared";
 import { DataTable, type Column } from "@/components/ui/DataTable";
+import { CustomFieldsPanel } from "@/components/CustomFieldsPanel";
 import { Chip, EmptyState, ErrorState, Modal, PageHead, SkeletonList } from "@/components/ui/primitives";
 import { API_URL, loadSession } from "@/lib/session";
 import { apiSend } from "@/lib/api";
@@ -81,6 +82,8 @@ function PhotoInput({ value, onChange }: { value: string; onChange: (v: string) 
     </div>
   );
 }
+
+const CUSTOM_ENTITY: Record<string, "job" | "vehicle" | "depot" | undefined> = { vehicles: "vehicle", depots: "depot", jobs: "job" };
 
 /** Files on a record: list, add, open. Shown when editing a record that supports them. */
 function Attachments({ kind, id }: { kind: string; id: string }) {
@@ -244,6 +247,7 @@ export default function ResourcePage({ name, extra, onOpen }: { name: string; ex
             ))}
             {name === "route-templates" && <RecurrenceEditor value={editing.form.recurrence} onChange={(v) => setEditing((s) => s && { ...s, form: { ...s.form, recurrence: v } })} />}
             {editing.id && view.attach && <Attachments kind={view.attach} id={editing.id} />}
+            {editing.id && CUSTOM_ENTITY[name] && <CustomFieldsPanel entity={CUSTOM_ENTITY[name]!} recordId={editing.id} />}
             {error && <div className="err" role="alert">{error}</div>}
           </form>
         )}

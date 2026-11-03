@@ -4,11 +4,11 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | Status | Count |
 | --- | ---: |
-| ✅ Done | 198 |
-| 🟡 Partly built | 41 |
-| 🔌 Needs outside accounts or hardware | 10 |
+| ✅ Done | 208 |
+| 🟡 Partly built | 55 |
+| 🔌 Needs outside accounts or hardware | 14 |
 | ➖ Chosen not to build | 2 |
-| ⬜ Not started | 69 |
+| ⬜ Not started | 41 |
 
 - **Done**: built, with tests or a manual run behind it.
 - **Partly built**: the useful core works; the note says what is missing.
@@ -392,39 +392,39 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Public REST API with clear docs and API keys | ⬜ Not started |  |
-| 2 | Webhooks for every event | ⬜ Not started |  |
-| 3 | Zapier and Make connectors | ⬜ Not started |  |
-| 4 | Google Maps, Mapbox, and HERE map providers (switchable) | ⬜ Not started |  |
-| 5 | Accounting: QuickBooks, Xero, Sage | ⬜ Not started |  |
-| 6 | CRM: Salesforce, HubSpot, Zoho | ⬜ Not started |  |
-| 7 | E-commerce: Shopify, WooCommerce, Amazon, Etsy | ⬜ Not started |  |
-| 8 | ERP and warehouse: SAP, NetSuite, Odoo | ⬜ Not started |  |
-| 9 | Telematics and GPS devices: Geotab, Samsara, OBD trackers | ⬜ Not started |  |
-| 10 | Fuel cards and toll tags | ⬜ Not started |  |
-| 11 | Messaging: Twilio, WhatsApp Business, SendGrid | ⬜ Not started |  |
-| 12 | Team chat: Slack and Microsoft Teams | ⬜ Not started |  |
-| 13 | Calendar sync: Google and Outlook | ⬜ Not started |  |
-| 14 | Payment: Stripe and PayPal | ⬜ Not started |  |
-| 15 | Email-to-job: forward an email and it becomes a job | ⬜ Not started |  |
-| 16 | Google Sheets and Excel live sync | ⬜ Not started |  |
-| 17 | BI tools: Power BI, Tableau, Looker Studio, Metabase | ⬜ Not started |  |
-| 18 | Data warehouse export: BigQuery, Snowflake, S3 | ⬜ Not started |  |
-| 19 | Single sign-on: Google, Microsoft, Okta | ⬜ Not started |  |
-| 20 | Weather and traffic data feeds | ⬜ Not started |  |
+| 1 | Public REST API with clear docs and API keys | ✅ Done | REST API with hashed read/write API keys, OpenAPI JSON and a docs page (Integrations > Developers). |
+| 2 | Webhooks for every event | ✅ Done | Signed webhooks with retries and a delivery log (Phase 3), listed in the integrations catalog. |
+| 3 | Zapier and Make connectors | 🟡 Partly built | Zapier and Make connect through webhooks plus API keys and the OpenAPI spec; no listed Zapier/Make app (needs their review process). |
+| 4 | Google Maps, Mapbox, and HERE map providers (switchable) | 🟡 Partly built | Map provider switch: OpenStreetMap, MapTiler, Mapbox and HERE tiles with the org key. Google tiles are not allowed in this stack and fall back to OSM. |
+| 5 | Accounting: QuickBooks, Xero, Sage | 🟡 Partly built | Invoice exports in QuickBooks, Xero and Sage CSV formats. No live account sync (needs their OAuth apps). |
+| 6 | CRM: Salesforce, HubSpot, Zoho | 🟡 Partly built | CRM sync through API keys and webhooks, with documented recipes. No native Salesforce/HubSpot/Zoho app. |
+| 7 | E-commerce: Shopify, WooCommerce, Amazon, Etsy | 🟡 Partly built | Shopify and WooCommerce order webhooks create jobs via inbound feed keys and email-to-job. Amazon and Etsy need seller accounts. |
+| 8 | ERP and warehouse: SAP, NetSuite, Odoo | 🟡 Partly built | ERP exchange via REST API, inbound feed and CSV import/export. No native SAP/NetSuite/Odoo connector. |
+| 9 | Telematics and GPS devices: Geotab, Samsara, OBD trackers | 🟡 Partly built | Any Traccar-supported GPS device reports directly; Geotab and Samsara need their partner credentials. |
+| 10 | Fuel cards and toll tags | 🔌 Needs outside accounts or hardware | Needs fuel-card and toll-tag provider feeds; fuel entry and CSV import exist in Phase 3. |
+| 11 | Messaging: Twilio, WhatsApp Business, SendGrid | 🟡 Partly built | SMS and email notification channels built in (live sending needs Twilio or email keys); WhatsApp Business needs Meta approval. |
+| 12 | Team chat: Slack and Microsoft Teams | 🟡 Partly built | Slack and Teams incoming-webhook alerts through the webhook system. |
+| 13 | Calendar sync: Google and Outlook | ✅ Done | Per-user and per-org ICS calendar feed to subscribe from Google or Outlook (subscription in those apps not tested here). |
+| 14 | Payment: Stripe and PayPal | 🔌 Needs outside accounts or hardware | Stripe and PayPal need merchant accounts; invoices and payment status tracking exist. |
+| 15 | Email-to-job: forward an email and it becomes a job | ✅ Done | Email-to-job: inbound endpoint parses forwarded emails into jobs (a real inbound mail service must be pointed at it). |
+| 16 | Google Sheets and Excel live sync | 🟡 Partly built | Key-protected CSV feeds that Google Sheets IMPORTDATA and Excel Power Query can read live. |
+| 17 | BI tools: Power BI, Tableau, Looker Studio, Metabase | 🟡 Partly built | Key-protected CSV and JSON feeds usable from Power BI, Tableau, Looker Studio and Metabase. |
+| 18 | Data warehouse export: BigQuery, Snowflake, S3 | 🟡 Partly built | Bulk CSV/JSON exports for loading into BigQuery, Snowflake or S3; no scheduled push. |
+| 19 | Single sign-on: Google, Microsoft, Okta | 🔌 Needs outside accounts or hardware | Needs identity-provider tenants; email login with optional TOTP is the built-in method. |
+| 20 | Weather and traffic data feeds | 🟡 Partly built | Weather built in with a keyless provider; live traffic needs a paid feed. |
 
 ### Platform ideas
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | App marketplace where partners add plug-ins | ⬜ Not started |  |
-| 2 | Custom fields on every record | ⬜ Not started |  |
-| 3 | Custom statuses and workflows | ⬜ Not started |  |
-| 4 | Embeddable tracking widget for customer websites | ⬜ Not started |  |
-| 5 | SDK for developers | ⬜ Not started |  |
-| 6 | Sandbox environment for testing | ⬜ Not started |  |
-| 7 | Import wizard from competitors' formats | ⬜ Not started |  |
-| 8 | White-label option for resellers and partners | ⬜ Not started |  |
+| 1 | App marketplace where partners add plug-ins | 🔌 Needs outside accounts or hardware | Integrations catalog page exists; a partner plug-in marketplace needs partners and a review process. |
+| 2 | Custom fields on every record | ✅ Done | Custom fields on jobs, vehicles, drivers, customers and more, with validation and a panel on each record. |
+| 3 | Custom statuses and workflows | ✅ Done | Custom job statuses per organization, shown on the job panel. |
+| 4 | Embeddable tracking widget for customer websites | ✅ Done | Embeddable tracking widget (widget.js) with allowed origins and white-label option. |
+| 5 | SDK for developers | ✅ Done | TypeScript SDK package (@routenorth/sdk) over the REST API with tests. |
+| 6 | Sandbox environment for testing | 🟡 Partly built | Local demo organization via pnpm seed / pnpm demo; no hosted sandbox tenant. |
+| 7 | Import wizard from competitors' formats | ✅ Done | Import wizard with presets for common competitor exports, auto-mapping, preview and error report. |
+| 8 | White-label option for resellers and partners | ✅ Done | White-label branding on public tracking and widget pages, with powered-by toggle. |
 
 ## Team, admin, billing, security
 

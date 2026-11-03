@@ -85,7 +85,7 @@ export class PublicJobController {
       const blocked = PublicJobController.changeable(j, opt);
       const prefs = j.customer_name !== undefined ? (await c.query("SELECT email_on AS \"emailOn\", sms_on AS \"smsOn\", muted_events AS \"mutedEvents\", locale FROM customer_prefs WHERE contact = (SELECT lower(coalesce(customer_email, customer_phone)) FROM jobs WHERE id = $1)", [jobId])).rows[0] ?? { emailOn: true, smsOn: true, mutedEvents: [], locale: null } : null;
       return {
-        org: { name: org.name, color: org.color, logo: org.logo, locale: org.locale, slug: org.slug },
+        org: { name: org.name, color: org.color, logo: org.logo, locale: org.locale, slug: org.slug, whiteLabel: withDefaults(org.settings).platform.whiteLabel, widgetOrigins: withDefaults(org.settings).platform.widgetOrigins },
         job: { ref: j.ref, title: j.title, type: j.type, status: j.status, address: j.address, lat: j.lat, lng: j.lng, customer: firstName(j.customer_name), date: j.date, windowStart: j.window_start, windowEnd: j.window_end, instructions: j.customer_instructions, deliveredAt, isReturn: !!j.parent_job_id },
         driver, vehicle, live, proofs, messages, feedback, prefs,
         can: { reschedule: opt.portal.allowReschedule && !blocked, cancel: opt.portal.allowCancel && !blocked, why: blocked, instructions: opt.portal.allowInstructions && !["done", "cancelled", "failed"].includes(j.status), returns: opt.portal.allowReturns && j.status === "done", rate: ["done", "failed"].includes(j.status) },
@@ -296,7 +296,7 @@ export class PublicJobController {
       const opt = customerOptions(o.settings);
       const s = withDefaults(o.settings);
       return {
-        name: o.name, color: o.color, logo: o.logo, locale: o.locale, currency: s.currency,
+        name: o.name, color: o.color, logo: o.logo, locale: o.locale, whiteLabel: s.platform.whiteLabel, currency: s.currency,
         booking: opt.booking.enabled ? { enabled: true, requirePhone: opt.booking.requirePhone, slots: opt.portal.slots, taxRatePct: s.taxRatePct, horizonDays: opt.portal.horizonDays } : { enabled: false },
         statusPage: opt.publicStatus, faq: (await c.query("SELECT count(*)::int AS n FROM faq_items WHERE published")).rows[0].n > 0,
       };
@@ -406,7 +406,7 @@ export class PublicJobController {
       const active = notices.filter((n) => n.level !== "resolved" && (!n.endsAt || new Date(n.endsAt) > new Date()));
       const lateShare = today.total ? late / today.total : 0;
       const level = active.some((n) => n.level === "major") ? "major" : active.some((n) => n.level === "minor") || lateShare > 0.25 ? "degraded" : "operational";
-      return { org: { name: o.name, color: o.color, logo: o.logo, locale: o.locale }, level, today: { ...today, late, vehiclesReporting: live }, days: days.map((d) => ({ day: d.day, total: d.total, onTimePct: Math.round((d.on_time / d.total) * 100) })), notices };
+      return { org: { name: o.name, color: o.color, logo: o.logo, locale: o.locale, whiteLabel: withDefaults(o.settings).platform.whiteLabel }, level, today: { ...today, late, vehiclesReporting: live }, days: days.map((d) => ({ day: d.day, total: d.total, onTimePct: Math.round((d.on_time / d.total) * 100) })), notices };
     });
   }
 

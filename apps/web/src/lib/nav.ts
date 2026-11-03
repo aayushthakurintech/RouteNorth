@@ -2,7 +2,7 @@ import type { Permission } from "@routenorth/shared";
 import type { MessageKey } from "@routenorth/shared";
 import {
   Activity, AlertTriangle, Sparkles, Scale, ShieldCheck, MessageSquareHeart, BarChart3, Banknote, Clock, Inbox, Receipt, Workflow, CheckSquare, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
-  ScrollText, Settings, Truck, UsersRound, Warehouse, Wrench, type LucideIcon,
+  Plug, SlidersHorizontal, Upload, ScrollText, Settings, Truck, UsersRound, Warehouse, Wrench, type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem {
@@ -51,6 +51,9 @@ export const NAV: NavItem[] = [
   { href: "/settings", label: "navSettings", icon: Settings, perms: ["settings.manage"], group: "admin", keywords: "company branding paramètres" },
   { href: "/settings/customers", label: "navCustomerSettings", icon: MessageSquareHeart, perms: ["settings.manage"], group: "admin", keywords: "customer notifications booking portal status faq clients messages réservation" },
   { href: "/settings/users", label: "navUsers", icon: UsersRound, perms: ["users.view"], group: "admin", keywords: "people roles permissions users personnes" },
+  { href: "/integrations", label: "navIntegrations", icon: Plug, perms: ["api.manage", "integrations.manage"], group: "admin", keywords: "api keys webhooks zapier make feeds sheets calendar email widget maps intégrations clés" },
+  { href: "/settings/fields", label: "navFields", icon: SlidersHorizontal, perms: ["settings.manage"], group: "admin", keywords: "custom fields statuses labels champs personnalisés statuts" },
+  { href: "/import", label: "navImport", icon: Upload, perms: ["routes.write"], group: "admin", keywords: "import csv onfleet routific migrate spreadsheet importer migration" },
   { href: "/audit", label: "navAudit", icon: ScrollText, perms: ["audit.view"], group: "admin", keywords: "changes history journal" },
   { href: "/styleguide", label: "navStyle", icon: Palette, perms: [], group: "admin", keywords: "design components" },
 ];
