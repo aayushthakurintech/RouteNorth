@@ -264,3 +264,14 @@ table.dt tr[data-clickable="true"] { cursor: pointer; }
 .map-tools { position: absolute; inset-block-start: var(--s3); inset-inline-end: 56px; display: flex; gap: var(--s2); z-index: 4; }
 .map-tools .seg { background: var(--surface); }
 .float-panel input[type=search] { width: 100%; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--r); background: var(--surface); }
+
+/* dispatch board */
+.lane { border: 1px solid var(--line); border-radius: var(--r-lg, 12px); padding: var(--s3, 12px); background: var(--surface); display: flex; flex-direction: column; gap: 6px; min-height: 120px; transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease); }
+.lane[data-over="true"] { border-color: var(--brand); background: var(--brand-soft); }
+.lane-title { font-size: 15px; margin: 0; display: flex; align-items: center; gap: 8px; }
+.job-card { cursor: grab; display: flex; flex-direction: column; gap: 4px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2, transparent); }
+.job-card[data-priority="urgent"] { border-inline-start: 3px solid var(--danger); }
+.job-card[data-priority="high"] { border-inline-start: 3px solid var(--warn); }
+.linklike { background: none; border: 0; padding: 0; color: var(--fg); text-align: start; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; font: inherit; }
+.linklike:hover { color: var(--brand); text-decoration-color: currentColor; }
+@media (max-width: 800px) { .dispatch { grid-template-columns: 1fr !important; } }

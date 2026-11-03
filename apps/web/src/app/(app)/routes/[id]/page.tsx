@@ -9,6 +9,9 @@ import { ErrorState, SkeletonList } from "@/components/ui/primitives";
 import { useBreadcrumbs } from "@/lib/breadcrumbs";
 import { useToast } from "@/lib/toast";
 import { ProofGallery } from "@/components/ProofGallery";
+import { AddressInput } from "@/components/AddressInput";
+import { PlannerPanel } from "@/components/PlannerPanel";
+import { useMe } from "@/lib/me-context";
 import { apiGet, apiSend, Unauthorized } from "@/lib/api";
 import { formatDuration, formatTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n-context";
@@ -34,6 +37,9 @@ export default function RoutePage() {
   const [form, setForm] = useState({ name: "", address: "", windowStart: "", windowEnd: "", packages: "0" });
   const [saveError, setSaveError] = useState<string | null>(null);
   const [drivers, setDrivers] = useState<{ id: string; email: string }[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const { can } = useMe();
 
   const load = useCallback(async () => {
     try {
@@ -95,6 +101,13 @@ export default function RoutePage() {
     const order = moveStop(route!.stops.map((s) => s.id), index, delta);
     if (order) run(() => apiSend<RouteDetail>("PUT", `/routes/${id}/stops/order`, { stopIds: order }));
   };
+  const dropOn = (targetId: string) => {
+    if (!dragId || dragId === targetId || !route) return;
+    const ids = route.stops.map((x) => x.id).filter((x) => x !== dragId);
+    ids.splice(ids.indexOf(targetId), 0, dragId);
+    setDragId(null);
+    run(() => apiSend<RouteDetail>("PUT", `/routes/${id}/stops/order`, { stopIds: ids }));
+  };
   const setStatus = (s: RouteStop, status: StopStatus) =>
     run(() => apiSend<RouteDetail>("PATCH", `/routes/${id}/stops/${s.id}`, { status }));
   // Removing a stop can be undone for a few seconds; the delete is only sent when the time is up.
@@ -136,6 +149,8 @@ export default function RoutePage() {
           </section>
         )}
 
+        {can("routes.write") && <PlannerPanel route={route} pin={pin} selected={selected} onChanged={() => { setSelected([]); void load(); }} />}
+
         {saveError && <p className="error" role="alert">{saveError}</p>}
 
         {route.stops.length === 0 ? <p className="empty">{t("noStops")}</p> : (
@@ -143,8 +158,10 @@ export default function RoutePage() {
             {route.stops.map((s, i) => {
               const o = outcomes.get(s.id);
               return (
-                <li key={s.id}>
+                <li key={s.id} draggable={can("routes.write")} data-dragging={dragId === s.id}
+                  onDragStart={() => setDragId(s.id)} onDragEnd={() => setDragId(null)} onDragOver={(e) => { if (dragId) e.preventDefault(); }} onDrop={(e) => { e.preventDefault(); dropOn(s.id); }}>
                   <div className="stop-head">
+                    {s.status === "pending" && can("routes.dispatch") && <input type="checkbox" aria-label={`${t("planSelect")}: ${s.name}`} checked={selected.includes(s.id)} onChange={(e) => setSelected(e.target.checked ? [...selected, s.id] : selected.filter((x) => x !== s.id))} />}
                     <span className="num" style={{ background: STOP_COLORS[s.status] }} aria-hidden>{s.sequence}</span>
                     <strong>{s.name}</strong>
                     <span className="meta">{t(`status_${s.status}` as MessageKey)}</span>
@@ -178,7 +195,7 @@ export default function RoutePage() {
             <input required maxLength={200} name="stopName" autoComplete="off" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </label>
           <label className="field">{t("address")}
-            <input maxLength={300} name="address" autoComplete="off" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <AddressInput value={form.address} onChange={(v) => setForm((f) => ({ ...f, address: v }))} onPlace={(lat, lng, label) => { setPin({ lat, lng }); setForm((f) => ({ ...f, address: label, name: f.name || label.split(",")[0]! })); }} />
           </label>
           <div className="row">
             <label className="field">{t("windowStart")}

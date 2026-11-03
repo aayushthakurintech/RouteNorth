@@ -5,7 +5,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { LOCALES, LOCALE_NAMES, type Locale } from "@routenorth/shared";
+import { LOCALES, LOCALE_NAMES, type Locale, type MessageKey } from "@routenorth/shared";
 import { ErrorState, SkeletonList } from "@/components/ui/primitives";
 import { useCrumbs } from "@/lib/breadcrumbs";
 import { useI18n } from "@/lib/i18n-context";
@@ -123,7 +123,11 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
     return <div style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }}><ErrorState error={error} onRetry={reload} /></div>;
   }
 
-  const sections = [{ id: "main", items: nav.filter((n) => n.group === "main") }, { id: "admin", items: nav.filter((n) => n.group === "admin") }];
+  const sections = [
+    { id: "main", label: null as MessageKey | null, items: nav.filter((n) => n.group === "main") },
+    { id: "fleet", label: "navFleet" as MessageKey, items: nav.filter((n) => n.group === "fleet") },
+    { id: "admin", label: "settings" as MessageKey, items: nav.filter((n) => n.group === "admin") },
+  ];
 
   return (
     <div className="app" data-collapsed={collapsed} data-open={open}>
@@ -143,9 +147,9 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
             ))}
           </div>
         )}
-        {sections.map((s, si) => s.items.length > 0 && (
+        {sections.map((s) => s.items.length > 0 && (
           <div className="nav-group" key={s.id}>
-            {si > 0 && <span className="nav-label">{t("settings")}</span>}
+            {s.label && <span className="nav-label">{t(s.label)}</span>}
             {s.items.map((n) => (
               <Link key={n.href} href={n.href} className="nav-item" aria-current={isActive(n.href, pathname) ? "page" : undefined} title={collapsed ? t(n.label) : undefined}>
                 <n.icon size={18} aria-hidden /><span className="nav-text">{t(n.label)}</span>

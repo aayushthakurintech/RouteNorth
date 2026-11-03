@@ -1,6 +1,9 @@
 import type { Permission } from "@routenorth/shared";
 import type { MessageKey } from "@routenorth/shared";
-import { Activity, FileText, Gauge, History, Map, Route, ScrollText, Settings, Palette, UsersRound, type LucideIcon } from "lucide-react";
+import {
+  Activity, AlertTriangle, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
+  ScrollText, Settings, Truck, UsersRound, Warehouse, Wrench, type LucideIcon,
+} from "lucide-react";
 
 export interface NavItem {
   href: string;
@@ -8,7 +11,7 @@ export interface NavItem {
   icon: LucideIcon;
   /** Shown only to people with ANY of these permissions. */
   perms: Permission[];
-  group: "main" | "admin";
+  group: "main" | "fleet" | "admin";
   /** Extra words the command palette should match. */
   keywords?: string;
 }
@@ -17,14 +20,27 @@ export interface NavItem {
 export const NAV: NavItem[] = [
   { href: "/", label: "navLive", icon: Map, perms: ["fleet.view"], group: "main", keywords: "map vehicles tracking carte" },
   { href: "/routes", label: "navRoutes", icon: Route, perms: ["routes.view"], group: "main", keywords: "stops plan itinéraires" },
+  { href: "/dispatch", label: "navDispatch", icon: KanbanSquare, perms: ["routes.view"], group: "main", keywords: "board assign drivers répartition tableau" },
+  { href: "/jobs", label: "navJobs", icon: ClipboardList, perms: ["routes.view"], group: "main", keywords: "orders deliveries pickups tâches commandes" },
   { href: "/reports", label: "navReports", icon: FileText, perms: ["reports.view"], group: "main", keywords: "distance idle export rapports" },
+  { href: "/fleet/vehicles", label: "navFleetVehicles", icon: Truck, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "trucks buses vans camions autobus" },
+  { href: "/drivers", label: "navDrivers", icon: IdCard, perms: ["users.view", "routes.view"], group: "fleet", keywords: "licence license skills chauffeurs" },
+  { href: "/care", label: "navFleetCare", icon: Wrench, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "maintenance service documents expiry reminders entretien rappels" },
+  { href: "/fuel", label: "navFuel", icon: Fuel, perms: ["fleet.view", "reports.view"], group: "fleet", keywords: "gas diesel litres carburant" },
+  { href: "/trips", label: "navTripLog", icon: MapPinned, perms: ["fleet.view", "reports.view"], group: "fleet", keywords: "mileage tax business personal kilométrage" },
+  { href: "/geofences", label: "navGeofences", icon: Hexagon, perms: ["fleet.view", "alerts.view"], group: "fleet", keywords: "zones alerts enter exit géoclôtures" },
+  { href: "/fleet/inspections", label: "navInspections", icon: ClipboardCheck, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "checklist check-in check-out defects" },
+  { href: "/fleet/incidents", label: "navIncidents", icon: AlertTriangle, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "accident report photos" },
+  { href: "/fleet/equipment", label: "navEquipment", icon: Container, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "trailers remorques" },
+  { href: "/fleet/depots", label: "navDepots", icon: Warehouse, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "parking yard dépôts" },
+  { href: "/fleet/route-templates", label: "navTemplates", icon: Repeat, perms: ["routes.view"], group: "fleet", keywords: "recurring repeat modèles" },
   { href: "/settings", label: "navSettings", icon: Settings, perms: ["settings.manage"], group: "admin", keywords: "company branding paramètres" },
   { href: "/settings/users", label: "navUsers", icon: UsersRound, perms: ["users.view"], group: "admin", keywords: "people roles permissions users personnes" },
   { href: "/audit", label: "navAudit", icon: ScrollText, perms: ["audit.view"], group: "admin", keywords: "changes history journal" },
   { href: "/styleguide", label: "navStyle", icon: Palette, perms: [], group: "admin", keywords: "design components" },
 ];
 
-export const ICONS = { Activity, Gauge, History };
+export const ICONS = { Activity, Gauge, History, BellRing };
 
 /** Pages a person can reach, given their permissions. An empty perms list means everyone. */
 export function visibleNav(can: (...p: Permission[]) => boolean): NavItem[] {
@@ -35,5 +51,6 @@ export function visibleNav(can: (...p: Permission[]) => boolean): NavItem[] {
 export function isActive(href: string, pathname: string): boolean {
   if (href === "/") return pathname === "/";
   if (href === "/settings") return pathname === "/settings";
+  if (href === "/jobs") return pathname === "/jobs" || pathname.startsWith("/jobs/");
   return pathname === href || pathname.startsWith(`${href}/`);
 }
