@@ -5,7 +5,7 @@ import {
 import { pg, withOrg } from "@routenorth/db";
 import { effectivePermissions, homePath, INVITE_ROLES, LOCALES } from "@routenorth/shared";
 import { AuthGuard, requireAny, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
-import { signSession } from "../auth/jwt.js";
+import { startSession } from "../security/sessions.js";
 import { webUrl } from "../customer/links.js";
 import { parseUuid } from "../history/range.js";
 import { deliver, type Providers } from "../notify/notifier.js";
@@ -188,7 +188,7 @@ export class PublicInviteController {
 
   @Post(":token/accept")
   @HttpCode(200)
-  async accept(@Param("token") token: string, @Body() b: { password?: unknown; displayName?: unknown; locale?: unknown }) {
+  async accept(@Param("token") token: string, @Body() b: { password?: unknown; displayName?: unknown; locale?: unknown }, @Req() req: AuthedRequest) {
     const f = await this.find(token);
     if (typeof b?.password !== "string" || b.password.length < 10 || b.password.length > 200) throw new BadRequestException("password must be 10 to 200 characters");
     const name = typeof b.displayName === "string" && b.displayName.trim() ? b.displayName.trim().slice(0, 80) : null;
@@ -211,7 +211,7 @@ export class PublicInviteController {
       const s = withDefaults((await c.query("SELECT settings FROM organizations WHERE id = $1", [f.org_id])).rows[0]?.settings);
       return { ...u, hours: s.sessionHours };
     });
-    const jwt = await signSession(this.secret, { userId: user.id, orgId: f.org_id, role: user.role }, `${user.hours}h`);
+    const jwt = await startSession(this.pool, this.secret, { userId: user.id, orgId: f.org_id, role: user.role }, user.hours, req);
     return { token: jwt, user: { id: user.id, orgId: f.org_id, role: user.role, locale: user.locale, home: homePath(user.role, effectivePermissions(user.role)) } };
   }
 }

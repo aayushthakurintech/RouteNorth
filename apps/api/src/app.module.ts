@@ -1,5 +1,5 @@
 import { DynamicModule, Module } from "@nestjs/common";
-import { APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 import { pg } from "@routenorth/db";
 import { AuditController } from "./audit/audit.controller.js";
 import { AuditInterceptor } from "./audit/audit.interceptor.js";
@@ -46,6 +46,10 @@ import { DocsController, FeedsController, InboundController } from "./platform/f
 import { InvitesController, PublicInviteController, TeamsController } from "./business/team.controller.js";
 import { CommentsController, NotificationsController, ScheduleController, TasksController } from "./business/collab.controller.js";
 import { BillingController } from "./business/billing.controller.js";
+import { SecurityController } from "./security/security.controller.js";
+import { PublicSupportController, SupportController } from "./support/support.controller.js";
+import { OpsController } from "./ops/ops.controller.js";
+import { ErrorLogFilter } from "./ops/errors.js";
 
 export interface AppOptions {
   pool: pg.Pool;
@@ -66,7 +70,7 @@ export class AppModule {
   static register(opts: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController, AutomationController, WebhooksController, ApprovalsController, PublicJobController, DriverExtrasController, MessagesController, HelpRequestsController, TimesheetsController, ExpensesController, PortalController, InvoicesController, MessageDefaultsController, AiController, OptimizeController, SafetyController, PlatformController, FeedsController, InboundController, DocsController, TeamsController, InvitesController, PublicInviteController, CommentsController, NotificationsController, TasksController, ScheduleController, BillingController],
+      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController, AutomationController, WebhooksController, ApprovalsController, PublicJobController, DriverExtrasController, MessagesController, HelpRequestsController, TimesheetsController, ExpensesController, PortalController, InvoicesController, MessageDefaultsController, AiController, OptimizeController, SafetyController, PlatformController, FeedsController, InboundController, DocsController, TeamsController, InvitesController, PublicInviteController, CommentsController, NotificationsController, TasksController, ScheduleController, BillingController, SecurityController, SupportController, PublicSupportController, OpsController],
       providers: [
         { provide: PG_POOL, useValue: opts.pool },
         { provide: POSITION_BUS, useValue: opts.bus },
@@ -79,6 +83,7 @@ export class AppModule {
         AnalyticsService,
         AuditService,
         { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
+        { provide: APP_FILTER, useClass: ErrorLogFilter },
         LiveGateway,
       ],
     };

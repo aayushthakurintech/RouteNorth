@@ -15,6 +15,7 @@ import { BadRequestException } from "@nestjs/common";
 import { runAutomation } from "./automation/processor.js";
 import { PlanController } from "./plan/plan.controller.js";
 import { MemoryPositionBus, RedisPositionBus } from "./live/position-bus.js";
+import { runRetention } from "./ops/retention.js";
 
 const databaseUrl = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL;
 const jwtSecret = process.env.JWT_SECRET;
@@ -41,6 +42,10 @@ const schedulerPool = new pg.Pool({ connectionString: databaseUrl, max: 2 });
 const tick = () => void runScheduledTasks(schedulerPool, (m) => console.log(m)).catch((e) => console.error("scheduler", e));
 tick();
 setInterval(tick, 15 * 60_000).unref();
+// Data retention: remove what each organization chose not to keep, once a day.
+const retention = () => void runRetention(schedulerPool, (m) => console.log(m)).catch((e) => console.error("retention", e));
+setTimeout(retention, 90_000).unref();
+setInterval(retention, 24 * 3_600_000).unref();
 // Alerts: check the rules every minute. Scheduled reports go out when their hour comes (checked every minute too).
 const notify = providersFromEnv();
 const analytics = app.get(AnalyticsService);

@@ -28,6 +28,7 @@ export interface OrgSettings {
   safety: { leaderboard: boolean; anonymous: boolean; coaching: boolean; crashDetection: boolean; fatigueWarnMin: number; fatigueStopMin: number; shiftWarnMin: number; shiftMaxMin: number; checkinGraceMin: number };
   billing: { province: string; taxMode: string; paymentTermsDays: number; quoteValidDays: number; payPerStop: number; payPerKm: number; overtimeMultiplier: number; budgetAlertPct: number; companyName: string; taxNumber: string; fxRates: string };
   costing: { fuelPricePerL: number; wearPerKm: number; tollPerKm: number; evCostPerKm: number };
+  privacy: { messageRetentionDays: number };
   onboarding: { dismissed: boolean; sampleLoaded: boolean };
   platform: { widgetOrigins: string; whiteLabel: boolean; poweredBy: boolean; analyticsOptOut: boolean; mapTileUrl: string; mapKey: string };
   [key: string]: unknown;
@@ -48,7 +49,7 @@ export const DEFAULT_SETTINGS: OrgSettings = {
   costPerHour: 35,
   overtimeAfterH: 8,
   featureFlags: {},
-  ...(extraDefaults() as Pick<OrgSettings, "safety" | "billing" | "costing" | "onboarding" | "platform">),
+  ...(extraDefaults() as Pick<OrgSettings, "safety" | "billing" | "costing" | "privacy" | "onboarding" | "platform">),
 };
 
 export function withDefaults(raw: unknown): OrgSettings {
@@ -60,7 +61,7 @@ export function withDefaults(raw: unknown): OrgSettings {
 export function publicSettings(raw: unknown) {
   const s = withDefaults(raw);
   return {
-    idleThresholdMin: s.idleThresholdMin, speedLimitKmh: s.speedLimitKmh, trackOnlyDuringShift: s.trackOnlyDuringShift,
+    idleThresholdMin: s.idleThresholdMin, speedLimitKmh: s.speedLimitKmh, trackOnlyDuringShift: s.trackOnlyDuringShift, twoFactorRequired: s.twoFactorRequired,
     defaultMapProvider: s.defaultMapProvider, currency: s.currency, taxRatePct: s.taxRatePct, featureFlags: s.featureFlags,
     platform: { mapKey: s.platform.mapKey, mapTileUrl: s.platform.mapTileUrl, analyticsOptOut: s.platform.analyticsOptOut },
     billing: { province: s.billing.province },

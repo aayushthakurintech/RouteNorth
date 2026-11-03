@@ -76,6 +76,11 @@ export class OrgController {
     if (body.settings !== undefined) {
       let patch;
       try { patch = parseSettingsPatch(body.settings); } catch (e) { throw new BadRequestException((e as Error).message); }
+      if (patch.twoFactorRequired === true) {
+        // Do not lock out the person turning it on: they need two-factor themselves first.
+        const mine = (await withOrg(this.pool, orgId, (c) => c.query("SELECT 1 FROM user_security WHERE user_id = $1 AND totp_enabled_at IS NOT NULL", [req.session!.userId]))).rowCount;
+        if (!mine) throw new BadRequestException("set up two-factor sign-in for yourself first, then require it for everyone");
+      }
       args.push(JSON.stringify(patch));
       // Grouped options (customer messages, booking ...) are merged one level deep, so saving one switch keeps the others.
       let expr = `settings || $${args.length}::jsonb`;

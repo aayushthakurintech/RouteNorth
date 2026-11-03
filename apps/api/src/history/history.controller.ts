@@ -1,6 +1,8 @@
 import { Controller, Get, HttpException, Inject, NotFoundException, Param, Query, Req, UseGuards } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
 import { dailyTotals, detectTrips, type Fix } from "@routenorth/shared";
+import { offShiftSql } from "../security/privacy.js";
+import { withDefaults } from "../org/settings.js";
 import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { PG_POOL } from "../tokens.js";
 import { parseRange, parseTimeZone, parseUuid } from "./range.js";
@@ -21,13 +23,15 @@ export class HistoryController {
 
   /** All fixes in range, oldest first, for one device (or the whole organization when deviceId is null). */
   private async load(orgId: string, deviceId: string | null, from: Date, to: Date): Promise<Row[]> {
-    const res = await withOrg(this.pool, orgId, (c) =>
-      c.query<Row>(
+    const res = await withOrg(this.pool, orgId, async (c) => {
+      const priv = withDefaults((await c.query("SELECT settings FROM organizations WHERE id = $1", [orgId])).rows[0]?.settings).trackOnlyDuringShift;
+      return c.query<Row>(
         `SELECT device_id, time, lat, lng, speed, ignition, odometer FROM positions
-         WHERE time >= $1 AND time < $2 AND ($3::uuid IS NULL OR device_id = $3)
+         WHERE time >= $1 AND time < $2 AND ($3::uuid IS NULL OR device_id = $3)${priv ? ` AND NOT ${offShiftSql("positions.time", "positions.device_id")}` : ""}
          ORDER BY device_id, time LIMIT ${MAX_ROWS + 1}`,
         [from, to, deviceId],
-      ),
+      );
+    },
     );
     if (res.rows.length > MAX_ROWS) throw new HttpException("too much data in range; choose a shorter range", 413);
     return res.rows;

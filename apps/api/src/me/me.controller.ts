@@ -1,10 +1,10 @@
 import { BadRequestException, Body, Controller, Get, Inject, Patch, Post, Put, Req, UnauthorizedException, UseGuards } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
-import { LOCALES, homePath } from "@routenorth/shared";
+import { LOCALES, homePath, resolveFlags } from "@routenorth/shared";
 import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
 import { hashPassword, verifyPassword } from "../passwords.js";
 import { PG_POOL } from "../tokens.js";
-import { publicSettings } from "../org/settings.js";
+import { publicSettings, withDefaults } from "../org/settings.js";
 
 const MAX_PREFS_BYTES = 40_000;
 
@@ -26,9 +26,13 @@ export class MeController {
         `SELECT id, name, locale, timezone, brand_name AS "brandName", brand_color AS "brandColor", logo_data_url AS "logoDataUrl", settings
          FROM organizations WHERE id = $1`, [orgId])).rows[0];
       const prefs = (await c.query("SELECT prefs FROM user_prefs WHERE user_id = $1", [userId])).rows[0]?.prefs ?? {};
+      const sec = (await c.query("SELECT totp_enabled_at IS NOT NULL AS on FROM user_security WHERE user_id = $1", [userId])).rows[0];
+      const settings = withDefaults(o.settings);
       return {
         user: u,
         perms,
+        flags: resolveFlags(orgId, settings.featureFlags),
+        security: { twoFactor: !!sec?.on, mustSetUpTwoFactor: settings.twoFactorRequired && !sec?.on && !["driver", "customer"].includes(u.role) },
         home: homePath(u.role, req.perms ?? new Set()),
         org: { ...o, settings: publicSettings(o.settings) },
         prefs,

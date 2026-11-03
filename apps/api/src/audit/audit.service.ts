@@ -17,7 +17,7 @@ export interface AuditEntry {
 }
 
 /** Keys that never go into the log, whatever the request carried. */
-const SECRET_KEYS = /pass|token|secret|signature|image|data|authorization|key/i;
+const SECRET_KEYS = /pass|token|secret|signature|image|data|authorization|key|code|otp/i;
 
 /** A short, safe summary of a request body for the log: no secrets, bounded size. */
 export function summarizeBody(body: unknown, depth = 0): unknown {
@@ -64,6 +64,8 @@ export class AuditService {
         ),
       );
     } catch (err) {
+      // The organization was deleted while the request was running: there is nothing left to record against.
+      if ((err as { code?: string }).code === "23503") return;
       this.log.error(`could not write audit row: ${(err as Error).message}`);
     }
   }

@@ -1,6 +1,8 @@
 import { Controller, Get, Inject, Req, UseGuards } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
 import { vehicleStatus, type VehicleStatus } from "@routenorth/shared";
+import { offShiftSql } from "../security/privacy.js";
+import { withDefaults } from "../org/settings.js";
 import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { PG_POOL } from "../tokens.js";
 
@@ -36,16 +38,17 @@ export class VehiclesController {
   async live(@Req() req: AuthedRequest): Promise<LiveVehicle[]> {
     requirePerm(req, "fleet.view");
     const orgId = req.session!.orgId;
-    const rows = await withOrg(this.pool, orgId, (c) =>
-      c.query(
+    const rows = await withOrg(this.pool, orgId, async (c) => {
+      const priv = withDefaults((await c.query("SELECT settings FROM organizations WHERE id = $1", [orgId])).rows[0]?.settings).trackOnlyDuringShift;
+      return c.query(
         `SELECT d.id AS device_id, v.id AS vehicle_id, coalesce(v.name, d.external_id) AS name,
                 coalesce(v.kind, 'car') AS kind, lp.time, lp.lat, lp.lng, lp.speed, lp.heading, lp.ignition
          FROM latest_positions lp
          JOIN devices d ON d.id = lp.device_id
-         LEFT JOIN vehicles v ON v.id = d.vehicle_id
+         LEFT JOIN vehicles v ON v.id = d.vehicle_id${priv ? `\n         WHERE NOT ${offShiftSql("lp.time", "lp.device_id")}` : ""}
          ORDER BY name`,
-      ),
-    );
+      );
+    });
     return rows.rows.map((r) => {
       const time = new Date(r.time).toISOString();
       return {

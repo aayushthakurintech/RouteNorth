@@ -37,16 +37,30 @@ export class AuthGuard implements CanActivate {
     // The token only proves who they are. Role, custom role and disabled state come from the database,
     // so removing someone or changing their role takes effect immediately.
     const found = await withOrg(this.pool, session.orgId, (c) =>
-      c.query<{ role: string; disabled: boolean; custom: string[] | null; email: string; display_name: string | null }>(
-        `SELECT u.role, u.email, u.display_name, (u.disabled_at IS NOT NULL) AS disabled, cr.permissions AS custom
+      c.query<{ role: string; disabled: boolean; custom: string[] | null; email: string; display_name: string | null; sid_ok: boolean | null; seen: Date | null; has2fa: boolean; require2fa: string | null }>(
+        `SELECT u.role, u.email, u.display_name, (u.disabled_at IS NOT NULL) AS disabled, cr.permissions AS custom,
+                (SELECT s.revoked_at IS NULL AND s.user_id = u.id FROM user_sessions s WHERE s.id = $2::uuid) AS sid_ok,
+                (SELECT s.last_seen_at FROM user_sessions s WHERE s.id = $2::uuid) AS seen,
+                coalesce((SELECT us.totp_enabled_at IS NOT NULL FROM user_security us WHERE us.user_id = u.id), false) AS has2fa,
+                (SELECT o.settings ->> 'twoFactorRequired' FROM organizations o WHERE o.id = u.org_id) AS require2fa
          FROM users u LEFT JOIN custom_roles cr ON cr.id = u.custom_role_id AND cr.org_id = u.org_id
-         WHERE u.id = $1`, [session.userId]),
+         WHERE u.id = $1`, [session.userId, session.sid ?? null]),
     );
     const user = found.rows[0];
     if (!user || user.disabled) throw new UnauthorizedException();
+    // A token tied to a sign-in is dead once that sign-in is revoked (signed out, or removed from the sessions list).
+    if (session.sid && user.sid_ok !== true) throw new UnauthorizedException();
+    if (session.sid && (!user.seen || Date.now() - new Date(user.seen).getTime() > 5 * 60_000)) {
+      void withOrg(this.pool, session.orgId, (c) => c.query("UPDATE user_sessions SET last_seen_at = now() WHERE id = $1", [session.sid])).catch(() => {});
+    }
     req.session = { ...session, role: user.role };
     req.perms = effectivePermissions(user.role, user.custom);
     req.actor = { email: user.email, displayName: user.display_name };
+    // When the organization requires two-factor sign-in, office users without it can only reach the screens that set it up.
+    if (user.require2fa === "true" && !user.has2fa && !["driver", "customer"].includes(user.role)) {
+      const url = req.originalUrl ?? req.url ?? "";
+      if (!/^\/(me|auth|security\/2fa)(\/|\?|$)/.test(url)) throw new ForbiddenException({ message: "two-factor sign-in is required", code: "mfa_required" });
+    }
     return true;
   }
 
