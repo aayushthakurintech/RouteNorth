@@ -29,7 +29,7 @@ export default function LoginPage() {
       const { token, user } = await res.json();
       saveSession({ token, locale: user.locale, role: user.role });
       setLocale(user.locale);
-      router.replace(user.role === "driver" ? "/driver" : "/");
+      router.replace(user.home ?? (user.role === "driver" ? "/driver" : "/"));
     } catch {
       // fetch itself failed: API not running, wrong address, or blocked by CORS.
       setError("loginUnreachable");
@@ -39,9 +39,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="login">
-      <LanguageToggle />
-      <h1>{t("appName")}</h1>
+    <main className="login-page"><div className="login">
+      <div className="top"><strong className="display">{t("appName")}</strong><LanguageToggle /></div>
+      <h1>{t("signIn")}</h1>
       <p>{t("tagline")}</p>
       <form onSubmit={onSubmit}>
         <label>
@@ -55,6 +55,6 @@ export default function LoginPage() {
         {error && <p role="alert" className="error">{t(error)}</p>}
         <button type="submit" disabled={busy}>{t("signIn")}</button>
       </form>
-    </main>
+    </div></main>
   );
 }
