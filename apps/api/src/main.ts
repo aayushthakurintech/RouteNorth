@@ -5,6 +5,7 @@ import { AppModule } from "./app.module.js";
 import { configureApp } from "./configure.js";
 import { runScheduledTasks } from "./dispatch/scheduler.js";
 import { geocoderFromEnv } from "./dispatch/geocoder.js";
+import { weatherFromEnv } from "./weather/provider.js";
 import { providerFromEnv } from "./plan/providers.js";
 import { MemoryPositionBus, RedisPositionBus } from "./live/position-bus.js";
 
@@ -20,6 +21,7 @@ const app = await NestFactory.create(
     jwtSecret,
     routing: providerFromEnv(),
     geocoder: geocoderFromEnv(),
+    weather: weatherFromEnv(),
   }),
 );
 configureApp(app);

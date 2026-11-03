@@ -386,6 +386,34 @@ export class AttachmentsController {
     res.type(row.content_type).send(row.data);
   }
 
+  /** Attach a file (photo or PDF) to an incident, document, vehicle, driver or equipment record. */
+  @Put("for/:kind/:id")
+  async attachTo(@Req() req: AuthedRequest, @Param("kind") kind: string, @Param("id") id: string, @Body() body: unknown, @Query("name") name?: string) {
+    const orgId = requirePerm(req, "fleet.manage");
+    const tables: Record<string, string> = { incident: "incidents", document: "documents", vehicle: "vehicles", equipment: "equipment" };
+    if (!(kind in tables)) throw new BadRequestException(`kind must be one of ${Object.keys(tables).join(", ")}`);
+    const oid = parseUuid(id);
+    const type = String(req.headers["content-type"] ?? "").split(";")[0]!.trim().toLowerCase();
+    if (!ATTACHMENT_TYPES.includes(type)) throw new HttpException(`content type must be one of ${ATTACHMENT_TYPES.join(", ")}`, 415);
+    if (!Buffer.isBuffer(body) || body.length === 0) throw new BadRequestException("file body required");
+    if (body.length > MAX_ATTACHMENT) throw new HttpException("file too large", 413);
+    if (!(type === "application/pdf" ? body.subarray(0, 5).toString("latin1") === "%PDF-" : matchesImageType(type, body))) throw new BadRequestException("file contents do not match the content type");
+    return withOrg(this.pool, orgId, async (c) => {
+      if (!(await c.query(`SELECT 1 FROM ${tables[kind]} WHERE id = $1`, [oid])).rowCount) throw new NotFoundException();
+      return (await c.query(
+        `INSERT INTO attachments (org_id, owner_kind, owner_id, name, content_type, size_bytes, data, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+         RETURNING id, name, content_type AS "contentType", size_bytes AS "sizeBytes"`,
+        [orgId, kind, oid, (name ?? "file").replace(/[^\w.\- ]+/g, "_").slice(0, 120) || "file", type, body.length, body, req.session!.userId])).rows[0];
+    });
+  }
+
+  @Get("of/:kind/:id")
+  async listFor(@Req() req: AuthedRequest, @Param("kind") kind: string, @Param("id") id: string) {
+    const orgId = requirePerm(req, "fleet.view", "routes.view");
+    return (await withOrg(this.pool, orgId, (c) => c.query(
+      `SELECT id, name, content_type AS "contentType", size_bytes AS "sizeBytes", created_at AS "createdAt" FROM attachments WHERE owner_kind = $1 AND owner_id = $2 ORDER BY created_at`, [kind, parseUuid(id)]))).rows;
+  }
+
   @Delete(":id")
   @HttpCode(204)
   async remove(@Req() req: AuthedRequest, @Param("id") id: string) {

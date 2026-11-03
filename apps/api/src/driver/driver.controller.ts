@@ -127,6 +127,83 @@ export class DriverController {
     });
   }
 
+  /** The vehicle on the driver's routes today (what they will check out). */
+  @Get("vehicle")
+  async myVehicle(@Req() req: AuthedRequest) {
+    requirePerm(req, "driver.app");
+    const { orgId, userId } = req.session!;
+    return withOrg(this.pool, orgId, async (c) => (await c.query(
+      `SELECT v.id, v.name, v.plate, v.kind, v.odometer_km AS "odometerKm" FROM routes r JOIN vehicles v ON v.id = r.vehicle_id JOIN organizations o ON o.id = r.org_id
+       WHERE r.driver_id = $1 AND r.status <> 'cancelled' AND r.route_date = (now() AT TIME ZONE o.timezone)::date ORDER BY r.created_at LIMIT 1`, [userId])).rows[0] ?? null);
+  }
+
+  /** Vehicle check-out or check-in with the inspection checklist. Any failed item records a defect. */
+  @Post("inspections")
+  async inspect(@Req() req: AuthedRequest, @Body() body: { vehicleId?: unknown; kind?: unknown; items?: unknown; odometerKm?: unknown; notes?: unknown }) {
+    requirePerm(req, "driver.app");
+    const { orgId, userId } = req.session!;
+    if (body?.kind !== "check_out" && body?.kind !== "check_in") throw new BadRequestException("kind must be check_out or check_in");
+    if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > 60) throw new BadRequestException("items must be a checklist");
+    const items = body.items.map((i) => {
+      const o = i as { key?: unknown; ok?: unknown; note?: unknown };
+      if (typeof o.key !== "string" || !o.key || o.key.length > 60 || typeof o.ok !== "boolean") throw new BadRequestException("each item needs a key and ok true or false");
+      return { key: o.key, ok: o.ok, note: o.note ? String(o.note).slice(0, 300) : undefined };
+    });
+    const odo = body.odometerKm == null || body.odometerKm === "" ? null : Number(body.odometerKm);
+    if (odo !== null && !(odo >= 0 && odo < 10_000_000)) throw new BadRequestException("odometerKm must be a number");
+    const vehicleId = parseUuid(String(body.vehicleId));
+    return withOrg(this.pool, orgId, async (c) => {
+      if (!(await c.query("SELECT 1 FROM vehicles WHERE id = $1", [vehicleId])).rowCount) throw new NotFoundException();
+      const defects = items.some((i) => !i.ok);
+      const row = (await c.query(
+        `INSERT INTO inspections (org_id, vehicle_id, driver_id, kind, items, defects, odometer_km, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id, defects, at`,
+        [orgId, vehicleId, userId, body.kind, JSON.stringify(items), defects, odo, body.notes ? String(body.notes).slice(0, 2000) : null])).rows[0];
+      if (odo !== null) await c.query("UPDATE vehicles SET odometer_km = greatest(odometer_km, $2) WHERE id = $1", [vehicleId, odo]);
+      return row;
+    });
+  }
+
+  /** Report an accident or incident from the road. */
+  @Post("incidents")
+  async reportIncident(@Req() req: AuthedRequest, @Body() body: Record<string, unknown>) {
+    requirePerm(req, "driver.app");
+    const { orgId, userId } = req.session!;
+    const kind = String(body?.kind ?? "other");
+    if (!["accident", "near_miss", "theft", "damage", "breakdown", "other"].includes(kind)) throw new BadRequestException("invalid kind");
+    const severity = String(body?.severity ?? "minor");
+    if (!["minor", "moderate", "major"].includes(severity)) throw new BadRequestException("invalid severity");
+    const description = typeof body?.description === "string" ? body.description.trim() : "";
+    if (!description || description.length > 4000) throw new BadRequestException("describe what happened (up to 4000 characters)");
+    const lat = body?.lat == null ? null : Number(body.lat), lng = body?.lng == null ? null : Number(body.lng);
+    if ((lat !== null && !(lat >= -90 && lat <= 90)) || (lng !== null && !(lng >= -180 && lng <= 180))) throw new BadRequestException("invalid coordinates");
+    const vehicleId = body?.vehicleId ? parseUuid(String(body.vehicleId)) : null;
+    return withOrg(this.pool, orgId, async (c) => {
+      if (vehicleId && !(await c.query("SELECT 1 FROM vehicles WHERE id = $1", [vehicleId])).rowCount) throw new NotFoundException();
+      return (await c.query(
+        `INSERT INTO incidents (org_id, vehicle_id, driver_id, reported_by, kind, severity, description, lat, lng, location, injuries) VALUES ($1,$2,$3,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id, occurred_at AS "occurredAt"`,
+        [orgId, vehicleId, userId, kind, severity, description, lat, lng, body?.location ? String(body.location).slice(0, 300) : null, body?.injuries === true])).rows[0];
+    });
+  }
+
+  /** Add a photo to an incident the driver reported. */
+  @Put("incidents/:id/photos")
+  async incidentPhoto(@Req() req: AuthedRequest, @Param("id") id: string, @Body() body: unknown, @Query("name") name?: string) {
+    requirePerm(req, "driver.app");
+    const { orgId, userId } = req.session!;
+    const iid = parseUuid(id);
+    const contentType = String(req.headers["content-type"] ?? "").split(";")[0]!.trim().toLowerCase();
+    if (!PROOF_TYPES.includes(contentType)) throw new HttpException(`content type must be one of ${PROOF_TYPES.join(", ")}`, 415);
+    if (!Buffer.isBuffer(body) || body.length === 0) throw new BadRequestException("image body required");
+    if (body.length > MAX_PROOF_BYTES) throw new HttpException("image too large", 413);
+    if (!matchesImageType(contentType, body)) throw new BadRequestException("file contents do not match the content type");
+    return withOrg(this.pool, orgId, async (c) => {
+      if (!(await c.query("SELECT 1 FROM incidents WHERE id = $1 AND reported_by = $2", [iid, userId])).rowCount) throw new NotFoundException();
+      return (await c.query(
+        `INSERT INTO attachments (org_id, owner_kind, owner_id, name, content_type, size_bytes, data, created_by) VALUES ($1,'incident',$2,$3,$4,$5,$6,$7) RETURNING id, name`,
+        [orgId, iid, (name ?? "photo").replace(/[^\w.\- ]+/g, "_").slice(0, 120) || "photo", contentType, body.length, body, userId])).rows[0];
+    });
+  }
+
   /** Record a scanned barcode or typed package code at a stop (proof of delivery). Safe to replay with the same clientId. */
   @Post("stops/:stopId/scans")
   async scan(@Req() req: AuthedRequest, @Param("stopId") stopId: string, @Body() body: { code?: unknown; clientId?: unknown; scannedAt?: unknown }) {
