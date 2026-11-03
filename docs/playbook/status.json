@@ -9,7 +9,7 @@
  },
  "ds.2": {
   "s": "done",
-  "note": "Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton)."
+  "note": "Dashboard cards come in 1 to 4 column sizes on a grid (Dashboards page)."
  },
  "ds.3": {
   "s": "done",
@@ -414,5 +414,269 @@
  "fleet.10": {
   "s": "done",
   "note": "Trip log from vehicle movement with business or personal tags and CSV export."
+ },
+ "dash.1": {
+  "s": "done",
+  "note": "Executive template: cost, on-time rate, utilization, customer score, trends, goals, insights and forecast. Cost uses the per-km and per-hour rates in settings."
+ },
+ "dash.2": {
+  "s": "done",
+  "note": "Operations template: live jobs, late stops, idling vehicles (refreshes every 30 seconds)."
+ },
+ "dash.3": {
+  "s": "done",
+  "note": "Driver template, and a \"My numbers\" sheet in the driver app: score, stops, on-time rate, distance, safety events and an estimated pay."
+ },
+ "dash.4": {
+  "s": "partial",
+  "note": "A customer-service template (deliveries, delays, failed reasons, ratings by customer) for your staff. A dashboard that customers sign in to comes with the customer portal in Phase 4."
+ },
+ "dash.5": {
+  "s": "done",
+  "note": "Finance template: cost per route, stop, kilometre, hour and vehicle."
+ },
+ "dash.6": {
+  "s": "done",
+  "note": "Safety template: speeding, harsh braking and acceleration found in GPS tracks, incidents, driver score."
+ },
+ "dash.7": {
+  "s": "done",
+  "note": "Sustainability template: fuel, CO2, fuel economy, idle share and savings from applied route optimization (assumes 30 L per 100 km)."
+ },
+ "dash.8": {
+  "s": "done",
+  "note": "Customize: add, remove, resize and drag widgets (or use the up and down buttons), then save as your own dashboard and share it with the team."
+ },
+ "dash.9": {
+  "s": "done",
+  "note": "Seven templates by role; the page opens on the one that fits your role."
+ },
+ "dash.10": {
+  "s": "done",
+  "note": "TV wall mode: full screen, big numbers, refreshes every minute, Esc to leave."
+ },
+ "dash.11": {
+  "s": "partial",
+  "note": "One set of filters (dates, depot, driver, vehicle) for every widget. There is no separate \"region\" or \"team\" field yet, so depots stand in for them."
+ },
+ "dash.12": {
+  "s": "done",
+  "note": "Compare with the previous period or the same dates last year; every key number shows the change."
+ },
+ "kpi.1": {
+  "s": "done",
+  "note": "On-time delivery rate, from stop arrival times against time windows."
+ },
+ "kpi.2": {
+  "s": "done",
+  "note": "First-attempt success rate."
+ },
+ "kpi.3": {
+  "s": "done",
+  "note": "Average delay and worst delay in minutes."
+ },
+ "kpi.4": {
+  "s": "done",
+  "note": "Cost per stop, per kilometre and per hour. These are estimates from the rates in settings; fuel and repair costs are shown as their own numbers."
+ },
+ "kpi.5": {
+  "s": "done",
+  "note": "Utilization (engine hours against a shift) and load fill (weight against vehicle capacity)."
+ },
+ "kpi.6": {
+  "s": "done",
+  "note": "Idle time, idle share and engine-on time from GPS."
+ },
+ "kpi.7": {
+  "s": "done",
+  "note": "Planned versus actual distance and time per route."
+ },
+ "kpi.8": {
+  "s": "done",
+  "note": "Stops per hour."
+ },
+ "kpi.9": {
+  "s": "done",
+  "note": "Fuel economy (L per 100 km) per vehicle from fuel logs, and per driver where the fill-up names the driver."
+ },
+ "kpi.10": {
+  "s": "done",
+  "note": "Customer satisfaction (1 to 5) and NPS from ratings on the tracking page or entered by the office."
+ },
+ "kpi.11": {
+  "s": "done",
+  "note": "Missed time windows."
+ },
+ "kpi.12": {
+  "s": "done",
+  "note": "Failed delivery reasons, ranked."
+ },
+ "kpi.14": {
+  "s": "done",
+  "note": "Vehicle downtime hours and repair cost from maintenance logs."
+ },
+ "kpi.15": {
+  "s": "done",
+  "note": "Driver overtime hours (after the daily hours set in settings)."
+ },
+ "kpi.13": {
+  "s": "partial",
+  "note": "Route adherence is measured against straight lines between stops (within 600 m), so it is a rough guide. A road-based check needs the routing service switched on."
+ },
+ "report.1": {
+  "s": "done",
+  "note": "Daily operations summary template."
+ },
+ "report.2": {
+  "s": "done",
+  "note": "Weekly and monthly performance templates."
+ },
+ "report.3": {
+  "s": "done",
+  "note": "Driver scorecard template."
+ },
+ "report.4": {
+  "s": "done",
+  "note": "Vehicle health and cost template."
+ },
+ "report.5": {
+  "s": "done",
+  "note": "Route efficiency template (plan versus actual)."
+ },
+ "report.6": {
+  "s": "done",
+  "note": "Customer service template."
+ },
+ "report.7": {
+  "s": "done",
+  "note": "Exceptions template: late, failed and skipped stops."
+ },
+ "report.9": {
+  "s": "done",
+  "note": "Fuel and emissions template (CO2 from fuel type)."
+ },
+ "report.10": {
+  "s": "done",
+  "note": "Geofence visits template with time spent in each zone."
+ },
+ "report.11": {
+  "s": "done",
+  "note": "Idle and stop-time template."
+ },
+ "report.15": {
+  "s": "done",
+  "note": "One-page executive summary as a branded PDF (button on the Dashboards page)."
+ },
+ "report.8": {
+  "s": "partial",
+  "note": "A mileage template (km and engine hours per vehicle). The business and personal split lives in the Trip log, not yet in this report."
+ },
+ "report.12": {
+  "s": "partial",
+  "note": "Compliance report lists shift hours, failed inspections and expiring documents. Legal hours-of-service rules are not built."
+ },
+ "report.13": {
+  "s": "partial",
+  "note": "A billing template with a price-per-stop formula you can change. Invoice numbers, tax and customer contracts are not built."
+ },
+ "builder.1": {
+  "s": "done",
+  "note": "Report builder: pick data, columns, filters, grouping and sorting."
+ },
+ "builder.2": {
+  "s": "done",
+  "note": "Save reports, keep versions, share with the team, and start from 16 templates."
+ },
+ "builder.4": {
+  "s": "done",
+  "note": "Pivot tables."
+ },
+ "builder.5": {
+  "s": "done",
+  "note": "Calculated fields with a safe formula box (for example cost / stops)."
+ },
+ "builder.6": {
+  "s": "done",
+  "note": "Charts: line, bar, stacked, pie, heat map, funnel, scatter and map, each with a table view."
+ },
+ "builder.7": {
+  "s": "done",
+  "note": "Map reports: a heat map of stops or driving events."
+ },
+ "builder.10": {
+  "s": "done",
+  "note": "PDF reports carry the company logo, name and colour from settings."
+ },
+ "builder.11": {
+  "s": "done",
+  "note": "Public share links with an expiry date, a visible list and one-click turn-off."
+ },
+ "builder.12": {
+  "s": "done",
+  "note": "Embed a shared report in another page with an iframe (add ?embed=1)."
+ },
+ "builder.14": {
+  "s": "done",
+  "note": "Every save keeps a version; restore any earlier one."
+ },
+ "builder.3": {
+  "s": "partial",
+  "note": "Click a chart mark or a grouped row to drill into the rows behind it (scorecards open their stops). It stops at the route; it does not yet jump to a single trip replay."
+ },
+ "builder.8": {
+  "s": "external",
+  "note": "Daily, weekly and monthly schedules to Slack, Teams, webhooks, email or SMS are built and tested against a stand-in server. Email and SMS need a mail-service key or a Twilio account set up on the server, and none of it was tried against the real services."
+ },
+ "builder.9": {
+  "s": "partial",
+  "note": "PDF, Excel and CSV exports work. For Google Sheets, a shared report CSV link can be pulled in with the IMPORTDATA formula; there is no direct Google connection."
+ },
+ "builder.13": {
+  "s": "partial",
+  "note": "A shared link can be limited to one driver, vehicle or depot. Restricting what each signed-in person sees by depot or team is not built."
+ },
+ "alerts.1": {
+  "s": "done",
+  "note": "Alert rules for late risk, off route, long idle, speeding and geofence entry or exit, plus offline vehicles, harsh driving, expiring documents, due maintenance, cost spikes and any number crossing a limit."
+ },
+ "alerts.2": {
+  "s": "done",
+  "note": "Rule builder with plain-words summary and a \"test the rule\" button."
+ },
+ "alerts.4": {
+  "s": "done",
+  "note": "Quiet hours (critical alerts still go out) and grouping so the same problem is not repeated."
+ },
+ "alerts.5": {
+  "s": "done",
+  "note": "Morning summary at 7:00 of what was held back."
+ },
+ "alerts.6": {
+  "s": "done",
+  "note": "Cost anomaly rule and insight cards use a robust statistic against the last month."
+ },
+ "alerts.7": {
+  "s": "done",
+  "note": "Insight cards in plain English or French (for example: a route late on most recent days)."
+ },
+ "alerts.8": {
+  "s": "done",
+  "note": "Goals with targets and progress bars for a day, week or month."
+ },
+ "alerts.9": {
+  "s": "done",
+  "note": "Benchmarks compare drivers, vehicles, depots and routes against the middle of the group."
+ },
+ "alerts.10": {
+  "s": "done",
+  "note": "Forecast of next week stops, cost and drive hours with what is already booked."
+ },
+ "alerts.3": {
+  "s": "external",
+  "note": "In-app inbox, Slack, Teams and webhooks are built and tested against a stand-in server. Email and SMS need an email key or Twilio account on the server and were not tried live. Browser or phone push is not built."
+ },
+ "alerts.11": {
+  "s": "partial",
+  "note": "The ask box understands common questions such as \"which driver had the most delays last month?\" with a rule-based reader and answers with a number or chart. Free-form questions come with the AI helper in Phase 5."
  }
 }

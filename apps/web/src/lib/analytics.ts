@@ -74,3 +74,13 @@ export const TEMPLATES: Record<string, { label: MessageKey; role: string; widget
 };
 
 export function isTv(): boolean { return typeof window !== "undefined" && new URLSearchParams(window.location.search).has("tv"); }
+
+export type Compare = "none" | "prev" | "year";
+/** The same length of time just before (or a year before) the chosen dates. */
+export function comparisonRange(f: Filters, mode: Compare): { from: string; to: string } | null {
+  if (mode === "none") return null;
+  const len = Math.round((Date.parse(f.to) - Date.parse(f.from)) / 86_400_000) + 1;
+  if (mode === "prev") return { from: addDays(f.from, -len), to: addDays(f.from, -1) };
+  return { from: addDays(f.from, -365), to: addDays(f.to, -365) };
+}
+

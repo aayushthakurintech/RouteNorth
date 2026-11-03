@@ -1,11 +1,11 @@
 "use client";
 import type { MessageKey } from "@routenorth/shared";
-import { GripVertical, Maximize2, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Download, GripVertical, Maximize2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FilterBar } from "@/components/analytics/FilterBar";
 import { AskBox, WidgetView, type Compare, type Ctx } from "@/components/analytics/Widgets";
 import { ErrorState, PageHead, Tabs } from "@/components/ui/primitives";
-import { apiSend } from "@/lib/api";
+import { apiDownload, apiSend } from "@/lib/api";
 import { metricLabel, presetRange, query, TEMPLATES, wid, type Filters, type MetricMeta, type Metrics, type Widget, type WidgetKind } from "@/lib/analytics";
 import { useI18n } from "@/lib/i18n-context";
 import { useMe } from "@/lib/me-context";
@@ -21,7 +21,7 @@ function roleDefault(role: string | undefined): string {
 }
 
 export default function AnalyticsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { me, can } = useMe();
   const { toast } = useToast();
   const [filters, setFilters] = useState<Filters>({ ...presetRange("last7") });
@@ -137,6 +137,7 @@ export default function AnalyticsPage() {
     <div className="content">
       <PageHead title={t("navAnalytics")} subtitle={t("dash_subtitle")} actions={(
         <>
+          {canSee && can("reports.export") && <button className="btn" onClick={() => void apiDownload(`/reports/executive.pdf?from=${filters.from}&to=${filters.to}&lang=${locale}`, `executive-summary-${filters.to}.pdf`).catch((e) => toast((e as Error).message))}><Download size={16} /> {t("dash_execPdf")}</button>}
           {canSee && <button className="btn" onClick={() => { setTv(true); document.documentElement.requestFullscreen?.().catch(() => {}); }}><Maximize2 size={16} /> {t("dash_tvMode")}</button>}
           {canSee && (editing
             ? <><button className="btn primary" onClick={() => void save(false)} disabled={!isSaved}>{t("save")}</button><button className="btn" onClick={() => void save(true)}>{t("dash_saveCopy")}</button><button className="btn" onClick={() => setPick((p) => p + "")}>{t("cancel")}</button></>

@@ -142,10 +142,30 @@ function ScanSheet({ t, stop, onClose, onDone }: { t: T; stop: { id: string; nam
   );
 }
 
+interface MyNumbers { metrics: Record<string, number | null>; earnings: { hours: number; overtimeH: number; estimate: number } | null }
+function MySheet({ t, onClose }: { t: T; onClose: () => void }) {
+  const [d, setD] = useState<MyNumbers | null | undefined>(undefined);
+  useEffect(() => { call<MyNumbers>("GET", "/analytics/me").then(setD).catch(() => setD(null)); }, []);
+  const m = d?.metrics ?? {};
+  const row = (label: MessageKey, v: number | null | undefined, suffix = "") => <div className="stat-row" key={label}><span>{t(label)}</span><strong>{v == null ? "—" : `${Math.round(v * 10) / 10}${suffix}`}</strong></div>;
+  return (
+    <Sheet title={t("dash_myNumbers")} t={t} onClose={onClose}>
+      {d === undefined ? <p className="meta">…</p> : d === null ? <p className="error" role="alert">{t("error")}</p> : (
+        <div className="stack">
+          {row("an_driverScore", m.driverScore)}{row("an_stopsDone", m.stopsDone)}{row("an_onTimeRate", m.onTimeRate, "%")}{row("an_distanceKm", m.distanceKm, " km")}
+          {row("an_speedingEvents", (m.speedingEvents ?? 0) + (m.harshBrakes ?? 0) + (m.harshAccels ?? 0))}
+          {d.earnings && <div className="stat-row"><span>{t("dash_earnings")}</span><strong>{`$${d.earnings.estimate.toFixed(2)}`}</strong></div>}
+          <p className="meta">{t("dash_earningsNote")}</p>
+        </div>
+      )}
+    </Sheet>
+  );
+}
+
 /** Extra driver tools: vehicle check, report a problem, scan a package code at the next stop. */
 export function DriverExtras({ nextStop }: { nextStop: { id: string; name: string } | null }) {
   const { t } = useI18n() as { t: T };
-  const [open, setOpen] = useState<"check" | "incident" | "scan" | null>(null);
+  const [open, setOpen] = useState<"check" | "incident" | "scan" | "mine" | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const done = (m: string) => { setOpen(null); setMsg(m); setTimeout(() => setMsg(null), 6000); };
   return (
@@ -153,11 +173,13 @@ export function DriverExtras({ nextStop }: { nextStop: { id: string; name: strin
       <div className="big-actions">
         <button type="button" onClick={() => setOpen("check")}>{t("vc_title")}</button>
         <button type="button" onClick={() => setOpen("incident")}>{t("inc_title")}</button>
+        <button type="button" onClick={() => setOpen("mine")}>{t("dash_myNumbers")}</button>
         {nextStop && <button type="button" onClick={() => setOpen("scan")}>{t("scan_title")}</button>}
       </div>
       {msg && <p className="meta" role="status">{msg}</p>}
       {open === "check" && <VehicleCheck t={t} onClose={() => setOpen(null)} onDone={done} />}
       {open === "incident" && <IncidentSheet t={t} onClose={() => setOpen(null)} onDone={done} />}
+      {open === "mine" && <MySheet t={t} onClose={() => setOpen(null)} />}
       {open === "scan" && nextStop && <ScanSheet t={t} stop={nextStop} onClose={() => setOpen(null)} onDone={done} />}
     </section>
   );

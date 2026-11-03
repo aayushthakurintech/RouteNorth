@@ -4,22 +4,14 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Chart, ChartTable, Sparkline, type ChartData } from "@/components/charts/Charts";
 import { EmptyState, ErrorState, Kpi, SkeletonList } from "@/components/ui/primitives";
-import { addDays, fmtMetric, metricLabel, query, type Filters, type MetricMeta, type Metrics, type Widget } from "@/lib/analytics";
+import { comparisonRange, fmtMetric, metricLabel, query, type Compare, type Filters, type MetricMeta, type Metrics, type Widget } from "@/lib/analytics";
 import { apiSend } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
 import { useMe } from "@/lib/me-context";
 import { useApi } from "@/lib/use-api";
 
-export type Compare = "none" | "prev" | "year";
+export type { Compare };
 export interface Ctx { filters: Filters; compare: Compare; meta: MetricMeta; summary: { metrics: Metrics; previous?: Metrics; deltas?: Record<string, { abs: number; pct: number | null } | null> } | null; refresh: number }
-
-/** The same length of time just before (or a year before) the chosen dates. */
-export function comparisonRange(f: Filters, mode: Compare): { from: string; to: string } | null {
-  if (mode === "none") return null;
-  const len = Math.round((Date.parse(f.to) - Date.parse(f.from)) / 86_400_000) + 1;
-  if (mode === "prev") return { from: addDays(f.from, -len), to: addDays(f.from, -1) };
-  return { from: addDays(f.from, -365), to: addDays(f.to, -365) };
-}
 
 function Box({ title, children, link, wide }: { title: string; children: React.ReactNode; link?: { href: string; label: string }; wide?: boolean }) {
   return (

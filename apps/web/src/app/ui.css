@@ -356,6 +356,7 @@ table.plain tr.median th, table.plain tr.median td { color: var(--muted); font-s
 .stars button.on { color: #e69f00; }
 .nps { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 4px; } .nps button { min-height: 40px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: var(--r-sm); cursor: pointer; color: var(--fg); }
 .nps button.on { background: var(--brand); color: var(--brand-fg); border-color: var(--brand); } .nps-ends { display: flex; justify-content: space-between; font-size: var(--fs-caption); }
+.stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 1.05rem; }
 .builder > * { min-width: 0; }
 .builder-side fieldset { min-width: 0; }
 .builder-side select, .builder-side input:not([type=checkbox]) { width: 100%; max-width: 100%; box-sizing: border-box; }

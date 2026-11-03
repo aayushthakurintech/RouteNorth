@@ -535,6 +535,7 @@ export const ops5 = defineMessages({
     "v_maintenance_due": "Maintenance due",
     "v_cost_anomaly": "Cost spike",
     "v_custom_metric": "Custom number",
+    "dash_execPdf": "Executive summary (PDF)",
   },
   fr: {
     "an_actualKm": "Km réels",
@@ -1069,5 +1070,6 @@ export const ops5 = defineMessages({
     "v_maintenance_due": "Entretien dû",
     "v_cost_anomaly": "Hausse de coûts",
     "v_custom_metric": "Indicateur personnalisé",
+    "dash_execPdf": "Sommaire pour la direction (PDF)",
   },
 });

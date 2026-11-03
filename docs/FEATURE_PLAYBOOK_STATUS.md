@@ -4,11 +4,11 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | Status | Count |
 | --- | ---: |
-| ✅ Done | 79 |
-| 🟡 Partly built | 15 |
-| 🔌 Needs outside accounts or hardware | 4 |
+| ✅ Done | 133 |
+| 🟡 Partly built | 25 |
+| 🔌 Needs outside accounts or hardware | 6 |
 | ➖ Chosen not to build | 1 |
-| ⬜ Not started | 221 |
+| ⬜ Not started | 155 |
 
 - **Done**: built, with tests or a manual run behind it.
 - **Partly built**: the useful core works; the note says what is missing.
@@ -35,7 +35,7 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
 | 1 | Design tokens for color, spacing, radius, shadow, and type | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
-| 2 | One accent color plus a neutral gray scale | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
+| 2 | One accent color plus a neutral gray scale | ✅ Done | Dashboard cards come in 1 to 4 column sizes on a grid (Dashboards page). |
 | 3 | A semantic color set: success, warning, danger, info | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
 | 4 | 8-point spacing grid | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
 | 5 | Modern font pair, such as Inter for UI and a display font for headings | ✅ Done | Tokens, one accent plus grays, success/warning/danger/info, 8-point grid, Inter + Manrope, type scale, Lucide icons, components (Button, Input, Table, Modal, Tabs, Chip, KPI, Toast, Skeleton). |
@@ -176,93 +176,93 @@ Source: *RouteNorth Feature Playbook* (PDF, 320 numbered ideas). This file is ge
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Executive dashboard: cost, on-time rate, utilization, customer score | ⬜ Not started |  |
-| 2 | Operations dashboard: live jobs, late jobs, idle vehicles | ⬜ Not started |  |
-| 3 | Driver dashboard: personal score, trips, safety, earnings | ⬜ Not started |  |
-| 4 | Customer dashboard: shipments, delays, delivery history | ⬜ Not started |  |
-| 5 | Finance dashboard: cost per route, per stop, per kilometer, per vehicle | ⬜ Not started |  |
-| 6 | Safety dashboard: speeding, harsh braking, incidents | ⬜ Not started |  |
-| 7 | Sustainability dashboard: fuel used, CO2, savings from better routes | ⬜ Not started |  |
-| 8 | Custom dashboard builder with drag-and-drop widgets | ⬜ Not started |  |
-| 9 | Dashboard templates by role | ⬜ Not started |  |
-| 10 | TV wall mode for the dispatch office (auto-refresh, big numbers) | ⬜ Not started |  |
-| 11 | Dashboard filters that apply to every widget (date, region, team) | ⬜ Not started |  |
-| 12 | Compare periods: this week vs last week, this month vs last year | ⬜ Not started |  |
+| 1 | Executive dashboard: cost, on-time rate, utilization, customer score | ✅ Done | Executive template: cost, on-time rate, utilization, customer score, trends, goals, insights and forecast. Cost uses the per-km and per-hour rates in settings. |
+| 2 | Operations dashboard: live jobs, late jobs, idle vehicles | ✅ Done | Operations template: live jobs, late stops, idling vehicles (refreshes every 30 seconds). |
+| 3 | Driver dashboard: personal score, trips, safety, earnings | ✅ Done | Driver template, and a "My numbers" sheet in the driver app: score, stops, on-time rate, distance, safety events and an estimated pay. |
+| 4 | Customer dashboard: shipments, delays, delivery history | 🟡 Partly built | A customer-service template (deliveries, delays, failed reasons, ratings by customer) for your staff. A dashboard that customers sign in to comes with the customer portal in Phase 4. |
+| 5 | Finance dashboard: cost per route, per stop, per kilometer, per vehicle | ✅ Done | Finance template: cost per route, stop, kilometre, hour and vehicle. |
+| 6 | Safety dashboard: speeding, harsh braking, incidents | ✅ Done | Safety template: speeding, harsh braking and acceleration found in GPS tracks, incidents, driver score. |
+| 7 | Sustainability dashboard: fuel used, CO2, savings from better routes | ✅ Done | Sustainability template: fuel, CO2, fuel economy, idle share and savings from applied route optimization (assumes 30 L per 100 km). |
+| 8 | Custom dashboard builder with drag-and-drop widgets | ✅ Done | Customize: add, remove, resize and drag widgets (or use the up and down buttons), then save as your own dashboard and share it with the team. |
+| 9 | Dashboard templates by role | ✅ Done | Seven templates by role; the page opens on the one that fits your role. |
+| 10 | TV wall mode for the dispatch office (auto-refresh, big numbers) | ✅ Done | TV wall mode: full screen, big numbers, refreshes every minute, Esc to leave. |
+| 11 | Dashboard filters that apply to every widget (date, region, team) | 🟡 Partly built | One set of filters (dates, depot, driver, vehicle) for every widget. There is no separate "region" or "team" field yet, so depots stand in for them. |
+| 12 | Compare periods: this week vs last week, this month vs last year | ✅ Done | Compare with the previous period or the same dates last year; every key number shows the change. |
 
 ### Key numbers (KPIs) to track
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | On-time delivery rate | ⬜ Not started |  |
-| 2 | First-attempt success rate | ⬜ Not started |  |
-| 3 | Average delay and worst delay | ⬜ Not started |  |
-| 4 | Cost per stop, per kilometer, per hour | ⬜ Not started |  |
-| 5 | Fleet utilization (how full and how busy) | ⬜ Not started |  |
-| 6 | Idle time and engine-on time | ⬜ Not started |  |
-| 7 | Planned vs actual distance and time | ⬜ Not started |  |
-| 8 | Stops per hour | ⬜ Not started |  |
-| 9 | Fuel economy per vehicle and per driver | ⬜ Not started |  |
-| 10 | Customer satisfaction score and NPS | ⬜ Not started |  |
-| 11 | Missed time windows | ⬜ Not started |  |
-| 12 | Failed delivery reasons | ⬜ Not started |  |
-| 13 | Route adherence (did the driver follow the plan?) | ⬜ Not started |  |
-| 14 | Vehicle downtime and repair cost | ⬜ Not started |  |
-| 15 | Driver overtime | ⬜ Not started |  |
+| 1 | On-time delivery rate | ✅ Done | On-time delivery rate, from stop arrival times against time windows. |
+| 2 | First-attempt success rate | ✅ Done | First-attempt success rate. |
+| 3 | Average delay and worst delay | ✅ Done | Average delay and worst delay in minutes. |
+| 4 | Cost per stop, per kilometer, per hour | ✅ Done | Cost per stop, per kilometre and per hour. These are estimates from the rates in settings; fuel and repair costs are shown as their own numbers. |
+| 5 | Fleet utilization (how full and how busy) | ✅ Done | Utilization (engine hours against a shift) and load fill (weight against vehicle capacity). |
+| 6 | Idle time and engine-on time | ✅ Done | Idle time, idle share and engine-on time from GPS. |
+| 7 | Planned vs actual distance and time | ✅ Done | Planned versus actual distance and time per route. |
+| 8 | Stops per hour | ✅ Done | Stops per hour. |
+| 9 | Fuel economy per vehicle and per driver | ✅ Done | Fuel economy (L per 100 km) per vehicle from fuel logs, and per driver where the fill-up names the driver. |
+| 10 | Customer satisfaction score and NPS | ✅ Done | Customer satisfaction (1 to 5) and NPS from ratings on the tracking page or entered by the office. |
+| 11 | Missed time windows | ✅ Done | Missed time windows. |
+| 12 | Failed delivery reasons | ✅ Done | Failed delivery reasons, ranked. |
+| 13 | Route adherence (did the driver follow the plan?) | 🟡 Partly built | Route adherence is measured against straight lines between stops (within 600 m), so it is a rough guide. A road-based check needs the routing service switched on. |
+| 14 | Vehicle downtime and repair cost | ✅ Done | Vehicle downtime hours and repair cost from maintenance logs. |
+| 15 | Driver overtime | ✅ Done | Driver overtime hours (after the daily hours set in settings). |
 
 ### Report types
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Daily operations summary | ⬜ Not started |  |
-| 2 | Weekly and monthly performance report | ⬜ Not started |  |
-| 3 | Driver scorecard | ⬜ Not started |  |
-| 4 | Vehicle health and cost report | ⬜ Not started |  |
-| 5 | Route efficiency report (plan vs actual) | ⬜ Not started |  |
-| 6 | Customer service report | ⬜ Not started |  |
-| 7 | Exceptions report: late, failed, skipped, off-route | ⬜ Not started |  |
-| 8 | Mileage and tax report | ⬜ Not started |  |
-| 9 | Fuel and emissions report | ⬜ Not started |  |
-| 10 | Geofence visit report (who was where, and for how long) | ⬜ Not started |  |
-| 11 | Idle and stop-time report | ⬜ Not started |  |
-| 12 | Compliance report: hours of service, inspections, documents | ⬜ Not started |  |
-| 13 | Invoice and billing report | ⬜ Not started |  |
+| 1 | Daily operations summary | ✅ Done | Daily operations summary template. |
+| 2 | Weekly and monthly performance report | ✅ Done | Weekly and monthly performance templates. |
+| 3 | Driver scorecard | ✅ Done | Driver scorecard template. |
+| 4 | Vehicle health and cost report | ✅ Done | Vehicle health and cost template. |
+| 5 | Route efficiency report (plan vs actual) | ✅ Done | Route efficiency template (plan versus actual). |
+| 6 | Customer service report | ✅ Done | Customer service template. |
+| 7 | Exceptions report: late, failed, skipped, off-route | ✅ Done | Exceptions template: late, failed and skipped stops. |
+| 8 | Mileage and tax report | 🟡 Partly built | A mileage template (km and engine hours per vehicle). The business and personal split lives in the Trip log, not yet in this report. |
+| 9 | Fuel and emissions report | ✅ Done | Fuel and emissions template (CO2 from fuel type). |
+| 10 | Geofence visit report (who was where, and for how long) | ✅ Done | Geofence visits template with time spent in each zone. |
+| 11 | Idle and stop-time report | ✅ Done | Idle and stop-time template. |
+| 12 | Compliance report: hours of service, inspections, documents | 🟡 Partly built | Compliance report lists shift hours, failed inspections and expiring documents. Legal hours-of-service rules are not built. |
+| 13 | Invoice and billing report | 🟡 Partly built | A billing template with a price-per-stop formula you can change. Invoice numbers, tax and customer contracts are not built. |
 | 14 | Audit log report (who changed what, and when) | ✅ Done | Audit log page with filters and CSV export. |
-| 15 | Executive summary in one page | ⬜ Not started |  |
+| 15 | Executive summary in one page | ✅ Done | One-page executive summary as a branded PDF (button on the Dashboards page). |
 
 ### Report builder
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Build your own report: pick columns, filters, grouping, and sorting | ⬜ Not started |  |
-| 2 | Save and share report templates | ⬜ Not started |  |
-| 3 | Drill down from a chart to the table to the single trip | ⬜ Not started |  |
-| 4 | Pivot tables | ⬜ Not started |  |
-| 5 | Calculated fields (for example: cost divided by stops) | ⬜ Not started |  |
-| 6 | Charts: line, bar, stacked, pie, heat map, funnel, map, scatter | ⬜ Not started |  |
-| 7 | Map reports: heat maps and territory views | ⬜ Not started |  |
-| 8 | Scheduled reports by email, Slack, or Teams (daily, weekly, monthly) | ⬜ Not started |  |
-| 9 | Export to PDF, Excel, CSV, and Google Sheets | ⬜ Not started |  |
-| 10 | Branded PDF reports with the customer's logo | ⬜ Not started |  |
-| 11 | Public share links with expiry dates | ⬜ Not started |  |
-| 12 | Embed charts into other tools | ⬜ Not started |  |
-| 13 | Row-level permissions so people only see their own data | ⬜ Not started |  |
-| 14 | Report history: see old versions | ⬜ Not started |  |
+| 1 | Build your own report: pick columns, filters, grouping, and sorting | ✅ Done | Report builder: pick data, columns, filters, grouping and sorting. |
+| 2 | Save and share report templates | ✅ Done | Save reports, keep versions, share with the team, and start from 16 templates. |
+| 3 | Drill down from a chart to the table to the single trip | 🟡 Partly built | Click a chart mark or a grouped row to drill into the rows behind it (scorecards open their stops). It stops at the route; it does not yet jump to a single trip replay. |
+| 4 | Pivot tables | ✅ Done | Pivot tables. |
+| 5 | Calculated fields (for example: cost divided by stops) | ✅ Done | Calculated fields with a safe formula box (for example cost / stops). |
+| 6 | Charts: line, bar, stacked, pie, heat map, funnel, map, scatter | ✅ Done | Charts: line, bar, stacked, pie, heat map, funnel, scatter and map, each with a table view. |
+| 7 | Map reports: heat maps and territory views | ✅ Done | Map reports: a heat map of stops or driving events. |
+| 8 | Scheduled reports by email, Slack, or Teams (daily, weekly, monthly) | 🔌 Needs outside accounts or hardware | Daily, weekly and monthly schedules to Slack, Teams, webhooks, email or SMS are built and tested against a stand-in server. Email and SMS need a mail-service key or a Twilio account set up on the server, and none of it was tried against the real services. |
+| 9 | Export to PDF, Excel, CSV, and Google Sheets | 🟡 Partly built | PDF, Excel and CSV exports work. For Google Sheets, a shared report CSV link can be pulled in with the IMPORTDATA formula; there is no direct Google connection. |
+| 10 | Branded PDF reports with the customer's logo | ✅ Done | PDF reports carry the company logo, name and colour from settings. |
+| 11 | Public share links with expiry dates | ✅ Done | Public share links with an expiry date, a visible list and one-click turn-off. |
+| 12 | Embed charts into other tools | ✅ Done | Embed a shared report in another page with an iframe (add ?embed=1). |
+| 13 | Row-level permissions so people only see their own data | 🟡 Partly built | A shared link can be limited to one driver, vehicle or depot. Restricting what each signed-in person sees by depot or team is not built. |
+| 14 | Report history: see old versions | ✅ Done | Every save keeps a version; restore any earlier one. |
 
 ### Alerts and insights
 
 | # | Idea | Status | Where / note |
 | ---: | --- | --- | --- |
-| 1 | Smart alerts: late risk, off-route, long idle, geofence, speeding | ⬜ Not started |  |
-| 2 | Alert rules builder with "if this, then that" | ⬜ Not started |  |
-| 3 | Alert delivery: push, SMS, email, Slack, Teams | ⬜ Not started |  |
-| 4 | Quiet hours and alert grouping so people are not spammed | ⬜ Not started |  |
-| 5 | Daily digest of what matters | ⬜ Not started |  |
-| 6 | Anomaly detection: "this route cost 30% more than usual" | ⬜ Not started |  |
-| 7 | Plain-language insight cards ("Route 12 is late 4 days out of 5") | ⬜ Not started |  |
-| 8 | Goal tracking with targets and progress bars | ⬜ Not started |  |
-| 9 | Benchmarks: compare drivers, depots, and regions | ⬜ Not started |  |
-| 10 | Forecasts: expected volume, cost, and workload next week | ⬜ Not started |  |
-| 11 | Ask-a-question box: type "which driver had the most delays last month?" and get a chart | ⬜ Not started |  |
+| 1 | Smart alerts: late risk, off-route, long idle, geofence, speeding | ✅ Done | Alert rules for late risk, off route, long idle, speeding and geofence entry or exit, plus offline vehicles, harsh driving, expiring documents, due maintenance, cost spikes and any number crossing a limit. |
+| 2 | Alert rules builder with "if this, then that" | ✅ Done | Rule builder with plain-words summary and a "test the rule" button. |
+| 3 | Alert delivery: push, SMS, email, Slack, Teams | 🔌 Needs outside accounts or hardware | In-app inbox, Slack, Teams and webhooks are built and tested against a stand-in server. Email and SMS need an email key or Twilio account on the server and were not tried live. Browser or phone push is not built. |
+| 4 | Quiet hours and alert grouping so people are not spammed | ✅ Done | Quiet hours (critical alerts still go out) and grouping so the same problem is not repeated. |
+| 5 | Daily digest of what matters | ✅ Done | Morning summary at 7:00 of what was held back. |
+| 6 | Anomaly detection: "this route cost 30% more than usual" | ✅ Done | Cost anomaly rule and insight cards use a robust statistic against the last month. |
+| 7 | Plain-language insight cards ("Route 12 is late 4 days out of 5") | ✅ Done | Insight cards in plain English or French (for example: a route late on most recent days). |
+| 8 | Goal tracking with targets and progress bars | ✅ Done | Goals with targets and progress bars for a day, week or month. |
+| 9 | Benchmarks: compare drivers, depots, and regions | ✅ Done | Benchmarks compare drivers, vehicles, depots and routes against the middle of the group. |
+| 10 | Forecasts: expected volume, cost, and workload next week | ✅ Done | Forecast of next week stops, cost and drive hours with what is already booked. |
+| 11 | Ask-a-question box: type "which driver had the most delays last month?" and get a chart | 🟡 Partly built | The ask box understands common questions such as "which driver had the most delays last month?" with a rule-based reader and answers with a number or chart. Free-form questions come with the AI helper in Phase 5. |
 
 ## Smart features
 
