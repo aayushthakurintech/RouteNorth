@@ -434,3 +434,6 @@ progress.meter.over { accent-color: var(--danger); }
 .notif-item.unread { background: var(--brand-soft); }
 .notif-item:hover { background: var(--surface-2); }
 @media (max-width: 720px) { .sched { table-layout: auto; min-width: 640px; } .sched-wrap { overflow-x: auto; } }
+
+/* Feature flag "compactTables": denser rows for people who like to see more at once. */
+[data-compact] .ptable th, [data-compact] .ptable td { padding-block: 4px; }

@@ -8,10 +8,11 @@ import { ops6 } from "./ops6.js";
 import { ops7 } from "./ops7.js";
 import { ops8 } from "./ops8.js";
 import { ops9 } from "./ops9.js";
+import { ops10 } from "./ops10.js";
 import { shell } from "./shell.js";
 
 /** Every area's strings. Add a new area file here; the compiler checks that English and French match. */
-export const AREAS = [shell, map, ops, ops2, ops3, ops4, ops5, ops6, ops7, ops8, ops9] as const;
+export const AREAS = [shell, map, ops, ops2, ops3, ops4, ops5, ops6, ops7, ops8, ops9, ops10] as const;
 
 type KeysOf<T> = T extends { en: infer E } ? keyof E & string : never;
 export type AreaKey = KeysOf<(typeof AREAS)[number]>;

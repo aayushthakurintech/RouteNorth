@@ -6,6 +6,8 @@ import type { MessageKey } from "@routenorth/shared";
 import { Modal } from "@/components/ui/primitives";
 import { useI18n } from "@/lib/i18n-context";
 import { useMe } from "@/lib/me-context";
+import { apiSend } from "@/lib/api";
+import { useToast } from "@/lib/toast";
 import { useApi } from "@/lib/use-api";
 import { RELEASE_NOTES } from "@/lib/whats-new";
 
@@ -13,24 +15,28 @@ interface Step { id: string; label: MessageKey; href?: string; done: boolean }
 
 /** "Getting started" checklist for owners and admins. Steps tick themselves as the account fills up. */
 export function SetupChecklist({ onTour }: { onTour: () => void }) {
-  const { t } = useI18n();
+  const { t } = useI18n(); const { toast } = useToast();
   const { can, prefs, setPrefs } = useMe();
   const allowed = can("settings.manage") && !prefs.onboarding?.hidden;
-  const vehicles = useApi<unknown[]>(allowed ? "/vehicles" : null);
-  const drivers = useApi<unknown[]>(allowed && can("users.view") ? "/users?role=driver" : null);
-  const today = new Date().toISOString().slice(0, 10);
-  const routes = useApi<unknown[]>(allowed ? `/routes?date=${today}` : null);
-  if (!allowed || !vehicles.loaded) return null;
+  const st = useApi<{ vehicles: number; drivers: number; routes: number; jobs: number; sampleJobs: number; teammates: number; twoFactor: boolean }>(allowed ? "/ops/onboarding" : null);
+  if (!allowed || !st.loaded || !st.data) return null;
+  const d = st.data;
   const seen = prefs.onboarding?.steps ?? [];
   const steps: Step[] = [
-    { id: "vehicle", label: "setupVehicle", href: "/settings", done: (vehicles.data?.length ?? 0) > 0 },
-    { id: "driver", label: "setupDriver", href: "/settings/users", done: (drivers.data?.length ?? 0) > 0 },
-    { id: "route", label: "setupRoute", href: "/routes", done: (routes.data?.length ?? 0) > 0 },
+    { id: "vehicle", label: "setupVehicle", href: "/fleet/vehicles", done: d.vehicles > 0 },
+    { id: "driver", label: "setupDriver", href: "/settings/users", done: d.drivers > 0 },
+    { id: "jobs", label: "setupJobs", href: "/import", done: d.jobs > 0 || d.sampleJobs > 0 },
+    { id: "route", label: "setupRoute", href: "/routes", done: d.routes > 0 },
+    { id: "team", label: "setupTeam", href: "/settings/teams", done: d.teammates > 0 },
+    { id: "secure", label: "setupSecure", href: "/settings/security", done: d.twoFactor },
     { id: "map", label: "setupMap", href: "/", done: seen.includes("map") },
     { id: "tour", label: "setupTour", done: !!prefs.onboarding?.tourDone },
   ];
-  const done = steps.filter((s) => s.done).length;
+  const done = steps.filter((x) => x.done).length;
   if (done === steps.length) return null;
+  const sample = async (add: boolean) => {
+    try { await apiSend(add ? "POST" : "DELETE", "/ops/sample"); toast(t(add ? "setupSampleAdded" : "setupSampleRemoved")); st.reload(); } catch (e) { toast((e as Error).message, { tone: "error" }); }
+  };
   return (
     <section className="setup-card" aria-label={t("setupChecklist")}>
       <strong>{t("setupChecklist")}</strong>
@@ -44,6 +50,8 @@ export function SetupChecklist({ onTour }: { onTour: () => void }) {
           <Link key={s.id} href={s.href ?? "/"} className={s.done ? "done" : ""}>{icon}{t(s.label)}</Link>
         );
       })}
+      {d.jobs === 0 && d.sampleJobs === 0 && <button type="button" className="link" onClick={() => void sample(true)}>{t("setupSampleAdd")}</button>}
+      {d.sampleJobs > 0 && <button type="button" className="link" onClick={() => void sample(false)}>{t("setupSampleRemove")}</button>}
       <button type="button" className="link" onClick={() => setPrefs({ onboarding: { ...prefs.onboarding, hidden: true } })}>{t("setupHide")}</button>
     </section>
   );

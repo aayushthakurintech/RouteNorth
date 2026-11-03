@@ -10,6 +10,8 @@ export interface Me {
   user: { id: string; email: string; displayName: string | null; role: string; locale: string; customRoleId: string | null; customRoleName: string | null };
   perms: Permission[];
   home: string;
+  flags: Record<string, boolean>;
+  security: { twoFactor: boolean; mustSetUpTwoFactor: boolean };
   org: {
     id: string; name: string; locale: string; timezone: string; brandName: string | null; brandColor: string | null; logoDataUrl: string | null;
     settings: { idleThresholdMin: number; speedLimitKmh: number; trackOnlyDuringShift: boolean; defaultMapProvider: string; currency: string; taxRatePct: number; featureFlags: Record<string, boolean>; platform?: { mapKey: string; mapTileUrl: string; analyticsOptOut: boolean }; billing?: { province: string } };

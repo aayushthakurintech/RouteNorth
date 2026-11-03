@@ -1,7 +1,7 @@
 "use client";
 import { Notifications } from "./Notifications";
 import {
-  Sparkles, ChevronsLeft, ChevronsRight, Keyboard, LogOut, Menu, Monitor, Moon, Pin, PinOff, Search, Sun, Contrast, UserRound,
+  LifeBuoy, MessageSquarePlus, Sparkles, ChevronsLeft, ChevronsRight, Keyboard, LogOut, Menu, Monitor, Moon, Pin, PinOff, Search, Sun, Contrast, UserRound,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -13,6 +13,9 @@ import { useI18n } from "@/lib/i18n-context";
 import { useMe } from "@/lib/me-context";
 import { useApi } from "@/lib/use-api";
 import { isActive, visibleNav } from "@/lib/nav";
+import { FeedbackDialog } from "@/components/support/FeedbackDialog";
+import { apiSend } from "@/lib/api";
+import { track } from "@/lib/usage";
 import { loadSession, saveSession } from "@/lib/session";
 import { useTheme, type MotionMode, type ThemeMode } from "@/lib/theme-context";
 import { RELEASE_NOTES } from "@/lib/whats-new";
@@ -36,6 +39,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
   const [palette, setPalette] = useState(false);
   const [help, setHelp] = useState(false);
   const [news, setNews] = useState(false);
+  const [feedback, setFeedback] = useState(false);
   const [tour, setTour] = useState(false);
   const [menu, setMenu] = useState(false);
   const collapsed = !!prefs.navCollapsed;
@@ -61,8 +65,13 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
     return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc); };
   }, [menu]);
 
-  const signOut = useCallback(() => { saveSession(null); router.replace("/login"); }, [router]);
-  const nav = useMemo(() => visibleNav(can), [can]);
+  // Count the page view (a name only), switch on optional looks, and send people who must set up two-factor to the screen for it.
+  useEffect(() => { if (me) track("page", pathname); }, [pathname, me?.user.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { document.documentElement.toggleAttribute("data-compact", !!me?.flags?.compactTables); }, [me]);
+  useEffect(() => { if (me?.security?.mustSetUpTwoFactor && pathname !== "/settings/security") router.replace("/settings/security"); }, [me, pathname, router]);
+  // Signing out also ends the token on the server, so a copied token stops working.
+  const signOut = useCallback(() => { void apiSend("POST", "/auth/logout").catch(() => {}).finally(() => { saveSession(null); router.replace("/login"); }); }, [router]);
+  const nav = useMemo(() => visibleNav(can).filter((n) => !(n.href === "/assistant" && me?.flags?.assistant === false)), [can, me]);
   const approvals = useApi<{ pending: number }>(can("reports.view") ? "/approvals/count" : null, { intervalMs: 60_000 });
   const inbox = useApi<{ drivers: number; customers: number; help: number }>(can("routes.dispatch") || can("customers.manage") ? "/messages/unread" : null, { intervalMs: 30_000 });
   const badges = { approvals: approvals.data?.pending ?? 0, inbox: (inbox.data?.drivers ?? 0) + (inbox.data?.customers ?? 0) + (inbox.data?.help ?? 0) };
@@ -191,6 +200,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
               onClick={() => setPrefs({ favorites: pinned ? favorites.filter((f) => f.href !== pathname) : [...favorites, { href: pathname, label: pageLabel }].slice(-8) })}
             >{pinned ? <PinOff size={18} /> : <Pin size={18} />}</button>
           )}
+          <button type="button" className="icon-btn" aria-label={t("fb_title")} title={t("fb_title")} onClick={() => setFeedback(true)}><MessageSquarePlus size={18} /></button>
           <Notifications />
           <button type="button" className="icon-btn" aria-label={t("whatsNew")} title={t("whatsNew")} onClick={() => setNews(true)} style={{ position: "relative" }}>
             <Sparkles size={18} />{unread && <span aria-label="•" style={{ position: "absolute", top: 6, insetInlineEnd: 7, width: 8, height: 8, borderRadius: "50%", background: "var(--danger)" }} />}
@@ -218,6 +228,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
                 </select>
                 <div className="menu-sep" />
                 <Link className="menu-item" href="/settings/profile" role="menuitem" onClick={() => setMenu(false)}><UserRound size={16} />{t("profile")}</Link>
+                <Link className="menu-item" href="/support" role="menuitem" onClick={() => setMenu(false)}><LifeBuoy size={16} />{t("navSupport")}</Link>
                 <button type="button" className="menu-item" role="menuitem" onClick={() => { setMenu(false); setHelp(true); }}><Keyboard size={16} />{t("shortcuts")}</button>
                 <button type="button" className="menu-item" role="menuitem" onClick={signOut}><LogOut size={16} />{t("signOut")}</button>
               </div>
@@ -231,6 +242,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
       <CommandPalette open={palette} onClose={() => setPalette(false)} commands={commands} onNavigate={go} />
       <ShortcutsSheet open={help} onClose={() => setHelp(false)} />
       <WhatsNew open={news} onClose={() => setNews(false)} />
+      <FeedbackDialog open={feedback} onClose={() => setFeedback(false)} />
       <ProductTour open={tour} onClose={() => setTour(false)} />
     </div>
   );

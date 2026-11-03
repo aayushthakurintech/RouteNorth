@@ -7,7 +7,7 @@ const WRITES = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const VERB: Record<string, string> = { POST: "create", PUT: "update", PATCH: "update", DELETE: "delete" };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** Writes that are noise, not changes anyone needs to audit. */
-const SKIP = [/^\/me\/prefs/, /^\/driver\/location/];
+const SKIP = [/^\/me\/prefs/, /^\/driver\/location/, /^\/ops\/usage/];
 
 /** Turns "POST /routes/<id>/stops" into { action: "routes.stops.create", entity: "routes", entityId: "<id>" }. */
 export function describeRequest(method: string, rawUrl: string): { action: string; entity: string; entityId: string | null } {

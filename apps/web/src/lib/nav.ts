@@ -1,7 +1,7 @@
 import type { Permission } from "@routenorth/shared";
 import type { MessageKey } from "@routenorth/shared";
 import {
-  Activity, AlertTriangle, Sparkles, Scale, ShieldCheck, MessageSquareHeart, BarChart3, Banknote, Clock, Inbox, Receipt, Workflow, CheckSquare, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
+  Activity, AlertTriangle, HeartPulse, LifeBuoy, Lock, Sparkles, Scale, ShieldCheck, MessageSquareHeart, BarChart3, Banknote, Clock, Inbox, Receipt, Workflow, CheckSquare, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
   Plug, SlidersHorizontal, Upload, ScrollText, Settings, Truck, UsersRound, Warehouse, Wrench, CalendarDays, ListChecks, Wallet, Users, type LucideIcon,
 } from "lucide-react";
 
@@ -58,6 +58,9 @@ export const NAV: NavItem[] = [
   { href: "/integrations", label: "navIntegrations", icon: Plug, perms: ["api.manage", "integrations.manage"], group: "admin", keywords: "api keys webhooks zapier make feeds sheets calendar email widget maps intégrations clés" },
   { href: "/settings/fields", label: "navFields", icon: SlidersHorizontal, perms: ["settings.manage"], group: "admin", keywords: "custom fields statuses labels champs personnalisés statuts" },
   { href: "/import", label: "navImport", icon: Upload, perms: ["routes.write"], group: "admin", keywords: "import csv onfleet routific migrate spreadsheet importer migration" },
+  { href: "/settings/security", label: "navSecurity", icon: Lock, perms: [], group: "admin", keywords: "two-factor 2fa password sessions privacy export delete compliance sécurité authentification confidentialité" },
+  { href: "/settings/health", label: "navHealth", icon: HeartPulse, perms: ["settings.manage"], group: "admin", keywords: "status errors usage analytics flags labs santé erreurs utilisation" },
+  { href: "/support", label: "navSupport", icon: LifeBuoy, perms: [], group: "admin", keywords: "help support feedback roadmap contact aide assistance commentaires" },
   { href: "/audit", label: "navAudit", icon: ScrollText, perms: ["audit.view"], group: "admin", keywords: "changes history journal" },
   { href: "/styleguide", label: "navStyle", icon: Palette, perms: [], group: "admin", keywords: "design components" },
 ];

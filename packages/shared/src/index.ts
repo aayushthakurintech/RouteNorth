@@ -13,3 +13,4 @@ export * from "./smart.js";
 export * from "./platform.js";
 export * from "./business.js";
 export * from "./flags.js";
+export * from "./help.js";
