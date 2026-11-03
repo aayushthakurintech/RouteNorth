@@ -12,23 +12,43 @@ Hardware-agnostic, Canadian-hosted, bilingual (EN/FR) fleet tracking for trucks 
 - `packages/db` – migrations and tenant-scoped query helper (Row-Level Security)
 - `infra/` – database init and Traccar config for local dev
 
-## Local development
+## Run it in your browser
+
+You need Node 22, pnpm and Docker (for the database and Redis).
 
 ```bash
 pnpm install
-pnpm infra:up                       # Postgres+PostGIS+TimescaleDB, Redis, Traccar
-pnpm build
-DATABASE_URL=postgres://routenorth:routenorth@localhost:5432/routenorth pnpm --filter @routenorth/db migrate
+docker compose up -d db redis     # Postgres + Redis. (`pnpm infra:up` also starts Traccar, not needed for the demo)
+pnpm seed                         # migrations, the app database role, and a demo company with users, vehicles and a route
+pnpm demo                         # builds, then starts API (4000), ingest (4100), web (3000) and the vehicle simulator
 ```
 
-Then run each service (see the environment variables each reads in `src/main.ts` / `src/server.ts`):
+Then open **http://localhost:3000** and sign in (password `routenorth-demo` for all three):
 
-```bash
-# API (port 4000): needs DATABASE_URL, JWT_SECRET (32+ chars), REDIS_URL
-# ingest (port 4100): needs DATABASE_URL, REDIS_URL
-# web (port 3000): pnpm --filter @routenorth/web dev   (NEXT_PUBLIC_API_URL if the API is elsewhere)
-# simulator: pnpm --filter @routenorth/simulator start  (TRACCAR_URL, default http://localhost:5055)
-```
+| Email | Sees |
+| --- | --- |
+| `owner@demo.ca` | live map with three moving vehicles, history/replay, reports, routes at `/routes` |
+| `driver@demo.ca` | the driver app at `/driver` (today's route, navigation links, photo and signature proof) |
+
+Use `pnpm dev` instead of `pnpm demo` to start the same services without the simulator. Stop with Ctrl-C.
+The first start takes a minute because it builds everything and Next.js compiles on first request.
+
+To try the driver app on a phone, open it from the same network at `http://<your-computer-ip>:3000/driver`
+and set `NEXT_PUBLIC_API_URL=http://<your-computer-ip>:4000` and `WEB_ORIGIN=http://<your-computer-ip>:3000` before
+`pnpm demo`. Offline caching and "add to home screen" only work from a production build (`pnpm --filter @routenorth/web build && start`) served over HTTPS or localhost.
+
+### Real hardware path
+
+`pnpm infra:up` also starts Traccar, which receives trackers (OsmAnd on 5055, Teltonika on 5027) and forwards positions
+to the ingest service. Run the simulator without `INGEST_URL` to push fake vehicles through Traccar instead:
+`pnpm --filter @routenorth/simulator start`.
+
+## Local development
+
+Each service reads its settings from environment variables (see `src/main.ts` / `src/server.ts`):
+the API needs `APP_DATABASE_URL` (or `DATABASE_URL`), `JWT_SECRET` (32+ characters) and `REDIS_URL`; ingest needs the
+database and Redis; web uses `NEXT_PUBLIC_API_URL` if the API is elsewhere. Services connect as the low-privilege
+`routenorth_app` role so Row-Level Security applies; `pnpm seed` creates it.
 
 Tests: `pnpm test`. Set `DATABASE_URL` to a Postgres superuser URL to also run the database
 and API tests (they reset the `public` schema, so use a throwaway database).
