@@ -38,6 +38,7 @@ export class AuditInterceptor implements NestInterceptor {
     const write = (status: number) => {
       const session = req.session;
       if (!session) return; // unauthenticated calls (login) are logged by their own handler
+      if (req.auditDone && status < 400) return; // the handler wrote a fuller row (old and new values) in the same transaction
       const d = describeRequest(method, url);
       void this.audit.record({
         orgId: session.orgId, actorId: session.userId, actorLabel: req.actor?.email ?? null,
