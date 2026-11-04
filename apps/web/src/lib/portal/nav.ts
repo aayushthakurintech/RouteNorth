@@ -15,7 +15,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
     children: [{ href: "/owner/finance", label: "Earnings" }, { href: "/owner/finance/expenses", label: "Expenses" }, { href: "/owner/finance/payouts", label: "Payouts" }, { href: "/owner/finance/invoices", label: "Invoices" }, { href: "/owner/finance/profit-loss", label: "Profit and loss" }, { href: "/owner/finance/cash-flow", label: "Cash flow" }, { href: "/owner/finance/budget", label: "Budget" }, { href: "/owner/finance/tax", label: "Tax summary" }, { href: "/owner/finance/margin", label: "Margin explorer" }] },
   { href: "/owner/reports", label: "Reports", icon: BarChart3, perms: ["reports.view"], keywords: "catalog builder scheduled exports" },
   { href: "/owner/settings", label: "Settings", icon: Settings, perms: ["settings.manage", "users.view", "audit.view", "alerts.view"], keywords: "team roles alerts integrations audit log billing",
-    children: [{ href: "/owner/settings", label: "Team and roles" }, { href: "/owner/settings/alerts", label: "Alerts", perms: ["alerts.view"] }, { href: "/owner/settings/audit", label: "Audit log", perms: ["audit.view"] }] },
+    children: [{ href: "/owner/settings", label: "Team and roles" }, { href: "/owner/alerts", label: "Alerts inbox", perms: ["alerts.view"] }, { href: "/owner/settings/alerts", label: "Alert settings", perms: ["alerts.manage"] }, { href: "/owner/settings/audit", label: "Audit log", perms: ["audit.view"] }] },
 ];
 
 export function portalActive(href: string, pathname: string): boolean {

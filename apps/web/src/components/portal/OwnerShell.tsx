@@ -34,7 +34,7 @@ export function OwnerShell({ children }: { children: ReactNode }) {
   const [palette, setPalette] = useState(false);
   useEffect(() => { if (!loading && !loadSession()) router.replace("/login"); }, [loading, router]);
   const nav = PORTAL_NAV.filter((n) => n.perms.some((p) => can(p)));
-  const alerts = useApi<{ open: number; critical: number }>(me && can("alerts.view") ? "/alerts/summary" : null, { intervalMs: 60_000 });
+  const alerts = useApi<{ open: number; critical: number; mine: number }>(me && can("alerts.view") ? "/portal/alerts/summary" : null, { intervalMs: 60_000 });
   const signOut = () => { void apiSend("POST", "/auth/logout").catch(() => {}).finally(() => { saveSession(null); router.replace("/login"); }); };
 
   if (loading || (!me && !error)) {
@@ -118,7 +118,7 @@ export function OwnerShell({ children }: { children: ReactNode }) {
                 </DropdownMenuContent>
               </DropdownMenu>
               <Button variant="ghost" size="icon" asChild aria-label={`Alerts${alerts.data?.open ? `, ${alerts.data.open} open` : ""}`} className="relative">
-                <Link href="/owner/settings/alerts"><Bell className="size-4" />{!!alerts.data?.open && <Badge variant={alerts.data.critical ? "destructive" : "secondary"} className="absolute -right-1 -top-1 h-4 min-w-4 justify-center px-1 text-[10px]">{alerts.data.open}</Badge>}</Link>
+                <Link href="/owner/alerts"><Bell className="size-4" />{!!alerts.data?.open && <Badge variant={alerts.data.critical ? "destructive" : "secondary"} className="absolute -right-1 -top-1 h-4 min-w-4 justify-center px-1 text-[10px]">{alerts.data.open}</Badge>}</Link>
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label="Theme">{mode === "dark" ? <Moon className="size-4" /> : mode === "light" ? <Sun className="size-4" /> : <Monitor className="size-4" />}</Button></DropdownMenuTrigger>
