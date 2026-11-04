@@ -8,7 +8,7 @@ Source: RouteNorth_Owner_Portal_Spec.pdf (281 numbered items). Generated from th
 - Server behaviour (rules, money, permissions, regions, audit) is covered by API tests. The screens are type-checked, and every owner page was opened in a real browser against the seeded demo (21 pages, no errors, desktop size). Buttons, forms and phone size were not clicked through by hand; that is still for a person to do.
 - No email, SMS, Slack, Teams, Twilio, VIN service, or payment provider was called for real.
 - Not built at all: SSO, ELD integration, payments, native store apps, push notifications. Not SOC 2 / ISO certified.
-- One existing test (`smart.test.ts`, driver scoring) fails locally for a reason unrelated to this work (it also failed with these changes removed).
+- One older test (`smart.test.ts`, driver scoring) depended on the time of day and failed just after local midnight; it is fixed and the full API suite (435 tests) passes.
 
 ## Totals
 
