@@ -76,7 +76,7 @@ export async function vehicleMoney(c: pg.PoolClient, r: Range, tz: string, opts:
   const hasPay = (await c.query("SELECT to_regclass('portal_pay_lines') AS t")).rows[0].t;
   if (hasPay) {
     for (const row of (await c.query(
-      `SELECT t.vehicle_id AS id, coalesce(sum(l.amount_cents) FILTER (WHERE l.kind IN ('earning','bonus')),0)::float8 AS v
+      `SELECT t.vehicle_id AS id, coalesce(sum(l.amount_cents) FILTER (WHERE l.kind IN ('earning','addon') AND l.approval = 'approved' AND l.archived_at IS NULL),0)::float8 AS v
        FROM portal_pay_lines l JOIN portal_trips t ON t.id = l.trip_id
        WHERE t.status = 'completed' AND t.archived_at IS NULL AND t.started_at >= ($1::timestamp AT TIME ZONE $3) AND t.started_at < ($2::timestamp AT TIME ZONE $3) ${only("t.vehicle_id")} GROUP BY 1`, p())).rows) get(row.id).driverPayCents = row.v;
   }

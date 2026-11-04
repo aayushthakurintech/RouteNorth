@@ -76,6 +76,10 @@ export async function loadDrivers(c: pg.PoolClient, ctx: DCtx, o: { id?: string;
     const hoursBad = new Map<string, number>();
     for (const r of (await c.query(`SELECT driver_id, count(*)::int AS n FROM shifts WHERE driver_id = ANY($1::uuid[]) AND overtime_status IN ('pending') AND started_at >= $2 GROUP BY 1`, [ids, from30])).rows) hoursBad.set(r.driver_id, r.n);
     const rate = await rateCards(c, ids);
+    const earned = new Map<string, number>();
+    for (const r of (await c.query(
+      `SELECT driver_id AS id, coalesce(sum(amount_cents),0)::float8 AS v FROM portal_pay_lines
+       WHERE driver_id = ANY($1::uuid[]) AND archived_at IS NULL AND approval = 'approved' AND kind IN ('earning','addon','tip','toll','bonus','adjustment') AND line_date >= $2::date GROUP BY 1`, [ids, month.slice(0, 10)])).rows) earned.set(r.id, r.v);
 
     for (const p of people) {
       const s = stats.get(p.id) ?? {};
@@ -99,7 +103,7 @@ export async function loadDrivers(c: pg.PoolClient, ctx: DCtx, o: { id?: string;
         employmentType: p.employment_type, licenseNo: p.license_no, licenseClass: p.license_class, licenseExpiry: p.license_expiry, vehicleId: p.vehicle_id, vehicleName: p.vehicle_name,
         rateCardId: rate.get(p.id)?.id ?? null, rateCardName: rate.get(p.id)?.name ?? null,
         rating: s.rating == null ? null : Math.round(Number(s.rating) * 100) / 100, onTimePct: s.on_time == null ? null : Math.round(Number(s.on_time)), score: sc.score, safety,
-        tripsMonth: monthly.get(p.id)?.trips ?? 0, revenueMonthCents: monthly.get(p.id)?.revenue ?? 0, earningsMonthCents: null,
+        tripsMonth: monthly.get(p.id)?.trips ?? 0, revenueMonthCents: monthly.get(p.id)?.revenue ?? 0, earningsMonthCents: earned.get(p.id) ?? 0,
         docs: { expired: d.expired, expiring: d.expiring, nextExpiry: d.next },
         compliance: complianceScore({ expiredDocs: d.expired, expiringDocs: d.expiring, missingCourses: courses.get(p.id) ?? 0, hoursViolations: hoursBad.get(p.id) ?? 0, onboardingIncomplete: stored === "onboarding" }),
         onboarding: { done: ONBOARDING_STEPS.filter((x) => stepMap.get(x.key) === "approved").length, total: ONBOARDING_STEPS.length, requiredOpen },
@@ -121,14 +125,17 @@ export async function loadDrivers(c: pg.PoolClient, ctx: DCtx, o: { id?: string;
 
 export const stepLabel = (k: string) => ONBOARDING_STEPS.find((s) => s.key === k)?.label ?? k;
 
-/** The rate card each driver is on. Filled in by the pay module; until a card is assigned this is empty. */
+/** The rate card each driver is paid on today: a card assigned to that driver by name, else the company-wide default pay card. */
 async function rateCards(c: pg.PoolClient, ids: string[]): Promise<Map<string, { id: string; name: string }>> {
   const m = new Map<string, { id: string; name: string }>();
-  const has = (await c.query(`SELECT to_regclass('rate_card_assignments') IS NOT NULL AS ok`)).rows[0]?.ok;
-  if (!has) return m;
   for (const r of (await c.query(
-    `SELECT DISTINCT ON (a.driver_id) a.driver_id, rc.id, rc.name FROM rate_card_assignments a JOIN rate_cards rc ON rc.id = a.rate_card_id
-     WHERE a.driver_id = ANY($1::uuid[]) AND a.archived_at IS NULL AND a.starts_on <= current_date AND (a.ends_on IS NULL OR a.ends_on >= current_date) ORDER BY a.driver_id, a.starts_on DESC`, [ids])).rows) m.set(r.driver_id, { id: r.id, name: r.name });
+    `SELECT DISTINCT ON (a.target) a.target AS driver_id, k.id, k.name FROM rate_card_assignments a JOIN portal_rate_cards k ON k.id = a.card_id
+     WHERE a.kind = 'driver' AND k.kind = 'driver' AND a.target = ANY($1::text[]) AND a.archived_at IS NULL AND k.archived_at IS NULL
+       AND a.starts_on <= current_date AND (a.ends_on IS NULL OR a.ends_on >= current_date) ORDER BY a.target, a.starts_on DESC`, [ids])).rows) m.set(r.driver_id, { id: r.id, name: r.name });
+  const dflt = (await c.query(
+    `SELECT k.id, k.name FROM rate_card_assignments a JOIN portal_rate_cards k ON k.id = a.card_id WHERE a.kind = 'all' AND k.kind = 'driver' AND a.archived_at IS NULL AND k.archived_at IS NULL
+       AND a.starts_on <= current_date AND (a.ends_on IS NULL OR a.ends_on >= current_date) ORDER BY a.starts_on DESC LIMIT 1`)).rows[0];
+  if (dflt) for (const id of ids) if (!m.has(id)) m.set(id, { id: dflt.id, name: `${dflt.name} (company default)` });
   return m;
 }
 

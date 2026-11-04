@@ -259,7 +259,8 @@ describe("driver privacy: track only during shifts", () => {
     const drv = await h.addUser(h.orgA, "tracked@example.com", "driver");
     const veh = (await h.admin.query("INSERT INTO vehicles (org_id, name) VALUES ($1,'Tracked van') RETURNING id", [h.orgA])).rows[0].id as string;
     const dev = (await h.admin.query("INSERT INTO devices (org_id, external_id, vehicle_id) VALUES ($1,'imei-1',$2) RETURNING id", [h.orgA, veh])).rows[0].id as string;
-    const today = new Date().toISOString().slice(0, 10);
+    // "today" is the company's day, not UTC's: late in the evening in Toronto it is already tomorrow in UTC
+    const today = (await h.admin.query("SELECT (now() AT TIME ZONE timezone)::date::text AS d FROM organizations WHERE id = $1", [h.orgA])).rows[0].d as string;
     await h.admin.query("INSERT INTO routes (org_id, name, route_date, vehicle_id, driver_id) VALUES ($1,'R',$2,$3,$4)", [h.orgA, today, veh, drv]);
     await h.admin.query("INSERT INTO positions (time, org_id, device_id, lat, lng, speed, ignition) VALUES (now(), $1,$2,43.7,-79.4,0,false)", [h.orgA, dev]);
     await h.admin.query("INSERT INTO latest_positions (device_id, org_id, time, lat, lng, speed, heading, ignition) VALUES ($1,$2,now(),43.7,-79.4,0,0,false)", [dev, h.orgA]);
