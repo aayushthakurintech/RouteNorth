@@ -147,3 +147,13 @@ export function financeAccrual(paymentCents: number, interval: "weekly" | "biwee
   return Math.round((paymentCents * perYear * days) / 365);
 }
 
+
+/**
+ * Loan or lease cost for the days from `fromDay` to `toDay` (day numbers, both included), worked out so that ranges ADD UP:
+ * the cost of Jan 1-15 plus Jan 16-31 is exactly the cost of Jan 1-31, so a daily chart and the monthly total never differ by a cent.
+ */
+export function financeAccrualBetween(paymentCents: number, interval: "weekly" | "biweekly" | "monthly", fromDay: number, toDay: number): number {
+  const perYear = interval === "weekly" ? 52 : interval === "biweekly" ? 26 : 12;
+  const cum = (n: number) => Math.round((paymentCents * perYear * n) / 365);
+  return cum(toDay + 1) - cum(fromDay);
+}

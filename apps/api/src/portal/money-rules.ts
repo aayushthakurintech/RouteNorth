@@ -1,5 +1,5 @@
 import type { pg } from "@routenorth/db";
-import { dayNumber, financeAccrual } from "@routenorth/shared";
+import { dayNumber, financeAccrualBetween } from "@routenorth/shared";
 
 /**
  * ONE set of money rules for the whole portal. The vehicle list, the vehicle Financials tab, the dashboard, the finance
@@ -69,7 +69,7 @@ export async function vehicleMoney(c: pg.PoolClient, r: Range, tz: string, opts:
     if (e >= s) {
       const m = get(v.id);
       // Real payments entered as expenses for this car replace the estimate.
-      if (m.financeCents === 0) m.financeCents = financeAccrual(v.pay, v.iv, e - s + 1);
+      if (m.financeCents === 0) m.financeCents = financeAccrualBetween(v.pay, v.iv, s, e);
     }
   }
   // Driver pay, when pay rates are in use (the table arrives with the pay module).

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDaysISO, checkVin, docStatus, financeAccrual, keepRepairSell, licenceAllows, paybackDays, serviceStatus } from "./vehicle-logic.js";
+import { addDaysISO, checkVin, docStatus, financeAccrual, financeAccrualBetween, keepRepairSell, licenceAllows, paybackDays, serviceStatus } from "./vehicle-logic.js";
 
 describe("VIN", () => {
   it("accepts a real VIN and checks the digit", () => {
@@ -79,5 +79,16 @@ describe("money view helpers", () => {
   it("accrues loan cost by the day", () => {
     expect(financeAccrual(120_000, "monthly", 365)).toBe(1_440_000);
     expect(financeAccrual(30_000, "weekly", 7)).toBe(Math.round((30_000 * 52 * 7) / 365));
+  });
+});
+
+describe("finance accrual that adds up", () => {
+  it("splitting a range anywhere gives exactly the same total", () => {
+    const whole = financeAccrualBetween(123_457, "monthly", 20_000, 20_030);
+    for (let cut = 20_000; cut < 20_030; cut++) {
+      expect(financeAccrualBetween(123_457, "monthly", 20_000, cut) + financeAccrualBetween(123_457, "monthly", cut + 1, 20_030)).toBe(whole);
+    }
+    let days = 0; for (let d = 20_000; d <= 20_030; d++) days += financeAccrualBetween(123_457, "monthly", d, d);
+    expect(days).toBe(whole);
   });
 });
