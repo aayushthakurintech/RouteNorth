@@ -16,7 +16,7 @@ const PAY_FIELDS = ["driverId", "vehicleId", "customerName", "startedAt", "dista
 
 const SELECT = `t.id, t.vehicle_id AS "vehicleId", v.name AS "vehicleName", t.driver_id AS "driverId", coalesce(u.display_name, u.email) AS "driverName", t.customer_name AS "customerName", t.title,
   t.started_at AS "startedAt", t.ended_at AS "endedAt", t.distance_m / 1000.0 AS "distanceKm", t.duration_s / 60.0 AS "durationMin", t.waiting_s / 60.0 AS "waitingMin", t.stops, t.weight_kg AS "weightKg", t.zone, t.status,
-  t.revenue_cents::float8 AS "revenueCents", t.tip_cents::float8 AS "tipCents", t.toll_cents::float8 AS "tollCents", t.conditions, t.source, t.note, t.rating, t.on_time AS "onTime", t.cleanliness, t.complaint,
+  t.revenue_cents::float8 AS "revenueCents", t.tip_cents::float8 AS "tipCents", t.toll_cents::float8 AS "tollCents", t.conditions, t.source, t.note, t.rating, t.on_time AS "onTime", t.cleanliness, t.complaint, t.review_flag AS "reviewFlag", t.flagged_at AS "flaggedAt",
   t.revenue_manual AS "revenueManual", t.pay_calculated_at AS "payCalculatedAt", t.vehicle_cost_cents::float8 AS "vehicleCostCents", t.driver_rate_version_id AS "driverRateVersionId", t.customer_rate_version_id AS "customerRateVersionId",
   coalesce((SELECT sum(l.amount_cents) FROM portal_pay_lines l WHERE l.trip_id = t.id AND l.archived_at IS NULL AND l.approval = 'approved' AND l.kind IN ('earning','addon')),0)::float8 AS "driverPayCents",
   EXISTS (SELECT 1 FROM portal_pay_lines l WHERE l.trip_id = t.id AND l.payout_id IS NOT NULL AND l.archived_at IS NULL) AS locked, t.created_at AS "createdAt", t.archived_at AS "archivedAt"`;
@@ -92,6 +92,7 @@ export class PortalTripsController {
       if (q.driverId) { params.push(uuid(q.driverId, "driverId")); where.push(`t.driver_id = $${params.length}`); }
       if (q.vehicleId) { params.push(uuid(q.vehicleId, "vehicleId")); where.push(`t.vehicle_id = $${params.length}`); }
       if (q.status) { params.push(oneOf(q.status, "status", STATUSES)); where.push(`t.status = $${params.length}`); }
+      if (q.flagged === "1") where.push(`t.review_flag IS NOT NULL`);
       if (p.q) { params.push(`%${p.q}%`); where.push(`(t.customer_name ILIKE $${params.length} OR t.title ILIKE $${params.length} OR t.zone ILIKE $${params.length})`); }
       const rows = (await c.query(`SELECT ${SELECT} FROM ${FROM} WHERE ${where.join(" AND ")} ORDER BY t.${p.sort} ${q.dir === "asc" ? "ASC" : "DESC"} LIMIT ${p.limit} OFFSET ${p.offset}`, params)).rows;
       const seePay = can(req, "pay.view", "pay.manage");
@@ -148,6 +149,21 @@ export class PortalTripsController {
       const next = (await c.query(`SELECT ${SELECT} FROM ${FROM} WHERE t.id = $1`, [id])).rows[0];
       await auditChange(c, req, { action: "trips.update", entity: "trips", entityId: id, label: String(old.title ?? old.customerName ?? "Trip"), old, next });
       return { ok: true, pay };
+    });
+  }
+
+  /** A person has looked at a trip that was flagged because its pay looked wrong. */
+  @Post(":id/reviewed")
+  @HttpCode(200)
+  async reviewed(@Req() req: AuthedRequest, @Param("id") id: string) {
+    const orgId = this.write(req);
+    return withOrg(this.pool, orgId, async (c) => {
+      const t = (await c.query(`SELECT t.id, t.title, t.customer_name, t.review_flag FROM portal_trips t WHERE t.id = $1 FOR UPDATE`, [uuid(id)])).rows[0];
+      if (!t) throw new NotFoundException();
+      if (!t.review_flag) return { ok: true };
+      await c.query(`UPDATE portal_trips SET review_flag = NULL, reviewed_by = $2, reviewed_at = now() WHERE id = $1`, [id, req.session!.userId]);
+      await auditChange(c, req, { action: "trips.reviewed", entity: "trips", entityId: id, label: String(t.title ?? t.customer_name ?? "Trip"), old: { reviewFlag: t.review_flag }, next: { reviewFlag: null } });
+      return { ok: true };
     });
   }
 

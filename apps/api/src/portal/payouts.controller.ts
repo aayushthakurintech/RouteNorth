@@ -5,6 +5,7 @@ import type { Response } from "express";
 import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { auditChange } from "../audit/domain-audit.js";
 import { addNotification } from "../business/notifications.js";
+import { emit } from "../automation/events.js";
 import { PG_POOL } from "../tokens.js";
 import { body as asBody, cents, companyFormat, dateOnly, oneOf, onlyKeys, requireAny, sendRows, str, uuid, type ExportColumn } from "./common.js";
 import { specSummary } from "./pay-spec.js";
@@ -34,7 +35,7 @@ export class PortalPayoutsController {
 
   // ---- build a run -----------------------------------------------------------------------------------------------------------
   /** Everything that goes into one driver's payout for the period; runs inside the run's transaction. */
-  private async buildPayout(c: pg.PoolClient, orgId: string, runId: string, driverId: string, from: string, to: string, tz: string, st: PaySettings, actor: string) {
+  private async buildPayout(c: pg.PoolClient, orgId: string, runId: string, driverId: string, from: string, to: string, tz: string, st: PaySettings, actor: string | null) {
     const prof = (await c.query(`SELECT employment_type FROM driver_profiles WHERE user_id = $1`, [driverId])).rows[0];
     const p = (await c.query(`INSERT INTO portal_payouts (org_id, run_id, driver_id, from_date, to_date, employment_type) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`, [orgId, runId, driverId, from, to, prof?.employment_type ?? null])).rows[0];
     // 1. trip pay and approved adjustments that are not paid yet
@@ -90,8 +91,8 @@ export class PortalPayoutsController {
     return p.id as string;
   }
 
-  private async build(c: pg.PoolClient, req: AuthedRequest, runId: string, from: string, to: string) {
-    const orgId = req.session!.orgId; const tz = await this.tz(c); const st = await paySettings(c);
+  async build(c: pg.PoolClient, orgId: string, actor: string | null, runId: string, from: string, to: string) {
+    const tz = await this.tz(c); const st = await paySettings(c);
     const ids = new Set<string>();
     for (const r of (await c.query(`SELECT DISTINCT driver_id FROM portal_pay_lines WHERE payout_id IS NULL AND archived_at IS NULL AND approval = 'approved' AND line_date <= $1::date`, [to])).rows) ids.add(r.driver_id);
     // Drivers on a salary card are paid even with no trips.
@@ -101,7 +102,7 @@ export class PortalPayoutsController {
       if (r.version?.spec.type === "salary") ids.add(d.id);
     }
     const out: string[] = [];
-    for (const id of ids) out.push(await this.buildPayout(c, orgId, runId, id, from, to, tz, st, req.session!.userId));
+    for (const id of ids) out.push(await this.buildPayout(c, orgId, runId, id, from, to, tz, st, actor));
     return out;
   }
 
@@ -136,6 +137,17 @@ export class PortalPayoutsController {
        FROM portal_payout_runs r LEFT JOIN portal_payouts p ON p.run_id = r.id LEFT JOIN users u ON u.id = r.created_by GROUP BY r.id, u.display_name, u.email ORDER BY r.from_date DESC, r.created_at DESC LIMIT 100`)).rows);
   }
 
+  /** Start a run without a person at the keyboard (the pay-day automation). Returns null when there is nothing to pay. */
+  async startRun(c: pg.PoolClient, orgId: string, actor: string | null, cycle: (typeof CYCLES)[number], from: string, to: string): Promise<{ id: string; payouts: number; netCents: number } | null> {
+    if ((await c.query(`SELECT 1 FROM portal_payout_runs WHERE status = 'draft' AND from_date = $1 AND to_date = $2`, [from, to])).rowCount) return null;
+    const run = (await c.query(`INSERT INTO portal_payout_runs (org_id, cycle, from_date, to_date, created_by) VALUES ($1,$2,$3,$4,$5) RETURNING id`, [orgId, cycle, from, to, actor])).rows[0];
+    const made = await this.build(c, orgId, actor, run.id, from, to);
+    if (!made.length) { await c.query(`DELETE FROM portal_payout_runs WHERE id = $1`, [run.id]); return null; }
+    const net = Number((await c.query(`SELECT coalesce(sum(net_cents),0)::float8 AS n FROM portal_payouts WHERE run_id = $1`, [run.id])).rows[0].n);
+    await emit(c, orgId, "payout.run_created", "payout_run", run.id, { from, to, payouts: made.length, netCents: net });
+    return { id: run.id, payouts: made.length, netCents: net };
+  }
+
   @Post("runs")
   async createRun(@Req() req: AuthedRequest, @Body() raw: unknown) {
     const orgId = this.manage(req);
@@ -148,7 +160,7 @@ export class PortalPayoutsController {
     return withOrg(this.pool, orgId, async (c) => {
       if ((await c.query(`SELECT 1 FROM portal_payout_runs WHERE status IN ('draft') AND from_date = $1 AND to_date = $2`, [from, to])).rowCount) throw new ConflictException("There is already a draft run for these dates");
       const run = (await c.query(`INSERT INTO portal_payout_runs (org_id, cycle, from_date, to_date, created_by) VALUES ($1,$2,$3,$4,$5) RETURNING id`, [orgId, cycle, from, to, req.session!.userId])).rows[0];
-      const made = await this.build(c, req, run.id, from, to);
+      const made = await this.build(c, orgId, req.session!.userId, run.id, from, to);
       if (!made.length) throw new BadRequestException("Nothing to pay for these dates: no unpaid trips, bonuses or salaries.");
       const net = (await c.query(`SELECT coalesce(sum(net_cents),0)::float8 AS n FROM portal_payouts WHERE run_id = $1`, [run.id])).rows[0].n;
       await auditChange(c, req, { action: "payout_runs.create", entity: "payout_runs", entityId: run.id, label: `Payout run ${from} to ${to}`, old: null, next: { cycle, from, to, payouts: made.length, netCents: net }, sensitive: true });
@@ -177,7 +189,7 @@ export class PortalPayoutsController {
       if (!r) throw new NotFoundException();
       if ((await c.query(`SELECT 1 FROM portal_payouts WHERE run_id = $1 AND status <> 'draft'`, [id])).rowCount || r.status !== "draft") throw new ConflictException("Only a run where nothing is approved yet can be rebuilt");
       await this.unbuild(c, id);
-      const made = await this.build(c, req, id, r.f, r.t);
+      const made = await this.build(c, orgId, req.session!.userId, id, r.f, r.t);
       await auditChange(c, req, { action: "payout_runs.rebuild", entity: "payout_runs", entityId: id, label: `Payout run ${r.f} to ${r.t}`, old: null, next: { payouts: made.length }, sensitive: true });
       return { payouts: made.length };
     });
@@ -349,6 +361,7 @@ export class PortalPayoutsController {
                 sent_at = CASE WHEN $2 = 'sent' THEN now() ELSE sent_at END, paid_at = CASE WHEN $2 = 'paid' THEN now() ELSE paid_at END WHERE id = $1`, [id, to, method, ref, note, req.session!.userId]);
       await this.syncRun(c, p.run_id);
       await auditChange(c, req, { action: `payouts.${to}`, entity: "payouts", entityId: id, label: `Payout for ${p.dname}`, old: { status: p.status }, next: { status: to, netCents: Number(p.net_cents), method, paymentRef: ref, note }, sensitive: true });
+      await emit(c, p.org_id, `payout.${to}`, "payout", id, { driverId: p.driver_id, netCents: Number(p.net_cents), status: to });
       if (to === "paid") await addNotification(c, p.org_id, p.driver_id, "system", `Your pay of ${centsToPlain(Number(p.net_cents))} was paid. Your statement is ready.`, "/driver/pay");
       return { status: to };
     });
