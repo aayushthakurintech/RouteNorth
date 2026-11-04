@@ -16,3 +16,4 @@ export * from "./flags.js";
 export * from "./help.js";
 export * from "./money.js";
 export * from "./portal-access.js";
+export * from "./vehicle-logic.js";

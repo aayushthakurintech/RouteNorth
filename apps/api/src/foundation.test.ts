@@ -80,7 +80,7 @@ suite("foundation API (roles, audit, search, settings)", () => {
     expect(await status("cust@a.ca", "/vehicles/live")).toBe(403);
     expect(await status("ro@a.ca", "/vehicles/live")).toBe(200);
     expect(await status("ro@a.ca", "/audit")).toBe(403);
-    expect(await status("mgr@a.ca", "/audit")).toBe(200);
+    expect(await status("mgr@a.ca", "/audit")).toBe(403); // Owner Portal spec: only owners and admins read the audit log
     expect(await status("dispatch@a.ca", "/audit")).toBe(403);
     expect((await h.call("get", "/me", await t("cust@a.ca"))).body.home).toBe("/portal");
     expect((await h.call("get", "/me", await t("drv@a.ca"))).body.home).toBe("/driver");
