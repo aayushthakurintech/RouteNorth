@@ -9,6 +9,8 @@ import { Bars, MoneyChart, type Point } from "@/components/portal/charts";
 import { PageHeader, StatCard, StatusBadge } from "@/components/portal/parts";
 import { useOwnerRange } from "@/components/portal/range-context";
 import { Async } from "@/components/portal/states";
+import { cellText } from "@/components/portal/report-view";
+import type { RCol } from "@/components/portal/report-chart";
 import { useFmt } from "@/lib/portal/format";
 import { useApi } from "@/lib/use-api";
 
@@ -127,6 +129,23 @@ function Live({ l }: { l: NonNullable<Dash["live"]> }) {
   );
 }
 
+interface Pinned { ref: string; name: string; columns: RCol[]; rows: Record<string, unknown>[]; total: number }
+
+/** Reports the person pinned from the Reports page: the first rows of each, with a link to the whole report. */
+function PinnedReports({ query }: { query: string }) {
+  const fmt = useFmt();
+  const api = useApi<Pinned[]>(`/portal/reports/pinned?${query}`);
+  const list = api.data ?? [];
+  if (!list.length) return null;
+  return (
+    <section aria-label="Pinned reports" className="grid gap-3 lg:grid-cols-2">{list.map((p) => (
+      <Card key={p.ref}><CardHeader><CardTitle className="text-base"><Link href={`/owner/reports/${p.ref}`} className="hover:underline">{p.name}</Link></CardTitle><CardDescription>First {p.rows.length} of {fmt.num(p.total)} rows. Unpin it on the Reports page.</CardDescription></CardHeader>
+        <CardContent>{p.rows.length === 0 ? <p className="text-sm text-muted-foreground">Nothing to show for these dates.</p> : (
+          <table className="w-full text-sm"><thead><tr>{p.columns.map((c) => <th key={c.key} scope="col" className={`pb-1 text-xs font-medium text-muted-foreground ${["num", "pct", "money"].includes(c.type) ? "text-right" : "text-left"}`}>{c.label}</th>)}</tr></thead>
+            <tbody>{p.rows.map((r, i) => <tr key={i} className="border-t">{p.columns.map((c) => <td key={c.key} className={`py-1 ${["num", "pct", "money"].includes(c.type) ? "text-right tabular-nums" : ""}`}>{cellText(r[c.key], c, fmt)}</td>)}</tr>)}</tbody></table>)}</CardContent></Card>))}</section>
+  );
+}
+
 /** The owner's dashboard: one page, five tabs. Every number uses the same money rules as the cars, finance pages and reports, so they always agree. */
 export default function OwnerHome() {
   const { query } = useOwnerRange();
@@ -154,6 +173,7 @@ export default function OwnerHome() {
             <TabsContent value="live">{d.live ? <Live l={d.live} /> : null}</TabsContent>
           </Tabs>
           <Attention items={d.attention} />
+          <PinnedReports query={query} />
         </div>)}</Async>
     </>
   );

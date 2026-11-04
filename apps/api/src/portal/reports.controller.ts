@@ -29,7 +29,7 @@ export class PortalReportsController {
   }
 
   /** Work out the spec to run (a ready-made report or one from the builder), apply the person's region, and run it. */
-  private async execute(req: AuthedRequest, b: { id?: unknown; spec?: unknown; from?: unknown; to?: unknown; compare?: unknown }) {
+  private async execute(req: AuthedRequest, b: { id?: unknown; spec?: unknown; from?: unknown; to?: unknown; compare?: unknown; groupBy?: unknown; filters?: unknown }) {
     const orgId = this.view(req);
     let spec: ReportSpec; let name: string; let id: string | null = null;
     if (typeof b.id === "string" && b.id) {
@@ -43,6 +43,16 @@ export class PortalReportsController {
       }
     } else { spec = validateSpec(b.spec); name = spec.title ?? spec.dataset; }
     delete spec.scope;
+    const cat0 = id ? CATALOG_BY_ID.get(id) : undefined;
+    let drillOverride: { dataset: string; map: Record<string, string> } | null = null;
+    // Group a ready-made report another way (only the ways its definition lists).
+    if (cat0 && typeof b.groupBy === "string" && b.groupBy) {
+      if (!cat0.groupBy?.includes(b.groupBy)) throw new BadRequestException(`${cat0.name} can be grouped by ${cat0.groupBy?.join(", ") ?? "nothing else"}`);
+      spec.groupBy = [b.groupBy]; if (spec.chart) spec.chart = { ...spec.chart, x: b.groupBy };
+      drillOverride = { dataset: cat0.drill?.dataset ?? spec.dataset, map: { [b.groupBy]: b.groupBy } };
+    }
+    // Extra filters the person added on the screen.
+    if (Array.isArray(b.filters) && b.filters.length) { spec.filters = [...(spec.filters ?? []), ...(b.filters as NonNullable<ReportSpec["filters"]>).slice(0, 10)]; spec = validateSpec(spec); delete spec.scope; }
     if (typeof b.from === "string" || typeof b.to === "string") {
       const org = await orgToday(this.pool, orgId);
       const cur = { from: DAY.test(String(b.from)) ? String(b.from) : (spec.range?.from ?? org.d), to: DAY.test(String(b.to)) ? String(b.to) : (spec.range?.to ?? org.d) };
@@ -66,7 +76,7 @@ export class PortalReportsController {
       previous = { kind: mode === "year" ? "same period last year" : "previous period", range, totals: prev.totals, byKey };
     }
     const cat = id ? CATALOG_BY_ID.get(id) : undefined;
-    return { result, org, currency, name, id, previous, spec, region: !!teams, meta: cat ? { status: cat.status, note: cat.note ?? null, specChart: cat.specChart, drill: cat.drill ?? null, fixedRange: !!cat.fixedRange, groupBy: cat.groupBy ?? null, question: cat.question } : null };
+    return { result, org, currency, name, id, previous, spec, region: !!teams, meta: cat ? { status: cat.status, note: cat.note ?? null, specChart: cat.specChart, drill: drillOverride ?? cat.drill ?? null, fixedRange: !!cat.fixedRange, groupBy: cat.groupBy ?? null, question: cat.question } : null };
   }
 
   private payload(x: Awaited<ReturnType<PortalReportsController["execute"]>>) {

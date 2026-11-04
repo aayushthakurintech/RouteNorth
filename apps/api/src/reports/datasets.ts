@@ -309,7 +309,7 @@ export async function runReport(spec: ReportSpec, x: Omit<Ctx, "range" | "filter
     });
     outCols = [...group.map((g) => ({ key: g, label: byKey.get(g)!.label, type: byKey.get(g)!.type })), ...valueCols.map((c) => ({ key: c.key, label: c.label ?? byKey.get(c.key)!.label, type: byKey.get(c.key)!.type, agg: (c.agg ?? byKey.get(c.key)!.agg) as Agg | undefined }))];
   } else {
-    out = rows.map((r) => { const o: Record<string, unknown> = {}; for (const c of chosen) o[c.key] = r[c.key]; for (const c of ds.columns) if (c.hidden) o[c.key] = r[c.key]; return o; });
+    out = rows.map((r) => { const o: Record<string, unknown> = {}; for (const c of chosen) o[c.key] = r[c.key]; for (const c of ds.columns) if (c.hidden) o[c.key] = r[c.key]; if ("count" in r) o.count = r.count; return o; });
     outCols = chosen.map((c) => ({ key: c.key, label: c.label ?? byKey.get(c.key)!.label, type: byKey.get(c.key)!.type, agg: byKey.get(c.key)!.agg }));
   }
   for (const c of spec.calc ?? []) {

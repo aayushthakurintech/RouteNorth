@@ -136,6 +136,23 @@ describe("report totals equal the dashboard and finance pages", () => {
   });
 });
 
+describe("grouping and filters on the screen", () => {
+  it("a ready-made report can be grouped another allowed way, and refuses others", async () => {
+    const t = CATALOG.find((r) => r.groupBy?.includes("driver") && r.groupBy.length > 2)!;
+    const byDriver = await post("/portal/reports/run", owner, { id: t.id, groupBy: "driver" });
+    expect(byDriver.status).toBe(200);
+    expect(byDriver.body.spec.groupBy).toEqual(["driver"]);
+    expect((await post("/portal/reports/run", owner, { id: t.id, groupBy: "nonsense" })).status).toBe(400);
+  });
+  it("extra filters narrow the rows and are listed in the filters used", async () => {
+    const all = (await run(owner, { id: "V2" })).body;
+    const one = (await post("/portal/reports/run", owner, { id: "V2", filters: [{ key: "vehicle", op: "eq", value: "Truck 1" }] })).body;
+    expect(one.rows.map((r: { vehicle: string }) => r.vehicle)).toEqual(["Truck 1"]);
+    expect(one.rows.length).toBeLessThan(all.rows.length);
+    expect(one.filters.join(" ")).toMatch(/Truck 1/);
+  });
+});
+
 describe("who may see what", () => {
   it("money, pay, audit and people reports are refused to roles without that access", async () => {
     expect((await run(disp, { id: "F1" })).status).toBe(403);

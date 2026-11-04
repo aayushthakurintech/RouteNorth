@@ -16,7 +16,6 @@ const num = (key: string, label: string, agg: Column["agg"] = "sum"): Column => 
 const money = (key: string, label: string, agg: Column["agg"] = "sum"): Column => ({ key, label, type: "money", agg });
 const date = (key: string, label: string): Column => ({ key, label, type: "date" });
 const ts = (key: string, label: string): Column => ({ key, label, type: "ts" });
-const rate = (key: string, label: string): Column => ({ key, label, type: "pct", agg: "avg" });
 const count: Column = { key: "count", label: "Rows", type: "num", agg: "sum" };
 
 const MONEY: ("finance.view" | "vehicles.costs")[] = ["finance.view", "vehicles.costs"];
@@ -351,7 +350,7 @@ export const PORTAL_DATASETS: Dataset[] = [
   },
   {
     key: "customers", label: "Customers", requires: MONEY, about: "One row per customer name: trips, revenue, margin, rating, how often they come back and what they owe.",
-    columns: [txt("customer", "Customer"), num("trips", "Trips"), money("revenue", "Revenue"), money("margin", "Left over"), num("marginPct", "Margin (%)", "avg"), num("rating", "Rating", "avg"), num("activeDays", "Days with a trip"), rate("repeat", "Came back"), money("owed", "Owes you"), date("firstTrip", "First trip"), count],
+    columns: [txt("customer", "Customer"), num("trips", "Trips"), money("revenue", "Revenue"), money("margin", "Left over"), num("marginPct", "Margin (%)", "avg"), num("rating", "Rating", "avg"), num("activeDays", "Days with a trip"), txt("repeat", "Came back"), money("owed", "Owes you"), date("firstTrip", "First trip"), count],
     async load(x) {
       return db(x, async (c, e) => {
         const b = tsBounds(x);
@@ -361,7 +360,7 @@ export const PORTAL_DATASETS: Dataset[] = [
            FROM portal_trips t LEFT JOIN LATERAL (SELECT sum(amount_cents) AS pay FROM portal_pay_lines l WHERE l.trip_id = t.id AND l.archived_at IS NULL AND l.approval = 'approved' AND l.kind IN ('earning','addon')) p ON true
            WHERE t.archived_at IS NULL AND t.status = 'completed' AND t.started_at >= ($1::timestamp AT TIME ZONE $3) AND t.started_at < ($2::timestamp AT TIME ZONE $3) AND ($4::uuid[] IS NULL OR t.vehicle_id = ANY($4)) GROUP BY 1`, [b.fromTs, b.toTs, e.tz, e.vehicleIds ?? null])).rows;
         const owed = new Map((await c.query(`SELECT customer_name AS n, round(sum(total) * 100)::float8 AS v FROM invoices WHERE status = 'sent' GROUP BY 1`)).rows.map((r) => [r.n as string, r.v as number]));
-        return rows.map((r) => ({ ...r, marginPct: r.revenue > 0 ? round((r.margin / r.revenue) * 100, 1) : null, repeat: r.activeDays > 1 ? 1 : 0, owed: owed.get(r.customer) ?? 0, count: 1 }));
+        return rows.map((r) => ({ ...r, marginPct: r.revenue > 0 ? round((r.margin / r.revenue) * 100, 1) : null, repeat: r.activeDays > 1 ? "yes" : "no", owed: owed.get(r.customer) ?? 0, count: 1 }));
       });
     },
   },

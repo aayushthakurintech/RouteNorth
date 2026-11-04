@@ -149,7 +149,7 @@ export const CATALOG: CatalogReport[] = [
     groupBy: ["customer", "route", "vehicle", "driver", "zone"], note: "Drawn as bars, not a treemap. Group by car, driver, route or zone with the group-by box." },
   { id: "F3", group: "finance", name: "Expense breakdown", question: "Where does money go?", specChart: "Stacked bar", status: "full", drill: { dataset: "costs", map: { month: "month", category: "category" } },
     spec: { dataset: "costs", range: { preset: "last12months" }, groupBy: ["month", "category"], columns: [agg("amount", "sum")], sort: { key: "month", dir: "asc" }, chart: { type: "stacked", x: "month", series: "category", y: ["amount"] } },
-    groupBy: ["month", "category", "vehicle"], note: "Includes driver pay and the accrued loan and lease cost, like the profit and loss. Individual expense lines are on the Expenses page." },
+    note: "Includes driver pay and the accrued loan and lease cost, like the profit and loss. Individual expense lines are on the Expenses page." },
   { id: "F4", group: "finance", name: "Cash flow forecast", question: "Will I have enough cash?", specChart: "Line", status: "partial", fixedRange: true,
     spec: { dataset: "cashForecast", range: { preset: "last30" }, columns: m("week", "expectedIn", "expectedOut", "net", "balance"), sort: { key: "week", dir: "asc" }, chart: { type: "line", x: "week", y: ["balance"] } },
     note: "Shows expected in against expected out, not a bank balance. Running costs are an estimate from the last 90 days." },
