@@ -147,7 +147,7 @@ describe("predictions and learning", () => {
     expect(r.body.vehicles[0].reasons.map((x: { key: string }) => x.key)).toEqual(expect.arrayContaining(["service_km", "service_days", "open_defects", "age", "mileage"]));
   });
   it("suggests drivers by skill, preferences and closeness", async () => {
-    await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, skills) VALUES ($1,$2,'{cold}')", [sam, h.orgA]);
+    await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, skills) VALUES ($1,$2,'{cold}') ON CONFLICT (user_id) DO UPDATE SET skills = '{cold}'", [sam, h.orgA]);
     const j = await job({ skills: ["cold"], customerName: "Acme" });
     const s = await h.call("post", "/ai/suggest-driver", owner, { jobId: j });
     expect(s.status).toBe(200);
@@ -436,7 +436,7 @@ describe("auto-assign uses areas, pairs and days off", () => {
     expect(who[w]).toBe(sam); expect(who[e]).toBe(alex);
 
     await reset(); await h.admin.query("DELETE FROM territories");
-    await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, preferences) VALUES ($1,$2,$3)", [sam, h.orgA, JSON.stringify({ daysOff: [today] })]);
+    await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, preferences) VALUES ($1,$2,$3) ON CONFLICT (user_id) DO UPDATE SET preferences = $3", [sam, h.orgA, JSON.stringify({ daysOff: [today] })]);
     const pick = await job({ title: "Pick", type: "pickup", lat: 43.7, lng: -79.4 }), drop = await job({ title: "Drop", lat: 43.75, lng: -79.4 });
     await h.admin.query("UPDATE jobs SET parent_job_id = $1 WHERE id = $2", [pick, drop]);
     const r2 = await h.call("post", "/jobs/auto-assign", owner, { date: today });

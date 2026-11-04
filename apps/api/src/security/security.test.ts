@@ -201,7 +201,7 @@ describe("your data", () => {
   });
   it("erases a person's details but keeps the records they touched", async () => {
     const uid = await h.addUser(h.orgA, "leaver@example.com", "driver", { display_name: "Lee Leaver" });
-    await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, phone) VALUES ($1,$2,'555')", [uid, h.orgA]);
+    await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, phone) VALUES ($1,$2,'555') ON CONFLICT (user_id) DO UPDATE SET phone = '555'", [uid, h.orgA]);
     expect((await h.call("post", `/security/users/${uid}/erase`, owner, { confirm: "wrong@example.com" })).status).toBe(400);
     ok(await h.call("post", `/security/users/${uid}/erase`, owner, { confirm: "Leaver@Example.com" }));
     const u = (await h.admin.query("SELECT email, display_name, disabled_at FROM users WHERE id = $1", [uid])).rows[0];

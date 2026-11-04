@@ -60,7 +60,7 @@ beforeAll(async () => {
   await h.admin.query("INSERT INTO fuel_logs (org_id, vehicle_id, driver_id, filled_on, litres, cost, odometer_km) VALUES ($1,$2,$3,$4,50,75,1000),($1,$2,$3,$5,40,60,1400)", [h.orgA, veh, drvA, day, day]);
   await h.admin.query("INSERT INTO maintenance_logs (org_id, vehicle_id, task, done_on, cost, downtime_hours) VALUES ($1,$2,'Brakes',$3,400,6)", [h.orgA, vehB, day]);
   await h.admin.query("INSERT INTO feedback (org_id, driver_id, csat, nps, source, created_at) VALUES ($1,$2,5,10,'link',$3),($1,$2,3,5,'link',$3)", [h.orgA, drvA, at("12:00")]);
-  await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, hourly_rate) VALUES ($1,$2,30)", [drvA, h.orgA]);
+  await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, hourly_rate) VALUES ($1,$2,30) ON CONFLICT (user_id) DO UPDATE SET hourly_rate = 30", [drvA, h.orgA]);
 }, 90_000);
 afterAll(async () => { await h.close(); });
 
