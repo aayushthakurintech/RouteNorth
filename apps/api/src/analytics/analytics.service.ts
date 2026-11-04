@@ -10,7 +10,7 @@ import { PG_POOL } from "../tokens.js";
 export const GROUPS = ["driver", "vehicle", "route", "day", "depot", "customer"] as const;
 export type Group = (typeof GROUPS)[number];
 
-export interface Filters { driverId?: string | null; vehicleId?: string | null; depotId?: string | null }
+export interface Filters { driverId?: string | null; vehicleId?: string | null; depotId?: string | null; /** Set by the server for people limited to a region; the owner portal reports honour it. */ teamIds?: string[] | null }
 export interface Range { from: string; to: string } // inclusive local dates, YYYY-MM-DD
 
 /** Every number the dashboards and reports can show. `better` says which direction is good, for colours and rankings. */

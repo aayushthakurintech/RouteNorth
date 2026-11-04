@@ -1,12 +1,15 @@
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
-import { aggregate, co2Kg, evalFormula, pivot, round, type Agg } from "@routenorth/shared";
+import { aggregate, co2Kg, evalFormula, pivot, round, type Agg, type Permission } from "@routenorth/shared";
+import { PORTAL_DATASETS } from "./portal-datasets.js";
 import { breakdown, GROUPS, METRICS, type Bundle, type Filters, type Group, type Range, AnalyticsService } from "../analytics/analytics.service.js";
 
-export type ColType = "text" | "num" | "date" | "ts" | "bool" | "pct";
+/** `money` columns hold whole cents; screens show them with the currency and exports turn them into dollars. */
+export type ColType = "text" | "num" | "date" | "ts" | "bool" | "pct" | "money";
 export interface Column { key: string; label: string; type: ColType; /** Default way to combine rows when grouping. */ agg?: Agg; /** Multiply by this on output (0/1 flags shown as percent). */ scale?: number; hidden?: boolean }
-export interface Dataset { key: string; label: string; columns: Column[]; load: (x: Ctx) => Promise<Record<string, unknown>[]> }
-export interface Ctx { pool: pg.Pool; orgId: string; range: Range; filters: Filters; svc: AnalyticsService; bundle: () => Promise<Bundle> }
+/** `requires`: the person needs at least one of these permissions to use the dataset (money, pay, audit and people data). */
+export interface Dataset { key: string; label: string; columns: Column[]; load: (x: Ctx) => Promise<Record<string, unknown>[]>; requires?: Permission[]; /** What the dataset answers, for the builder. */ about?: string }
+export interface Ctx { pool: pg.Pool; orgId: string; range: Range; filters: Filters; svc: AnalyticsService; bundle: () => Promise<Bundle>; /** Who is asking. Left out for shared links and schedules, which were checked when they were made. */ perms?: ReadonlySet<string> }
 
 const txt = (key: string, label = key): Column => ({ key, label, type: "text" });
 const num = (key: string, label = key, agg: Agg = "sum"): Column => ({ key, label, type: "num", agg });
@@ -184,6 +187,7 @@ for (const g of GROUPS) {
     },
   });
 }
+DATASETS.push(...PORTAL_DATASETS);
 export const DATASET_BY_KEY = new Map(DATASETS.map((d) => [d.key, d]));
 
 // ---- spec and run ----
@@ -191,7 +195,7 @@ export const DATASET_BY_KEY = new Map(DATASETS.map((d) => [d.key, d]));
 export type Op = "eq" | "ne" | "gt" | "gte" | "lt" | "lte" | "in" | "contains";
 export interface ReportSpec {
   dataset: string;
-  range?: { from?: string; to?: string; preset?: "last7" | "last30" | "thisMonth" | "lastMonth" | "yesterday" };
+  range?: { from?: string; to?: string; preset?: "last7" | "last30" | "last90" | "thisMonth" | "lastMonth" | "thisYear" | "last12months" | "allTime" | "yesterday" };
   filters?: { key: string; op: Op; value: unknown }[];
   /** Hard limits added by a share link or a person's own access. Not editable from the browser. */
   scope?: Filters;
@@ -200,7 +204,7 @@ export interface ReportSpec {
   calc?: { key: string; label?: string; formula: string }[];
   sort?: { key: string; dir: "asc" | "desc" } | null;
   limit?: number;
-  chart?: { type: "bar" | "line" | "stacked" | "pie" | "heat" | "funnel" | "scatter" | "map" | "table"; x?: string; y?: string[]; series?: string };
+  chart?: { type: "bar" | "line" | "area" | "stacked" | "pie" | "donut" | "heat" | "funnel" | "scatter" | "waterfall" | "map" | "table"; x?: string; y?: string[]; series?: string; /** Group a date column by month on the chart. */ bucket?: "month" };
   pivot?: { row: string; col: string; value: string; agg?: Agg };
   title?: string;
 }
@@ -214,6 +218,10 @@ export function resolveRange(r: ReportSpec["range"], today: string): Range {
   if (r?.from && r?.to) return { from: r.from, to: r.to };
   switch (r?.preset) {
     case "last30": return { from: add(today, -29), to: today };
+    case "last90": return { from: add(today, -89), to: today };
+    case "thisYear": return { from: `${today.slice(0, 4)}-01-01`, to: today };
+    case "last12months": return { from: add(`${today.slice(0, 8)}01`, -365).slice(0, 8) + "01", to: today };
+    case "allTime": return { from: "2000-01-01", to: today };
     case "thisMonth": return { from: `${today.slice(0, 8)}01`, to: today };
     case "lastMonth": { const first = `${today.slice(0, 8)}01`; const to = add(first, -1); return { from: `${to.slice(0, 8)}01`, to }; }
     case "yesterday": return { from: add(today, -1), to: add(today, -1) };
@@ -265,7 +273,7 @@ function keep(row: Record<string, unknown>, f: { key: string; op: Op; value: unk
 }
 
 export interface ReportResult {
-  dataset: string; range: Range; columns: { key: string; label: string; type: ColType; calc?: boolean }[]; rows: Record<string, unknown>[]; total: number; truncated: boolean;
+  dataset: string; range: Range; columns: { key: string; label: string; type: ColType; calc?: boolean; agg?: Agg }[]; rows: Record<string, unknown>[]; total: number; truncated: boolean;
   totals: Record<string, number | null>; pivot?: ReturnType<typeof pivot>; spec: ReportSpec;
 }
 
@@ -275,7 +283,7 @@ export async function runReport(spec: ReportSpec, x: Omit<Ctx, "range" | "filter
   const range = resolveRange(spec.range, x.today);
   const filters: Filters = spec.scope ?? {};
   let cached: Promise<Bundle> | null = null;
-  const ctx: Ctx = { pool: x.pool, orgId: x.orgId, svc: x.svc, range, filters, bundle: () => (cached ??= x.svc.load(x.orgId, range, filters)) };
+  const ctx: Ctx = { pool: x.pool, orgId: x.orgId, svc: x.svc, range, filters, perms: x.perms, bundle: () => (cached ??= x.svc.load(x.orgId, range, filters)) };
   let rows = await ds.load(ctx);
   for (const f of spec.filters ?? []) rows = rows.filter((r) => keep(r, f));
   const byKey = new Map(ds.columns.map((c) => [c.key, c]));
@@ -287,7 +295,7 @@ export async function runReport(spec: ReportSpec, x: Omit<Ctx, "range" | "filter
   if (group.length) {
     const buckets = new Map<string, Record<string, unknown>[]>();
     for (const r of rows) { const k = group.map((g) => String(r[g] ?? "")).join("\u0001"); (buckets.get(k) ?? buckets.set(k, []).get(k)!).push(r); }
-    const valueCols = chosen.filter((c) => !group.includes(c.key) && ["num", "pct"].includes(byKey.get(c.key)!.type));
+    const valueCols = chosen.filter((c) => !group.includes(c.key) && isNum(byKey.get(c.key)!.type));
     if (!valueCols.some((c) => c.key === "count")) valueCols.push({ key: "count", agg: "sum" });
     out = [...buckets.values()].map((rs) => {
       const o: Record<string, unknown> = {};
@@ -299,10 +307,10 @@ export async function runReport(spec: ReportSpec, x: Omit<Ctx, "range" | "filter
       }
       return o;
     });
-    outCols = [...group.map((g) => ({ key: g, label: byKey.get(g)!.label, type: byKey.get(g)!.type })), ...valueCols.map((c) => ({ key: c.key, label: c.label ?? byKey.get(c.key)!.label, type: byKey.get(c.key)!.type }))];
+    outCols = [...group.map((g) => ({ key: g, label: byKey.get(g)!.label, type: byKey.get(g)!.type })), ...valueCols.map((c) => ({ key: c.key, label: c.label ?? byKey.get(c.key)!.label, type: byKey.get(c.key)!.type, agg: (c.agg ?? byKey.get(c.key)!.agg) as Agg | undefined }))];
   } else {
     out = rows.map((r) => { const o: Record<string, unknown> = {}; for (const c of chosen) o[c.key] = r[c.key]; for (const c of ds.columns) if (c.hidden) o[c.key] = r[c.key]; return o; });
-    outCols = chosen.map((c) => ({ key: c.key, label: c.label ?? byKey.get(c.key)!.label, type: byKey.get(c.key)!.type }));
+    outCols = chosen.map((c) => ({ key: c.key, label: c.label ?? byKey.get(c.key)!.label, type: byKey.get(c.key)!.type, agg: byKey.get(c.key)!.agg }));
   }
   for (const c of spec.calc ?? []) {
     for (const o of out) { const vars: Record<string, number | null> = {}; for (const [k, v] of Object.entries(o)) vars[k] = typeof v === "number" ? v : null; o[c.key] = round(evalFormula(c.formula, vars), 4); }
@@ -312,13 +320,20 @@ export async function runReport(spec: ReportSpec, x: Omit<Ctx, "range" | "filter
   const total = out.length;
   const limit = spec.limit ?? MAX_ROWS;
   const totals: Record<string, number | null> = {};
-  for (const c of outCols) if (["num", "pct"].includes(c.type) && !group.includes(c.key)) { const vals = out.map((o) => o[c.key]).filter((v): v is number => typeof v === "number"); totals[c.key] = vals.length ? round(vals.reduce((a, b) => a + b, 0), 2) : null; }
+  for (const c of outCols) if (isNum(c.type) && !group.includes(c.key)) { const vals = out.map((o) => o[c.key]).filter((v): v is number => typeof v === "number"); totals[c.key] = vals.length ? round(vals.reduce((a, b) => a + b, 0), 2) : null; }
   const result: ReportResult = { dataset: spec.dataset, range, columns: outCols, rows: out.slice(0, limit), total, truncated: total > limit, totals, spec };
   if (spec.pivot) result.pivot = pivot(rows, spec.pivot.row, spec.pivot.col, spec.pivot.value, spec.pivot.agg ?? "sum");
   return result;
 }
 const r_ok = (n: number) => Number.isFinite(n);
+const isNum = (t: ColType) => t === "num" || t === "pct" || t === "money";
 
-export function datasetInfo() {
-  return DATASETS.map((d) => ({ key: d.key, label: d.label, columns: d.columns.filter((c) => !c.hidden).map(({ key, label, type, agg, scale }) => ({ key, label, type, agg, scale })) }));
+/** Refuse a report on money, pay, people or audit data unless the person may see that data. */
+export function assertDatasetAllowed(spec: ReportSpec, perms: ReadonlySet<string> | undefined): void {
+  const ds = DATASET_BY_KEY.get(spec.dataset);
+  if (ds?.requires?.length && !ds.requires.some((p) => perms?.has(p))) throw new ForbiddenException(`The ${ds.label} data needs one of: ${ds.requires.join(", ")}`);
+}
+
+export function datasetInfo(perms?: ReadonlySet<string>) {
+  return DATASETS.filter((d) => !perms || !d.requires?.length || d.requires.some((p) => perms.has(p))).map((d) => ({ key: d.key, label: d.label, about: d.about, columns: d.columns.filter((c) => !c.hidden).map(({ key, label, type, agg, scale }) => ({ key, label, type, agg, scale })) }));
 }

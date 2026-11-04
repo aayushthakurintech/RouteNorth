@@ -6,7 +6,7 @@ import { auditChange } from "../audit/domain-audit.js";
 import { PG_POOL } from "../tokens.js";
 import { body as asBody, cents, companyFormat, dateOnly, oneOf, onlyKeys, regionScope, requireAny, str, uuid } from "./common.js";
 import { loadDrivers, loadSettings } from "./drivers.service.js";
-import { BUDGET_CATEGORIES, EXPENSE_CATEGORIES, actualFor, companyMoney, moneySeries, previousRange, scopedVehicleIds, upcomingBills } from "./finance.service.js";
+import { BUDGET_CATEGORIES, EXPENSE_CATEGORIES, budgetRows, cashPieces, companyMoney, moneySeries, previousRange, scopedVehicleIds, taxMonths, upcomingBills } from "./finance.service.js";
 import { bounds, shiftDay, vehicleMoney, type Range } from "./money-rules.js";
 import { loadVehicles, todayIn } from "./vehicles.service.js";
 
@@ -334,12 +334,7 @@ export class PortalFinanceController {
     const orgId = this.view(req);
     return withOrg(this.pool, orgId, async (c) => {
       const f = await companyFormat(c); const today = todayIn(f.timezone);
-      const invoices = (await c.query(`SELECT number, customer_name AS customer, due_on::text AS due, round(total * 100)::float8 AS cents FROM invoices WHERE status = 'sent'`)).rows;
-      const bills = await upcomingBills(c, today, 90);
-      const owed = Number((await c.query(`SELECT coalesce(sum(amount_cents),0)::float8 AS n FROM portal_pay_lines WHERE payout_id IS NULL AND archived_at IS NULL AND approval = 'approved'`)).rows[0].n)
-        + Number((await c.query(`SELECT coalesce(sum(net_cents),0)::float8 AS n FROM portal_payouts WHERE status IN ('draft','approved','sent','failed','disputed')`)).rows[0].n);
-      const past = await companyMoney(c, { from: shiftDay(today, -89), to: today }, f.timezone);
-      const usualDaily = Math.round((past.fuelCents + past.maintenanceCents + past.tiresCents + past.ticketsCents + past.otherCents) / 90);
+      const { invoices, bills, owed, usualDaily } = await cashPieces(c, f.timezone, today);
       const windows = [30, 60, 90].map((d) => {
         const end = shiftDay(today, d);
         const inv = invoices.filter((i) => (i.due ?? today) <= end); const bl = bills.filter((b) => b.date <= end);
@@ -362,15 +357,7 @@ export class PortalFinanceController {
       const f = await companyFormat(c); const today = todayIn(f.timezone);
       const m = month ?? today.slice(0, 7);
       if (!/^\d{4}-\d{2}$/.test(m)) throw new BadRequestException("month must be like 2026-11");
-      const from = `${m}-01`; const to = new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.slice(5)), 0)).toISOString().slice(0, 10);
-      const actual = await companyMoney(c, { from, to: to > today ? today : to }, f.timezone);
-      const set = (await c.query(`SELECT category, month::text AS month, amount_cents::float8 AS cents FROM portal_budgets WHERE month IS NULL OR month = $1::date`, [from])).rows;
-      const rows = BUDGET_CATEGORIES.map((cat) => {
-        const own = set.find((x) => x.category === cat && x.month === from), dflt = set.find((x) => x.category === cat && x.month == null);
-        const budgetCents = (own ?? dflt)?.cents ?? null; const spent = actualFor(actual, cat);
-        const used = budgetCents ? Math.round((spent / budgetCents) * 1000) / 10 : null;
-        return { category: cat, budgetCents, appliesTo: own ? "this month" : dflt ? "every month" : null, actualCents: spent, usedPct: used, state: used == null ? "none" : used >= 100 ? "over" : used >= 80 ? "warning" : "ok" };
-      });
+      const rows = await budgetRows(c, f.timezone, today, m);
       return { month: m, rows };
     });
   }
@@ -398,12 +385,7 @@ export class PortalFinanceController {
     const orgId = this.view(req);
     return withOrg(this.pool, orgId, async (c) => {
       const f = await companyFormat(c); const r = rangeOf(q, todayIn(f.timezone), 90);
-      const collected = (await c.query(`SELECT to_char(issued_on, 'YYYY-MM') AS month, round(sum(tax) * 100)::float8 AS cents, round(sum(subtotal) * 100)::float8 AS sales FROM invoices WHERE status IN ('sent','paid') AND issued_on BETWEEN $1::date AND $2::date GROUP BY 1`, [r.from, r.to])).rows;
-      const paid = (await c.query(`SELECT to_char(spent_on, 'YYYY-MM') AS month, sum(tax_cents)::float8 AS cents, sum(amount_cents)::float8 AS spend FROM finance_expenses WHERE archived_at IS NULL AND spent_on BETWEEN $1::date AND $2::date GROUP BY 1`, [r.from, r.to])).rows;
-      const months = [...new Set([...collected.map((x) => x.month), ...paid.map((x) => x.month)])].sort().map((m) => {
-        const a = collected.find((x) => x.month === m), p = paid.find((x) => x.month === m);
-        return { month: m, salesCents: a?.sales ?? 0, taxCollectedCents: a?.cents ?? 0, spendCents: p?.spend ?? 0, taxPaidCents: p?.cents ?? 0, netOwedCents: (a?.cents ?? 0) - (p?.cents ?? 0) };
-      });
+      const months = await taxMonths(c, r);
       const sum = (k: "salesCents" | "taxCollectedCents" | "spendCents" | "taxPaidCents" | "netOwedCents") => months.reduce((a, m) => a + m[k], 0);
       const contractors = (await c.query(`SELECT coalesce(dp.employment_type, 'employee') AS type, sum(p.net_cents)::float8 AS cents FROM portal_payouts p LEFT JOIN driver_profiles dp ON dp.user_id = p.driver_id WHERE p.status = 'paid' AND p.paid_at >= ($1::timestamp AT TIME ZONE $3) AND p.paid_at < ($2::timestamp AT TIME ZONE $3) GROUP BY 1`, [bounds(r).fromTs, bounds(r).toTs, f.timezone])).rows;
       return { ...r, months, totals: { salesCents: sum("salesCents"), taxCollectedCents: sum("taxCollectedCents"), spendCents: sum("spendCents"), taxPaidCents: sum("taxPaidCents"), netOwedCents: sum("netOwedCents") }, driverPaidByType: contractors,
