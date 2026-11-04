@@ -77,7 +77,7 @@ describe("feeds", () => {
     feed = (await mk(owner, { name: "sheet", kind: "feed" })).key;
     api = (await mk(owner, { name: "bi", kind: "api" })).key;
     await h.admin.query("DELETE FROM jobs");
-    await h.admin.query("INSERT INTO jobs (org_id, title, scheduled_date, status) VALUES ($1,'Feed job, one', current_date, 'unassigned')", [h.orgA]);
+    await h.admin.query("INSERT INTO jobs (org_id, title, scheduled_date, status) VALUES ($1,'Feed job, one', (now() AT TIME ZONE (SELECT timezone FROM organizations WHERE id = $1))::date, 'unassigned')", [h.orgA]);
   });
   it("needs a feed key, from the link or a header", async () => {
     expect((await raw("/feeds/data/jobs")).status).toBe(401);

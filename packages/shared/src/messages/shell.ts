@@ -38,7 +38,7 @@ export const shell = defineMessages({
     // people and roles
     people: "People", roles: "Roles", addPerson: "Add person", displayName: "Name", role: "Role", customRole: "Custom role", noCustomRole: "None (use the built-in role)",
     disablePerson: "Disable", enablePerson: "Enable", disabled: "Disabled", initialPassword: "Initial password (10+ characters)",
-    role_owner: "Owner", role_admin: "Admin", role_dispatcher: "Dispatcher", role_manager: "Manager", role_driver: "Driver", role_customer: "Customer", role_viewer: "Read-only",
+    role_owner: "Owner", role_admin: "Admin", role_dispatcher: "Dispatcher", role_manager: "Manager", role_accountant: "Accountant", role_driver: "Driver", role_customer: "Customer", role_viewer: "Read-only",
     newRole: "New custom role", roleName: "Role name", permissions: "Permissions", builtInRoles: "Built-in roles", customRoles: "Custom roles", noCustomRoles: "No custom roles yet. Create one to give someone exactly the access they need.",
     usersAssigned: "{n} people",
     perm_group_fleet: "Fleet", perm_group_routes: "Routes and jobs", perm_group_reports: "Reports", perm_group_alerts: "Alerts", perm_group_people: "People", perm_group_admin: "Administration", perm_group_apps: "Driver and customer apps", perm_group_customers: "Customers",
@@ -101,7 +101,7 @@ export const shell = defineMessages({
     quietStart: "De", quietEnd: "Jusqu’à", saveSettings: "Enregistrer les paramètres", settingsSaved: "Paramètres enregistrés.",
     people: "Personnes", roles: "Rôles", addPerson: "Ajouter une personne", displayName: "Nom", role: "Rôle", customRole: "Rôle personnalisé", noCustomRole: "Aucun (utiliser le rôle intégré)",
     disablePerson: "Désactiver", enablePerson: "Activer", disabled: "Désactivé", initialPassword: "Mot de passe initial (10 caractères ou plus)",
-    role_owner: "Propriétaire", role_admin: "Administrateur", role_dispatcher: "Répartiteur", role_manager: "Gestionnaire", role_driver: "Chauffeur", role_customer: "Client", role_viewer: "Lecture seule",
+    role_owner: "Propriétaire", role_admin: "Administrateur", role_dispatcher: "Répartiteur", role_manager: "Gestionnaire", role_accountant: "Comptable", role_driver: "Chauffeur", role_customer: "Client", role_viewer: "Lecture seule",
     newRole: "Nouveau rôle personnalisé", roleName: "Nom du rôle", permissions: "Permissions", builtInRoles: "Rôles intégrés", customRoles: "Rôles personnalisés", noCustomRoles: "Aucun rôle personnalisé. Créez-en un pour donner exactement l’accès voulu.",
     usersAssigned: "{n} personnes",
     perm_group_fleet: "Flotte", perm_group_routes: "Itinéraires et tâches", perm_group_reports: "Rapports", perm_group_alerts: "Alertes", perm_group_people: "Personnes", perm_group_admin: "Administration", perm_group_apps: "Applis chauffeur et client", perm_group_customers: "Clients",

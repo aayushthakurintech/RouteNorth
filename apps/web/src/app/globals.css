@@ -1,5 +1,6 @@
 @import "./tokens.css";
 @import "./ui.css";
+@import "./shadcn.css";
 
 /* Pages built before the design system; they inherit the tokens. */
 .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -8,9 +9,10 @@
 .cards button, .cards .static { width: 100%; display: flex; flex-direction: column; gap: 2px; text-align: start; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: transparent; }
 .cards .meta { color: var(--muted); font-size: 13px; }
 .page { max-width: 1120px; margin: 0 auto; padding: var(--s5) var(--s4); display: flex; flex-direction: column; gap: var(--s4); }
-table { border-collapse: collapse; width: 100%; font-size: 14px; }
-th, td { text-align: start; padding: 6px 8px; border-bottom: 1px solid var(--line); }
-th { color: var(--muted); font-weight: 600; }
+/* shadcn tables (data-slot="table") style themselves; these rules are for the older pages. */
+table:not([data-slot="table"]) { border-collapse: collapse; width: 100%; font-size: 14px; }
+table:not([data-slot="table"]) :is(th, td) { text-align: start; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+table:not([data-slot="table"]) th { color: var(--muted); font-weight: 600; }
 .stack { display: flex; flex-direction: column; gap: 10px; }
 .card-link { display: flex; flex-direction: column; gap: 4px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; color: inherit; text-decoration: none; }
 .card-link progress { width: 100%; }

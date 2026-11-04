@@ -147,7 +147,7 @@ describe("predictions and learning", () => {
     expect(r.body.vehicles[0].reasons.map((x: { key: string }) => x.key)).toEqual(expect.arrayContaining(["service_km", "service_days", "open_defects", "age", "mileage"]));
   });
   it("suggests drivers by skill, preferences and closeness", async () => {
-    await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, skills) VALUES ($1,$2,'{cold}')", [sam, h.orgA]);
+    await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, skills) VALUES ($1,$2,'{cold}') ON CONFLICT (user_id) DO UPDATE SET skills = '{cold}'", [sam, h.orgA]);
     const j = await job({ skills: ["cold"], customerName: "Acme" });
     const s = await h.call("post", "/ai/suggest-driver", owner, { jobId: j });
     expect(s.status).toBe(200);
@@ -306,7 +306,10 @@ describe("optimization tools", () => {
 });
 
 describe("safety", () => {
-  const drive = async (dev: string, rows: [number, number, number, number | null][]) => { for (const [secs, lat, speed, heading] of rows) await h.admin.query("INSERT INTO positions (time, org_id, device_id, lat, lng, speed, heading, ignition) VALUES ($5::timestamptz + make_interval(secs => $4), $1,$2,$3,-79.4,$6,$7,true)", [h.orgA, dev, lat, secs, new Date(Date.now() - 3600_000).toISOString(), speed, heading]); };
+  // Fixes happen an hour ago, unless that was still yesterday in the company's time zone (just after local midnight); then they happen just now, so they stay on the route's day.
+  let base0: number | null = null;
+  const driveBase = () => { if (base0 != null) return base0; const day = (ms: number) => new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(ms); const hourAgo = Date.now() - 3600_000; return (base0 = day(hourAgo) === today ? hourAgo : Date.now() - 60_000); };
+  const drive = async (dev: string, rows: [number, number, number, number | null][]) => { for (const [secs, lat, speed, heading] of rows) await h.admin.query("INSERT INTO positions (time, org_id, device_id, lat, lng, speed, heading, ignition) VALUES ($5::timestamptz + make_interval(secs => $4), $1,$2,$3,-79.4,$6,$7,true)", [h.orgA, dev, lat, secs, new Date(driveBase()).toISOString(), speed, heading]); };
   it("scores drivers, counts hard corners and shows events with their dash cam clip", async () => {
     const dev = (await h.admin.query("INSERT INTO devices (org_id, vehicle_id, source, external_id) VALUES ($1,$2,'simulator','sf-1') RETURNING id", [h.orgA, veh])).rows[0].id;
     await mkRoute(sam, "Safety", [{ lat: 43.7, lng: -79.4 }], { vehicle: veh });
@@ -318,7 +321,7 @@ describe("safety", () => {
     const row = s.body.drivers.find((d: { driverId: string }) => d.driverId === sam);
     expect(row.corners).toBeGreaterThanOrEqual(1);
     expect((await h.call("get", "/safety/scores", samTok)).status).toBe(403);
-    const t = new Date(Date.now() - 3600_000 + 310_000).toISOString();
+    const t = new Date(driveBase() + 310_000).toISOString();
     await drive(dev, [[300, 43.73, 140, 0], [305, 43.7305, 140, 0], [310, 43.731, 140, 0], [315, 43.7315, 140, 0], [320, 43.732, 140, 0]]);
     const clip = await h.call("post", "/safety/clips", owner, { vehicleId: veh, eventKind: "speeding", eventAt: t, url: "https://cam.example/clip/1", note: "front camera" });
     expect(clip.status).toBe(201);
@@ -436,7 +439,7 @@ describe("auto-assign uses areas, pairs and days off", () => {
     expect(who[w]).toBe(sam); expect(who[e]).toBe(alex);
 
     await reset(); await h.admin.query("DELETE FROM territories");
-    await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, preferences) VALUES ($1,$2,$3)", [sam, h.orgA, JSON.stringify({ daysOff: [today] })]);
+    await h.admin.query("INSERT INTO driver_profiles (user_id, org_id, preferences) VALUES ($1,$2,$3) ON CONFLICT (user_id) DO UPDATE SET preferences = $3", [sam, h.orgA, JSON.stringify({ daysOff: [today] })]);
     const pick = await job({ title: "Pick", type: "pickup", lat: 43.7, lng: -79.4 }), drop = await job({ title: "Drop", lat: 43.75, lng: -79.4 });
     await h.admin.query("UPDATE jobs SET parent_job_id = $1 WHERE id = $2", [pick, drop]);
     const r2 = await h.call("post", "/jobs/auto-assign", owner, { date: today });

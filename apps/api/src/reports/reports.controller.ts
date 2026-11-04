@@ -9,7 +9,8 @@ import { AuthGuard, requirePerm, requireAny, type AuthedRequest } from "../auth/
 import { parseUuid } from "../history/range.js";
 import { deliver, type Endpoint, type Providers } from "../notify/notifier.js";
 import { NOTIFY, PG_POOL } from "../tokens.js";
-import { datasetInfo, runReport, validateSpec, type ReportResult, type ReportSpec } from "./datasets.js";
+import { assertDatasetAllowed, datasetInfo, runReport, validateSpec, type ReportResult, type ReportSpec } from "./datasets.js";
+import { regionScope } from "../portal/common.js";
 import { executivePdf, toCsv, toPdf, toXlsx, type Brand } from "./export.js";
 import { REPORT_TEMPLATES } from "./templates.js";
 
@@ -49,7 +50,15 @@ export class ReportsController {
   constructor(@Inject(PG_POOL) private readonly pool: pg.Pool, @Inject(AnalyticsService) private readonly svc: AnalyticsService, @Inject(NOTIFY) private readonly notify: Providers) {}
 
   @Get("datasets")
-  datasets(@Req() req: AuthedRequest) { requirePerm(req, "reports.view"); return datasetInfo(); }
+  datasets(@Req() req: AuthedRequest) { requirePerm(req, "reports.view"); return datasetInfo(req.perms as ReadonlySet<string> | undefined); }
+
+  /** Check the person may use this data, and for people limited to a region, fix the region into the spec so saved copies, links and schedules keep it. */
+  private async guard(req: AuthedRequest, orgId: string, spec: ReportSpec) {
+    delete spec.scope;
+    assertDatasetAllowed(spec, req.perms);
+    const teams = await withOrg(this.pool, orgId, (c) => regionScope(c, req));
+    if (teams) spec.scope = { teamIds: teams };
+  }
 
   @Get("templates")
   templates(@Req() req: AuthedRequest) { requirePerm(req, "reports.view"); return REPORT_TEMPLATES; }
@@ -58,9 +67,9 @@ export class ReportsController {
   private async execute(req: AuthedRequest, raw: unknown): Promise<{ result: ReportResult; brand: Brand; locale: string }> {
     const orgId = requirePerm(req, "reports.view");
     const spec = validateSpec(raw);
-    delete spec.scope;
+    await this.guard(req, orgId, spec);
     const org = await orgToday(this.pool, orgId);
-    return { result: await runReport(spec, { pool: this.pool, orgId, svc: this.svc, today: org.d }), brand: brandOf(org), locale: org.locale };
+    return { result: await runReport(spec, { pool: this.pool, orgId, svc: this.svc, today: org.d, perms: req.perms as ReadonlySet<string> | undefined }), brand: brandOf(org), locale: org.locale };
   }
 
   @Post("run")
@@ -114,7 +123,7 @@ export class ReportsController {
     const orgId = requirePerm(req, "reports.manage");
     const name = typeof body?.name === "string" ? body.name.trim() : "";
     if (!name || name.length > 120) throw new BadRequestException("name is required (up to 120 characters)");
-    const spec = validateSpec(body?.spec); delete spec.scope;
+    const spec = validateSpec(body?.spec); await this.guard(req, orgId, spec);
     return withOrg(this.pool, orgId, async (c) => {
       const r = (await c.query("INSERT INTO report_defs (org_id, owner_id, name, spec, shared) VALUES ($1,$2,$3,$4,$5) RETURNING id, version", [orgId, req.session!.userId, name, spec, body?.shared === true])).rows[0];
       await c.query("INSERT INTO report_versions (org_id, report_id, version, name, spec, saved_by) VALUES ($1,$2,1,$3,$4,$5)", [orgId, r.id, name, spec, req.session!.userId]);
@@ -133,7 +142,7 @@ export class ReportsController {
       const name = body?.name === undefined ? cur.name : String(body.name).trim().slice(0, 120);
       if (!name) throw new BadRequestException("name is required");
       const spec = body?.spec === undefined ? cur.spec : validateSpec(body.spec);
-      delete spec.scope;
+      await this.guard(req, orgId, spec);
       const changed = name !== cur.name || JSON.stringify(spec) !== JSON.stringify(cur.spec);
       const version = changed ? cur.version + 1 : cur.version;
       await c.query("UPDATE report_defs SET name = $2, spec = $3, shared = $4, version = $5, updated_at = now() WHERE id = $1", [rid, name, spec, body?.shared === undefined ? cur.shared : body.shared === true, version]);
@@ -189,7 +198,7 @@ export class ReportsController {
       if (!def) throw new NotFoundException();
       const row = (await c.query(
         `INSERT INTO report_shares (org_id, report_id, name, spec, token_hash, expires_at, created_by) VALUES ($1,$2,$3,$4,$5, now() + make_interval(days => $6), $7) RETURNING id, expires_at AS "expiresAt"`,
-        [orgId, def.id, def.name, { ...def.spec, scope }, sha(token), days, req.session!.userId])).rows[0];
+        [orgId, def.id, def.name, { ...def.spec, scope: { ...(def.spec.scope ?? {}), ...scope } }, sha(token), days, req.session!.userId])).rows[0];
       return { ...row, token, path: `/shared/report/${token}`, csvPath: `/public/report/${token}?format=csv` };
     });
   }

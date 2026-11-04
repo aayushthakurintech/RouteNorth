@@ -6,20 +6,32 @@ import { withDefaults } from "../org/settings.js";
 import { budgetRows } from "../business/money.js";
 import { breakdown, METRICS, summarize, type AnalyticsService } from "../analytics/analytics.service.js";
 import { deliver, type Endpoint, type Providers } from "../notify/notifier.js";
+import { emit } from "../automation/events.js";
+import { notifyPeople, type Item } from "./delivery.js";
+import { PORTAL_EVALUATORS } from "./portal-rules.js";
+import { ensureDefaultRules } from "./defaults.js";
+import { sendPersonalDigests } from "./digest.js";
+import { runAutomations } from "../portal/automations.js";
 
 /**
  * Alert rules: "if this happens, tell these people". Each kind of rule looks at the live data and lists the things that match
  * right now. The engine then groups repeats, respects quiet hours, resolves alerts whose cause has gone away, and sends them.
  */
-export type RuleKind = "late_risk" | "off_route" | "long_idle" | "speeding" | "geofence" | "offline" | "harsh_driving" | "document_expiry" | "maintenance_due" | "cost_anomaly" | "custom_metric" | "needs_break" | "help_request" | "fatigue" | "checkin_missed" | "crash" | "budget";
-export interface Rule { id: string; name: string; kind: RuleKind; params: Record<string, unknown>; severity: "info" | "warn" | "critical"; endpointIds: string[]; quietStart: string | null; quietEnd: string | null; groupMinutes: number }
-export interface Candidate { key: string; title: string; detail: Record<string, unknown>; subjectKind?: string; subjectId?: string }
-interface Env { orgId: string; today: string; svc: AnalyticsService; now: Date }
-type Evaluator = { /** Alerts about a state (like "offline") end when the state ends; alerts about an event (like "entered a zone") do not. */ resolves: boolean; run: (c: pg.PoolClient, p: Record<string, unknown>, e: Env) => Promise<Candidate[]> };
+export type RuleKind = "late_risk" | "off_route" | "long_idle" | "speeding" | "geofence" | "offline" | "harsh_driving" | "document_expiry" | "maintenance_due" | "cost_anomaly" | "custom_metric" | "needs_break" | "help_request" | "fatigue" | "checkin_missed" | "crash" | "budget"
+  | "vehicle_docs" | "service_due" | "inspection_failed" | "vehicle_idle" | "fuel_above_normal" | "repair_over_budget"
+  | "driver_docs" | "driver_safety_low" | "driver_rating_low" | "driver_overtime" | "driver_inactive" | "driver_cancellations" | "driver_stuck_onboarding"
+  | "payout_waiting" | "trip_pay_off" | "dispute_open" | "losing_money" | "invoice_overdue" | "portal_budget" | "custom_measure";
+export type Severity = "info" | "warn" | "critical";
+export interface Rule { id: string; name: string; kind: RuleKind; params: Record<string, unknown>; severity: Severity; endpointIds: string[]; quietStart: string | null; quietEnd: string | null; groupMinutes: number; repeatMinutes: number; recipientIds: string[]; area: string | null }
+/** `severity` lets one rule raise alerts of different weight (a document 30 days out is Info, 7 days out is Critical). */
+export interface Candidate { key: string; title: string; detail: Record<string, unknown>; subjectKind?: string; subjectId?: string; severity?: Severity }
+export interface Env { orgId: string; today: string; tz: string; svc: AnalyticsService; now: Date }
+export type Evaluator = { /** Alerts about a state (like "offline") end when the state ends; alerts about an event (like "entered a zone") do not. */ resolves: boolean; run: (c: pg.PoolClient, p: Record<string, unknown>, e: Env) => Promise<Candidate[]> };
+const RANK: Record<Severity, number> = { info: 0, warn: 1, critical: 2 };
 
 const num = (v: unknown, d: number, lo = 0, hi = 1e9) => { const n = typeof v === "number" ? v : Number(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
 
-export const EVALUATORS: Record<RuleKind, Evaluator> = {
+const LEGACY_EVALUATORS: Record<string, Evaluator> = {
   late_risk: {
     resolves: true,
     async run(c, p) {
@@ -242,6 +254,7 @@ export const EVALUATORS: Record<RuleKind, Evaluator> = {
     },
   },
 };
+export const EVALUATORS = { ...LEGACY_EVALUATORS, ...PORTAL_EVALUATORS } as Record<RuleKind, Evaluator>;
 
 const hhmm = (d: Date, tz: string) => new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).format(d);
 
@@ -252,49 +265,86 @@ export async function evaluateOrg(pool: pg.Pool, svc: AnalyticsService, notify: 
   const res: TickResult = { raised: 0, bumped: 0, resolved: 0, sent: 0, failed: 0 };
   const meta = (await withOrg(pool, orgId, (c) => c.query<{ today: string; tz: string }>("SELECT (now() AT TIME ZONE timezone)::date::text AS today, timezone AS tz FROM organizations"))).rows[0];
   if (!meta) return res;
-  const rules = (await withOrg(pool, orgId, (c) => c.query<Rule & { quiet_start: string | null; quiet_end: string | null }>(
-    `SELECT id, name, kind, params, severity, endpoint_ids AS "endpointIds", quiet_start::text AS "quietStart", quiet_end::text AS "quietEnd", group_minutes AS "groupMinutes" FROM alert_rules WHERE active AND ($1::uuid IS NULL OR id = $1)`, [only ?? null]))).rows;
+  const rules = (await withOrg(pool, orgId, (c) => c.query<Rule>(
+    `SELECT id, name, kind, params, severity, endpoint_ids AS "endpointIds", quiet_start::text AS "quietStart", quiet_end::text AS "quietEnd", group_minutes AS "groupMinutes",
+            repeat_minutes AS "repeatMinutes", recipient_ids AS "recipientIds", area
+     FROM alert_rules WHERE active AND archived_at IS NULL AND ($1::uuid IS NULL OR id = $1)`, [only ?? null]))).rows;
   for (const rule of rules) {
     const ev = EVALUATORS[rule.kind];
     if (!ev) continue;
     let found: Candidate[];
-    try { found = await withOrg(pool, orgId, (c) => ev.run(c, rule.params ?? {}, { orgId, today: meta.today, svc, now })); } catch (e) { console.error(`alert rule ${rule.id} (${rule.kind}):`, (e as Error).message); continue; }
-    const quiet = inQuietHours(hhmm(now, meta.tz), rule.quietStart, rule.quietEnd) && rule.severity !== "critical";
-    const toSend: { title: string; detail: Record<string, unknown>; id: string }[] = [];
+    try { found = await withOrg(pool, orgId, (c) => ev.run(c, rule.params ?? {}, { orgId, today: meta.today, tz: meta.tz, svc, now })); } catch (e) { console.error(`alert rule ${rule.id} (${rule.kind}):`, (e as Error).message); continue; }
+    // Quiet hours hold back everything except Critical.
+    const inQuiet = inQuietHours(hhmm(now, meta.tz), rule.quietStart, rule.quietEnd);
+    const toSend: (Item & { repeat: boolean })[] = [];
     await withOrg(pool, orgId, async (c) => {
+      const log = (alertId: string, kind: string, detail: Record<string, unknown> = {}, note: string | null = null) =>
+        c.query("INSERT INTO alert_events (org_id, alert_id, kind, note, detail) VALUES ($1,$2,$3,$4,$5)", [orgId, alertId, kind, note, JSON.stringify(detail)]);
       for (const f of found.slice(0, 100)) {
-        const cur = (await c.query("SELECT id, status, last_at, delivered_at FROM alerts WHERE dedupe_key = $1 AND status IN ('open','acknowledged')", [f.key])).rows[0];
+        const sev = f.severity ?? rule.severity;
+        const quiet = inQuiet && sev !== "critical";
+        const cur = (await c.query(
+          "SELECT id, status, severity, last_at, delivered_at, last_sent_at, snoozed_until FROM alerts WHERE dedupe_key = $1 AND status IN ('open','acknowledged')", [f.key])).rows[0];
         if (cur) {
-          const regroup = cur.status === "open" && (!cur.delivered_at || (now.getTime() - new Date(cur.delivered_at).getTime()) / 60000 >= rule.groupMinutes) && rule.groupMinutes > 0;
-          await c.query("UPDATE alerts SET last_at = now(), count = count + 1, detail = $2, title = $3 WHERE id = $1", [cur.id, f.detail, f.title]);
+          const snoozed = !!cur.snoozed_until && new Date(cur.snoozed_until) > now;
+          const snoozeEnded = !!cur.snoozed_until && !snoozed;
+          const escalated = RANK[sev] > RANK[cur.severity as Severity];
+          // A Critical alert nobody has acted on is sent again every few minutes. Acknowledging, assigning, snoozing or closing it stops that.
+          const since = (t: string | null) => (t ? (now.getTime() - new Date(t).getTime()) / 60000 : Infinity);
+          const repeat = sev === "critical" && cur.status === "open" && !snoozed && since(cur.last_sent_at ?? cur.delivered_at) >= rule.repeatMinutes;
+          const regroup = !repeat && cur.status === "open" && !snoozed && rule.groupMinutes > 0 && (!cur.delivered_at || since(cur.delivered_at) >= rule.groupMinutes);
+          await c.query(
+            `UPDATE alerts SET last_at = now(), count = count + 1, detail = $2, title = $3, severity = CASE WHEN $4 THEN $5 ELSE severity END, status = CASE WHEN $4 THEN 'open' ELSE status END,
+                    snoozed_until = CASE WHEN $6 THEN NULL ELSE snoozed_until END WHERE id = $1`, [cur.id, f.detail, f.title, escalated, sev, snoozeEnded]);
           res.bumped++;
-          if (regroup && !quiet) toSend.push({ id: cur.id, title: f.title, detail: f.detail });
+          if (escalated) await log(cur.id, "escalated", { from: cur.severity, to: sev });
+          if (snoozeEnded) await log(cur.id, "unsnoozed", {}, "The snooze ended and the problem is still there");
+          if (!snoozed && !quiet && (escalated || repeat || regroup || snoozeEnded)) toSend.push({ id: cur.id, title: f.title, detail: f.detail, severity: sev, repeat: repeat && !escalated });
           continue;
         }
+        // Someone marked this done a short while ago and the cause is still there: do not nag again unless it has become worse.
+        if ((await c.query(
+          `SELECT 1 FROM alerts WHERE dedupe_key = $1 AND status = 'resolved' AND resolved_how = 'person' AND resolved_at > now() - interval '7 days'
+             AND array_position(ARRAY['info','warn','critical'], severity) >= array_position(ARRAY['info','warn','critical'], $2::text) LIMIT 1`, [f.key, sev])).rowCount) continue;
         const row = (await c.query(
-          `INSERT INTO alerts (org_id, rule_id, kind, severity, title, detail, subject_kind, subject_id, dedupe_key) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-          [orgId, rule.id, rule.kind, rule.severity, f.title, f.detail, f.subjectKind ?? null, f.subjectId ?? null, f.key])).rows[0];
+          `INSERT INTO alerts (org_id, rule_id, kind, severity, title, detail, subject_kind, subject_id, dedupe_key, area) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+          [orgId, rule.id, rule.kind, sev, f.title, f.detail, f.subjectKind ?? null, f.subjectId ?? null, f.key, rule.area])).rows[0];
         res.raised++;
-        if (!quiet) toSend.push({ id: row.id, title: f.title, detail: f.detail });
+        await log(row.id, "raised", { rule: rule.name });
+        await emit(c, orgId, "alert.raised", "alert", row.id, { severity: sev, title: f.title, kind: rule.kind, area: rule.area, rule: rule.name });
+        if (!quiet) toSend.push({ id: row.id, title: f.title, detail: f.detail, severity: sev, repeat: false });
       }
       if (ev.resolves) {
         const keys = found.map((f) => f.key);
-        res.resolved += (await c.query("UPDATE alerts SET status = 'resolved' WHERE rule_id = $1 AND status IN ('open','acknowledged') AND NOT (dedupe_key = ANY($2::text[]))", [rule.id, keys])).rowCount ?? 0;
+        const closed = await c.query(
+          "UPDATE alerts SET status = 'resolved', resolved_at = now(), resolved_how = 'auto' WHERE rule_id = $1 AND status IN ('open','acknowledged') AND NOT (dedupe_key = ANY($2::text[])) RETURNING id", [rule.id, keys]);
+        res.resolved += closed.rowCount ?? 0;
+        for (const r of closed.rows) await log(r.id, "auto_resolved", {}, "The problem went away");
       }
     });
-    if (toSend.length && rule.endpointIds.length) {
-      const endpoints = (await withOrg(pool, orgId, (c) => c.query<Endpoint & { enabled: boolean }>("SELECT id, kind, target, label, enabled FROM notification_endpoints WHERE id = ANY($1::uuid[])", [rule.endpointIds.filter((x) => /^[0-9a-f-]{36}$/i.test(x))]))).rows.filter((e) => e.enabled);
-      // Many matches in one pass become one message, so a burst never floods a channel.
-      const first = toSend[0]!;
-      const msg = toSend.length === 1
-        ? { subject: `${rule.name}: ${first.title}`, text: first.title }
-        : { subject: `${rule.name}: ${toSend.length} alerts`, text: toSend.slice(0, 10).map((s) => `• ${s.title}`).join("\n") + (toSend.length > 10 ? `\n…and ${toSend.length - 10} more` : "") };
-      for (const ep of endpoints) {
-        const r = await deliver(ep, { ...msg, severity: rule.severity, link: `${process.env.PUBLIC_WEB_URL ?? "http://localhost:3000"}/alerts` }, notify);
-        if (r.ok) res.sent++; else res.failed++;
+    if (toSend.length) {
+      const top = toSend.reduce((a, b) => (RANK[b.severity] > RANK[a.severity] ? b : a)).severity;
+      // People: each person's own choices decide channels, quiet hours and what they mute.
+      const people = rule.area || rule.recipientIds.length ? await notifyPeople(pool, notify, orgId, rule, toSend, meta.tz, now) : { sent: 0, failed: 0, byAlert: new Map<string, Record<string, unknown>>() };
+      res.sent += people.sent; res.failed += people.failed;
+      // Destinations picked on the rule itself (an email address, a Slack channel, a webhook).
+      if (rule.endpointIds.length) {
+        const endpoints = (await withOrg(pool, orgId, (c) => c.query<Endpoint & { enabled: boolean }>("SELECT id, kind, target, label, enabled FROM notification_endpoints WHERE id = ANY($1::uuid[])", [rule.endpointIds.filter((x) => /^[0-9a-f-]{36}$/i.test(x))]))).rows.filter((e) => e.enabled);
+        // Many matches in one pass become one message, so a burst never floods a channel.
+        const first = toSend[0]!;
+        const msg = toSend.length === 1
+          ? { subject: `${rule.name}: ${first.title}`, text: first.title }
+          : { subject: `${rule.name}: ${toSend.length} alerts`, text: toSend.slice(0, 10).map((s) => `• ${s.title}`).join("\n") + (toSend.length > 10 ? `\n…and ${toSend.length - 10} more` : "") };
+        for (const ep of endpoints) {
+          const r = await deliver(ep, { ...msg, severity: top, link: `${process.env.PUBLIC_WEB_URL ?? "http://localhost:3000"}${rule.area ? "/owner/alerts" : "/alerts"}` }, notify);
+          if (r.ok) res.sent++; else res.failed++;
+        }
       }
+      await withOrg(pool, orgId, async (c) => {
+        await c.query("UPDATE alerts SET delivered_at = now(), last_sent_at = now() WHERE id = ANY($1::uuid[])", [toSend.map((s) => s.id)]);
+        for (const s of toSend) await c.query("INSERT INTO alert_events (org_id, alert_id, kind, detail) VALUES ($1,$2,$3,$4)", [orgId, s.id, s.repeat ? "repeated" : "sent", JSON.stringify(people.byAlert.get(s.id) ?? {})]);
+      });
     }
-    if (toSend.length) await withOrg(pool, orgId, (c) => c.query("UPDATE alerts SET delivered_at = now() WHERE id = ANY($1::uuid[])", [toSend.map((s) => s.id)]));
   }
   return res;
 }
@@ -319,10 +369,12 @@ export async function runAlertTick(pool: pg.Pool, svc: AnalyticsService, notify:
   const orgs = (await pool.query<{ id: string }>("SELECT all_org_ids() AS id")).rows;
   for (const { id } of orgs) {
     try {
+      await ensureDefaultRules(pool, id);
       const r = await evaluateOrg(pool, svc, notify, id, now);
       if (r.raised) log(`alerts: ${r.raised} new for ${id}`);
       const tz = (await withOrg(pool, id, (c) => c.query<{ timezone: string }>("SELECT timezone FROM organizations"))).rows[0]?.timezone;
-      if (tz && hhmm(now, tz).startsWith("07:")) await sendDigest(pool, notify, id);
+      if (tz && hhmm(now, tz).startsWith("07:")) { await sendDigest(pool, notify, id); await sendPersonalDigests(pool, notify, id, now); }
+      for (const a of await runAutomations(pool, notify, id, now)) if (a.status === "failed") log(`automation ${a.automation} failed for ${id}: ${a.message}`);
     } catch (e) { log(`alerts failed for ${id}: ${(e as Error).message}`); }
   }
 }

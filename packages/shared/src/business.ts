@@ -261,4 +261,4 @@ export function extractMentions(body: string, people: Person[]): string[] {
 
 // ---------------------------------------------------------------- invites
 
-export const INVITE_ROLES = ["admin", "dispatcher", "manager", "driver", "customer", "viewer"] as const;
+export const INVITE_ROLES = ["admin", "dispatcher", "manager", "accountant", "driver", "customer", "viewer"] as const;

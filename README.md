@@ -10,6 +10,7 @@ Hardware-agnostic, Canadian-hosted, bilingual (EN/FR) fleet tracking for trucks 
 - `apps/simulator` – drives fake trucks and buses into Traccar (no hardware needed)
 - `packages/shared` – types, vehicle status logic and translations
 - `packages/db` – migrations and tenant-scoped query helper (Row-Level Security)
+- `apps/web/src/app/owner` – the Owner Portal (vehicles, drivers, pay rates, finance, reports, alerts). Status of every spec item: `docs/owner-portal/STATUS.md`
 - `infra/` – database init and Traccar config for local dev
 
 ## Run it in your browser

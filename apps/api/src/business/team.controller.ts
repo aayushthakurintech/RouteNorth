@@ -12,6 +12,7 @@ import { deliver, type Providers } from "../notify/notifier.js";
 import { withDefaults } from "../org/settings.js";
 import { hashPassword } from "../passwords.js";
 import { JWT_SECRET, NOTIFY, PG_POOL } from "../tokens.js";
+import { ensureSteps } from "../portal/drivers.service.js";
 import { addNotification } from "./notifications.js";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -206,6 +207,11 @@ export class PublicInviteController {
         throw e;
       }
       if (f.team_id) await c.query("INSERT INTO team_members (org_id, team_id, user_id) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [f.org_id, f.team_id, u.id]);
+      if (f.role === "driver") {
+        // A driver who joins by invitation starts in onboarding: the owner approves each step before jobs can be given.
+        await c.query("UPDATE driver_profiles SET status = 'onboarding', team_id = $2 WHERE user_id = $1", [u.id, f.team_id ?? null]);
+        await ensureSteps(c, f.org_id, u.id);
+      }
       const owners = (await c.query("SELECT id FROM users WHERE role IN ('owner','admin') AND disabled_at IS NULL")).rows;
       for (const o of owners) await addNotification(c, f.org_id, o.id, "invite", `${name ?? f.email} accepted the invitation`, "/settings/users");
       const s = withDefaults((await c.query("SELECT settings FROM organizations WHERE id = $1", [f.org_id])).rows[0]?.settings);

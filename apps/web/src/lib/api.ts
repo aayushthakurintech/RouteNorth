@@ -43,3 +43,17 @@ export async function apiDownload(path: string, filename: string): Promise<void>
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
 }
+
+/** Download a file that the API builds from a JSON request (a report export). */
+export async function apiDownloadPost(path: string, body: unknown, filename: string): Promise<void> {
+  const session = loadSession();
+  if (!session) throw new Unauthorized();
+  const res = await fetch(`${API_URL}${path}`, { method: "POST", headers: { Authorization: `Bearer ${session.token}`, "content-type": "application/json" }, body: JSON.stringify(body) });
+  if (res.status === 401) { saveSession(null); throw new Unauthorized(); }
+  if (!res.ok) { const d = await res.json().catch(() => null); throw new Error(typeof d?.message === "string" ? d.message : `HTTP ${res.status}`); }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(await res.blob());
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+}

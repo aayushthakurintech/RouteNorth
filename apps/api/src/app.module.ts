@@ -49,6 +49,15 @@ import { BillingController } from "./business/billing.controller.js";
 import { SecurityController } from "./security/security.controller.js";
 import { PublicSupportController, SupportController } from "./support/support.controller.js";
 import { OpsController } from "./ops/ops.controller.js";
+import { PortalAccessController, PortalExportController } from "./portal/export.controller.js";
+import { PortalFleetController, PortalVehiclesController } from "./portal/vehicles.controller.js";
+import { PortalDriversController } from "./portal/drivers.controller.js";
+import { PortalPayController } from "./portal/pay.controller.js";
+import { PortalTripsController } from "./portal/trips.controller.js";
+import { PortalMyPayController, PortalPayoutsController } from "./portal/payouts.controller.js";
+import { PortalDashboardController, PortalFinanceController } from "./portal/finance.controller.js";
+import { PortalAlertsController } from "./portal/alerts.controller.js";
+import { PortalReportsController } from "./portal/reports.controller.js";
 import { ErrorLogFilter } from "./ops/errors.js";
 
 export interface AppOptions {
@@ -70,7 +79,7 @@ export class AppModule {
   static register(opts: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController, AutomationController, WebhooksController, ApprovalsController, PublicJobController, DriverExtrasController, MessagesController, HelpRequestsController, TimesheetsController, ExpensesController, PortalController, InvoicesController, MessageDefaultsController, AiController, OptimizeController, SafetyController, PlatformController, FeedsController, InboundController, DocsController, TeamsController, InvitesController, PublicInviteController, CommentsController, NotificationsController, TasksController, ScheduleController, BillingController, SecurityController, SupportController, PublicSupportController, OpsController],
+      controllers: [AuthController, VehiclesController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController, AutomationController, WebhooksController, ApprovalsController, PublicJobController, DriverExtrasController, MessagesController, HelpRequestsController, TimesheetsController, ExpensesController, PortalController, InvoicesController, MessageDefaultsController, AiController, OptimizeController, SafetyController, PlatformController, FeedsController, InboundController, DocsController, TeamsController, InvitesController, PublicInviteController, CommentsController, NotificationsController, TasksController, ScheduleController, BillingController, SecurityController, SupportController, PublicSupportController, OpsController, PortalExportController, PortalAccessController, PortalVehiclesController, PortalFleetController, PortalDriversController, PortalPayController, PortalTripsController, PortalPayoutsController, PortalMyPayController, PortalDashboardController, PortalFinanceController, PortalReportsController, PortalAlertsController],
       providers: [
         { provide: PG_POOL, useValue: opts.pool },
         { provide: POSITION_BUS, useValue: opts.bus },

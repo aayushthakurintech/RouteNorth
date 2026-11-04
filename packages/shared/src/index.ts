@@ -14,3 +14,8 @@ export * from "./platform.js";
 export * from "./business.js";
 export * from "./flags.js";
 export * from "./help.js";
+export * from "./money.js";
+export * from "./portal-access.js";
+export * from "./vehicle-logic.js";
+export * from "./driver-logic.js";
+export * from "./rate-engine.js";

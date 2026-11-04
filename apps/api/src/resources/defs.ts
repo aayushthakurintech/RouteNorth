@@ -22,6 +22,8 @@ export interface Field {
   filter?: boolean;
   /** For json: the expected shape. */
   json?: "array" | "object";
+  /** Accepted in the request but not a column of its own (Owner Portal: cents stored in an older dollar column). */
+  virtual?: boolean;
 }
 
 export interface ResourceDef {
@@ -287,4 +289,5 @@ export const BY_NAME = new Map(RESOURCES.map((r) => [r.name, r]));
 export const REF_TABLES: Record<string, { table: string; where?: string }> = {
   vehicles: { table: "vehicles" }, depots: { table: "depots" }, "maintenance-plans": { table: "maintenance_plans" },
   drivers: { table: "users", where: "role = 'driver'" }, "@routes": { table: "routes" }, "report-defs": { table: "report_defs" }, equipment: { table: "equipment" }, teams: { table: "teams" }, "rate-cards": { table: "rate_cards" },
+  shops: { table: "shops" }, "work-orders": { table: "work_orders" },
 };
