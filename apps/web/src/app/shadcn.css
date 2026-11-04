@@ -7,7 +7,8 @@
  */
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
+/* "important": RouteNorth's own unlayered rules (for example `a { color: brand }`) must not beat shadcn's utility classes. */
+@import "tailwindcss/utilities.css" layer(utilities) important;
 @import "tw-animate-css";
 
 @custom-variant dark (&:is([data-theme="dark"], [data-theme="dark"] *));
@@ -86,3 +87,11 @@
 .portal-root *, .portal-root *::before, .portal-root *::after { border-color: var(--border); box-sizing: border-box; }
 .portal-root button:not(:disabled), .portal-root [role="button"]:not([aria-disabled="true"]) { cursor: pointer; }
 .portal-root :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+/* What Tailwind's preflight would do, but only inside the portal. */
+.portal-root :is(ul, ol, menu) { list-style: none; margin: 0; padding: 0; }
+.portal-root :is(h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd) { margin: 0; }
+.portal-root :is(h1, h2, h3, h4, h5, h6) { font-size: inherit; font-weight: inherit; }
+.portal-root a { text-decoration: none; }
+.portal-root a:not([class]) { text-decoration: underline; text-underline-offset: 2px; }
+.portal-root button { background: transparent; border: 0; padding: 0; }
