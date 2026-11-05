@@ -59,23 +59,23 @@ export default function DevicesPage() {
   }
 
   const cols: Column<Device>[] = [
-    { key: "tracker", header: t("dv_id"), value: (d) => d.label ?? d.externalId, width: 200, render: (d) => <span><strong>{d.label ?? d.externalId}</strong>{d.label && <span className="meta"> · {d.externalId}</span>}</span> },
-    { key: "vehicle", header: t("dv_vehicle"), value: (d) => d.vehicleName ?? t("dv_unassigned"), width: 150 },
+    { key: "tracker", header: t("dv_id"), value: (d) => d.label ?? d.externalId, width: 190, render: (d) => <span><strong>{d.label ?? d.externalId}</strong>{d.label && <span className="meta"> · {d.externalId}</span>}</span> },
+    { key: "vehicle", header: t("dv_vehicle"), value: (d) => d.vehicleName ?? t("dv_unassigned"), width: 130 },
     {
-      key: "health", header: t("dv_status"), value: (d) => d.health, width: 170,
+      key: "health", header: t("dv_status"), value: (d) => d.health, width: 140,
       render: (d) => (
         <span title={d.issues.map((i) => t(`dv_issue_${i}` as MessageKey)).join("\n")}>
           <Chip tone={TONE[d.health]} dot>{t(`dv_health_${d.health}` as MessageKey)}</Chip>
         </span>
       ),
     },
-    { key: "seen", header: t("dv_last_seen"), value: (d) => d.lastSeen ?? "", width: 120, render: (d) => (d.lastSeen ? ago(d.lastSeen, locale) : t("dv_never")) },
-    { key: "sats", header: t("dv_sats"), value: (d) => d.satellites, numeric: true, width: 90 },
+    { key: "seen", header: t("dv_last_seen"), value: (d) => d.lastSeen ?? "", width: 130, render: (d) => (d.lastSeen ? ago(d.lastSeen, locale) : t("dv_never")) },
+    { key: "sats", header: t("dv_sats"), value: (d) => d.satellites, numeric: true, width: 120 },
     { key: "bat", header: t("dv_battery"), value: (d) => d.batteryPct, numeric: true, width: 110, render: (d) => (d.batteryPct == null ? "—" : `${Math.round(d.batteryPct)}%`) },
     { key: "volt", header: t("dv_voltage"), value: (d) => d.extVoltage, numeric: true, width: 120, render: (d) => (d.extVoltage == null ? "—" : `${d.extVoltage.toFixed(1)} V`) },
-    { key: "fuel", header: t("dv_fuel"), value: (d) => d.fuelLevelPct, numeric: true, width: 100, render: (d) => (d.fuelLevelPct == null ? "—" : `${Math.round(d.fuelLevelPct)}%`) },
+    { key: "fuel", header: t("dv_fuel"), value: (d) => d.fuelLevelPct, numeric: true, width: 120, render: (d) => (d.fuelLevelPct == null ? "—" : `${Math.round(d.fuelLevelPct)}%`) },
     ...(canManage ? [{
-      key: "act", header: "", value: () => "", width: 150, noGroup: true,
+      key: "act", header: "", value: () => "", width: 100, noGroup: true,
       render: (d: Device) => (
         <span className="row">
           {d.vehicleId && <button type="button" className="btn ghost sm" onClick={() => void unassign(d)}>{t("dv_unassign")}</button>}
@@ -96,10 +96,12 @@ export default function DevicesPage() {
         : list.length === 0 ? <EmptyState icon={<Antenna size={36} aria-hidden />} title={t("dv_empty_t")} body={t("dv_empty_b")} action={canManage ? <button type="button" className="btn" onClick={() => setAdding(true)}>{t("dv_add")}</button> : undefined} />
         : (
           <>
-            <div className="grid cols-3">
-              <Kpi label={t("dv_health_healthy")} value={counts.healthy} />
-              <Kpi label={t("dv_health_attention")} value={counts.attention} />
-              <Kpi label={t("dv_health_offline")} value={counts.offline} />
+            <div className="card">
+              <div className="kpi-row">
+                <Kpi label={t("dv_health_healthy")} value={counts.healthy} />
+                <Kpi label={t("dv_health_attention")} value={counts.attention} />
+                <Kpi label={t("dv_health_offline")} value={counts.offline} />
+              </div>
             </div>
             <DataTable tableId="devices" columns={cols} rows={list} rowKey={(d) => d.id} csvName="trackers" />
           </>

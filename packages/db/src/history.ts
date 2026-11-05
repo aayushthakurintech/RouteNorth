@@ -22,13 +22,34 @@ function bearing(a: Pt, b: Pt): number {
 interface Plan { device: string; route: Pt[]; kmh: number; dwellMin: number[]; startHourUtc: number; loops: number; tankL: number; lPer100: number; hasFuelSensor: boolean }
 
 const PLANS: Plan[] = [
-  { device: "sim-truck-1", kmh: 38, dwellMin: [4, 11, 6, 22, 5], startHourUtc: 12.5, loops: 3, tankL: 300, lPer100: 33, hasFuelSensor: true,
+  { device: "sim-truck-1", kmh: 38, dwellMin: [1, 4, 2, 8, 1], startHourUtc: 12.5, loops: 8, tankL: 300, lPer100: 33, hasFuelSensor: true,
     route: [{ lat: 43.6532, lng: -79.3832 }, { lat: 43.6629, lng: -79.3957 }, { lat: 43.6677, lng: -79.4046 }, { lat: 43.6455, lng: -79.402 }, { lat: 43.6426, lng: -79.3871 }] },
-  { device: "sim-bus-1", kmh: 34, dwellMin: [1, 2, 1, 3], startHourUtc: 11, loops: 4, tankL: 220, lPer100: 29, hasFuelSensor: true,
+  { device: "sim-bus-1", kmh: 34, dwellMin: [1, 2, 1, 3], startHourUtc: 11, loops: 14, tankL: 220, lPer100: 29, hasFuelSensor: true,
     route: [{ lat: 43.589, lng: -79.6441 }, { lat: 43.596, lng: -79.63 }, { lat: 43.605, lng: -79.635 }, { lat: 43.6, lng: -79.652 }] },
-  { device: "sim-truck-2", kmh: 96, dwellMin: [14, 9], startHourUtc: 11.5, loops: 1, tankL: 450, lPer100: 36, hasFuelSensor: false,
+  { device: "sim-truck-2", kmh: 96, dwellMin: [14, 9], startHourUtc: 11.5, loops: 2, tankL: 450, lPer100: 36, hasFuelSensor: false,
     route: [{ lat: 43.7001, lng: -79.4163 }, { lat: 43.8561, lng: -79.0204 }, { lat: 43.9, lng: -78.86 }, { lat: 44.0, lng: -78.6 }] },
 ];
+
+/** The demo driver works the first truck's days: a shift around each, a half-hour break, a route that ties them together, and one shift still open today. */
+async function seedDriverShifts(admin: pg.Pool, orgId: string, vehicleId: string, spans: { start: number; end: number }[], now: Date): Promise<void> {
+  const driver = (await admin.query("SELECT id FROM users WHERE org_id = $1 AND email = 'driver@demo.ca'", [orgId])).rows[0]?.id as string | undefined;
+  if (!driver) return;
+  if ((await admin.query("SELECT 1 FROM shifts WHERE org_id = $1 AND driver_id = $2 LIMIT 1", [orgId, driver])).rowCount) return;
+  const iso = (ms: number) => new Date(ms).toISOString();
+  for (const sp of spans) {
+    const start = sp.start - 20 * 60_000, end = sp.end + 20 * 60_000, mid = start + (end - start) / 2;
+    const id = (await admin.query("INSERT INTO shifts (org_id, driver_id, started_at, ended_at, source) VALUES ($1,$2,$3,$4,'manual') RETURNING id", [orgId, driver, iso(start), iso(end)])).rows[0].id as string;
+    await admin.query("INSERT INTO shift_breaks (org_id, shift_id, kind, started_at, ended_at) VALUES ($1,$2,'break',$3,$4)", [orgId, id, iso(mid), iso(mid + 30 * 60_000)]);
+    await admin.query(
+      `INSERT INTO routes (org_id, name, route_date, vehicle_id, driver_id)
+       SELECT $1, 'Downtown deliveries', $2::timestamptz::date, $3, $4 WHERE NOT EXISTS (SELECT 1 FROM routes WHERE org_id = $1 AND route_date = $2::timestamptz::date AND vehicle_id = $3)`,
+      [orgId, iso(sp.start), vehicleId, driver]);
+  }
+  // Today's shift is still open, but only once the working day has actually begun (the truck leaves around 12:30 UTC).
+  const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const todayStart = midnight + 12.2 * 3_600_000;
+  if (now.getTime() > todayStart + 3_600_000) await admin.query("INSERT INTO shifts (org_id, driver_id, started_at, source) VALUES ($1,$2,$3,'manual')", [orgId, driver, iso(todayStart)]);
+}
 
 export interface HistoryResult { positions: number; events: number }
 
@@ -36,7 +57,7 @@ export interface HistoryResult { positions: number; events: number }
 export async function seedHistory(admin: pg.Pool, orgId: string, days = 14, now = new Date()): Promise<HistoryResult> {
   const has = await admin.query("SELECT 1 FROM positions WHERE org_id = $1 AND time < $2 LIMIT 1", [orgId, new Date(now.getTime() - 86_400_000)]);
   if (has.rowCount) return { positions: 0, events: 0 };
-  const devices = (await admin.query("SELECT id, external_id FROM devices WHERE org_id = $1", [orgId])).rows as { id: string; external_id: string }[];
+  const devices = (await admin.query("SELECT id, external_id, vehicle_id FROM devices WHERE org_id = $1", [orgId])).rows as { id: string; external_id: string; vehicle_id: string | null }[];
   const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   let positions = 0, events = 0;
 
@@ -46,6 +67,7 @@ export async function seedHistory(admin: pg.Pool, orgId: string, days = 14, now 
     let odo = 48_000_000, fuel = 82, hours = 3200;
     const rows: unknown[][] = [];
     const evs: unknown[][] = [];
+    const spans: { start: number; end: number }[] = [];
 
     for (let day = days; day >= 1; day--) {
       const dow = new Date(midnight - day * 86_400_000).getUTCDay();
@@ -58,6 +80,7 @@ export async function seedHistory(admin: pg.Pool, orgId: string, days = 14, now 
           plan.hasFuelSensor ? Math.round(fuel * 10) / 10 : null, ign ? Math.round(900 + speed * 14) : null, Math.round(hours * 10) / 10, 4]);
       };
       const stepS = 30;
+      const dayStart = t;
       for (let loop = 0; loop < plan.loops; loop++) {
         for (let i = 0; i < plan.route.length; i++) {
           const a = plan.route[i]!, b = plan.route[(i + 1) % plan.route.length]!;
@@ -84,6 +107,7 @@ export async function seedHistory(admin: pg.Pool, orgId: string, days = 14, now 
       if (fuel < 28) { // refuel on the way home: the level jumps up while parked
         for (let m = 0; m < 6; m++) { fuel = Math.min(97, fuel + 12); push(plan.route[0]!, 0, false, 0); t += 60_000; }
       }
+      spans.push({ start: dayStart, end: t });
     }
     for (let i = 0; i < rows.length; i += 500) {
       const chunk = rows.slice(i, i + 500);
@@ -97,6 +121,7 @@ export async function seedHistory(admin: pg.Pool, orgId: string, days = 14, now 
     }
     for (const e of evs) await admin.query("INSERT INTO device_events (org_id, device_id, time, kind, severity, lat, lng) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT DO NOTHING", e);
     positions += rows.length; events += evs.length;
+    if (plan.device === "sim-truck-1" && dev.vehicle_id) await seedDriverShifts(admin, orgId, dev.vehicle_id, spans, now);
     // The newest fix becomes the vehicle's latest position (the live simulator overwrites it when it runs).
     const last = rows[rows.length - 1];
     if (last) {

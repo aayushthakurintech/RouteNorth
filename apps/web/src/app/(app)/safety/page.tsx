@@ -1,6 +1,7 @@
 "use client";
 import type { MessageKey } from "@routenorth/shared";
 import { useState } from "react";
+import { Meter } from "@/components/charts/Parts";
 import { Chip, EmptyState, ErrorState, PageHead, SkeletonList, TabDef, Tabs } from "@/components/ui/primitives";
 import { apiSend } from "@/lib/api";
 import { useI18n } from "@/lib/i18n-context";
@@ -32,6 +33,52 @@ function Scores() {
           <thead><tr><th>{t("f_when")}</th><th>{t("f_vehicle")}</th><th>{t("sf_event")}</th><th>{t("sf_clip")}</th></tr></thead>
           <tbody>{ev.data!.events.slice(0, 50).map((e, i) => <tr key={i}><td>{when(e.time)}</td><td>{e.vehicle}</td><td>{t(`sf_ev_${e.kind}` as MessageKey)}</td><td>{e.clips.length ? e.clips.map((c) => <a key={c.id} href={c.url} target="_blank" rel="noreferrer noopener">{t("sf_watch")}</a>) : "–"}</td></tr>)}</tbody>
         </table>
+      )}
+    </div>
+  );
+}
+
+interface HosClock { usedH: number; limitH: number; remainingH: number }
+interface HosDriver {
+  driverId: string; name: string; hasVehicleData: boolean;
+  status: { currentStatus: string; driving: HosClock; window: HosClock; elapsed: HosClock | null; cycle: HosClock; canDrive: boolean; driveMinutesLeft: number; binding: string; mustStopBy: string | null; violations: { kind: string; at: string; detail: string }[] };
+}
+const hm = (m: number) => `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, "0")}`;
+
+/** Hours-of-service clocks per driver. Awareness only: it says so on the screen, because it is not a certified logging device. */
+function HoursOfService() {
+  const { t, locale } = useI18n();
+  const [rule, setRule] = useState("canada_cycle1");
+  const r = useApi<{ label: string; note: string; rules: { id: string; label: string }[]; drivers: HosDriver[] }>(`/telematics/hos?rule=${rule}`, { intervalMs: 60_000 });
+  const at = (iso: string) => new Date(iso).toLocaleTimeString(locale === "fr" ? "fr-CA" : "en-CA", { timeStyle: "short" });
+  return (
+    <div className="stack">
+      <label className="field" style={{ maxWidth: 340 }}>{t("rep_hosRule")}
+        <select value={rule} onChange={(e) => setRule(e.target.value)}>{(r.data?.rules ?? [{ id: rule, label: rule }]).map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
+      </label>
+      <p className="panel-note">{t("rep_hosNotEld")}</p>
+      {r.error ? <ErrorState error={r.error} onRetry={r.reload} /> : !r.loaded ? <SkeletonList rows={3} h={96} /> : r.data!.drivers.length === 0 ? <EmptyState title={t("rep_hosEmpty")} /> : (
+        <ul className="hos-list">
+          {r.data!.drivers.map((d) => {
+            const s = d.status;
+            return (
+              <li key={d.driverId} className="hos-card">
+                <div className="hos-head">
+                  <strong>{d.name}</strong>
+                  <Chip tone={s.canDrive ? (s.driveMinutesLeft < 60 ? "warn" : "ok") : "danger"}>{s.canDrive ? `${t("rep_hosCanDrive")} · ${t("rep_hosLeft", { n: hm(s.driveMinutesLeft) })}` : t("rep_hosCannot")}</Chip>
+                </div>
+                <div className="hos-meters">
+                  <Meter label={t("rep_hosDriving")} used={s.driving.usedH} limit={s.driving.limitH} display={`${s.driving.usedH.toFixed(1)} / ${s.driving.limitH} h`} />
+                  <Meter label={t("rep_hosWindow")} used={s.window.usedH} limit={s.window.limitH} display={`${s.window.usedH.toFixed(1)} / ${s.window.limitH} h`} />
+                  <Meter label={t("rep_hosCycle")} used={s.cycle.usedH} limit={s.cycle.limitH} display={`${s.cycle.usedH.toFixed(0)} / ${s.cycle.limitH} h`} />
+                </div>
+                {s.mustStopBy && <div className="meta small">{t("rep_hosBinding", { what: `${at(s.mustStopBy)}` })}</div>}
+                {!d.hasVehicleData && <div className="meta small">{t("rep_hosNoVehicle")}</div>}
+                {s.violations.length > 0 && <ul className="plainlist meta small">{s.violations.slice(0, 3).map((v, i) => <li key={i}>{v.detail}</li>)}</ul>}
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );
@@ -159,13 +206,13 @@ function Settings() {
 export default function SafetyPage() {
   const { t } = useI18n(); const { can } = useMe();
   const [tab, setTab] = useState("scores");
-  const tabs: TabDef[] = ["scores", "live", "rewards", "clips", ...(can("settings.manage") ? ["settings"] : [])].map((id) => ({ id, label: t(`sf_tab_${id}` as MessageKey) }));
+  const tabs: TabDef[] = ["scores", "live", "hos", "rewards", "clips", ...(can("settings.manage") ? ["settings"] : [])].map((id) => ({ id, label: t(`sf_tab_${id}` as MessageKey) }));
   return (
     <div className="content">
       <PageHead title={t("navSafety")} subtitle={t("sf_subtitle")} />
       <Tabs tabs={tabs} value={tab} onChange={setTab} label={t("navSafety")} />
       <div role="tabpanel" style={{ marginTop: "var(--s4)" }}>
-        {tab === "scores" && <Scores />}{tab === "live" && <Live />}{tab === "rewards" && <Rewards />}{tab === "clips" && <Clips />}{tab === "settings" && <Settings />}
+        {tab === "scores" && <Scores />}{tab === "live" && <Live />}{tab === "hos" && <HoursOfService />}{tab === "rewards" && <Rewards />}{tab === "clips" && <Clips />}{tab === "settings" && <Settings />}
       </div>
     </div>
   );

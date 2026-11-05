@@ -108,7 +108,7 @@ a { color: var(--brand); }
 .kpi-value { font: 700 var(--fs-display)/1.1 var(--font-display); letter-spacing: -.02em; }
 .kpi-sub { color: var(--muted); font-size: 12.5px; }
 .kpi-delta.good { color: var(--ok); } .kpi-delta.bad { color: var(--danger); }
-.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--s5); }
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: var(--s5); }
 a.kpi { color: inherit; text-decoration: none; border-radius: var(--r); padding: var(--s2); margin: calc(var(--s2) * -1); }
 a.kpi:hover { background: var(--surface-2); }
 
@@ -469,3 +469,36 @@ progress.meter.over { accent-color: var(--danger); }
 .vehicles .speed { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13px; color: var(--fg-2); }
 .vehicles .meta { grid-column: 2 / -1; font-size: 12.5px; }
 .vehicles .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* Form controls: native look replaced by one consistent, accessible style. */
+select, .field select { appearance: none; -webkit-appearance: none; padding-inline-end: 30px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%2368707c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; background-color: var(--surface); }
+[dir="rtl"] select, [dir="rtl"] .field select { background-position: left 10px center; padding-inline-end: 10px; padding-inline-start: 30px; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); width: 16px; height: 16px; margin: 0; vertical-align: -3px; }
+input[type="date"] { min-width: 150px; }
+
+/* Ranked bars, meters and report panels (reports, safety hours). */
+.bar-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s3); }
+.bar-list .bar-row { grid-template-columns: minmax(96px, 200px) 1fr minmax(64px, auto); }
+.bar-list .bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-value { font-variant-numeric: tabular-nums; font-weight: 600; text-align: end; }
+.bar-note { grid-column: 2 / -1; color: var(--muted); font-size: 12px; margin-top: -4px; }
+.kpi-value[data-tone="good"] { color: var(--ok); } .kpi-value[data-tone="warn"] { color: var(--warn); } .kpi-value[data-tone="bad"] { color: var(--danger); }
+.meter { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.meter-head { display: flex; justify-content: space-between; gap: var(--s3); font-size: var(--fs-caption); color: var(--fg-2); }
+.meter-value { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--fg); }
+.meter-track { height: 8px; border-radius: var(--r-pill); background: var(--surface-2); overflow: hidden; }
+.meter-fill { display: block; height: 100%; border-radius: var(--r-pill); background: var(--chart-1); }
+.meter[data-state="low"] .meter-fill { background: var(--warn); }
+.meter[data-state="over"] .meter-fill { background: var(--danger); }
+.meter-cap { color: var(--muted); font-size: 12px; }
+.panel-note { color: var(--muted); font-size: var(--fs-caption); max-width: 70ch; margin: var(--s2) 0 0; }
+.report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: var(--s6); align-items: start; }
+.tab-panel { padding-top: var(--s5); display: flex; flex-direction: column; gap: var(--s5); }
+.section-title { font-size: var(--fs-h3, 16px); margin: 0 0 var(--s3); }
+.hos-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--s5); }
+.hos-card { display: flex; flex-direction: column; gap: var(--s3); padding: var(--s4); border: 1px solid var(--line); border-radius: var(--r-lg, 12px); background: var(--surface); }
+.hos-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
+.hos-meters { display: grid; gap: var(--s3); }
+.content.stack { gap: var(--s5); }

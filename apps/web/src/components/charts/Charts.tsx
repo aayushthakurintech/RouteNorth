@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 /**
  * Small SVG charts with no chart library. Colors come from the theme tokens (--chart-1 to --chart-8, a color-blind-safe set),
@@ -16,12 +16,14 @@ export interface ChartProps {
 
 const color = (i: number) => `var(--chart-${(i % 8) + 1})`;
 const defaultFormat = (n: number) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(n);
-const W = 640;
+const DEFAULT_W = 640;
 
 function niceMax(v: number): number {
   if (v <= 0) return 1;
   const p = 10 ** Math.floor(Math.log10(v)); const f = v / p;
-  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p;
+  // Steps whose quarters are tidy numbers, so the four grid lines read 60, 120, 180, 240 and not 62.5, 125...
+  const step = [1, 1.2, 1.6, 2, 2.4, 2.8, 3.2, 4, 4.8, 6, 8, 10].find((x) => f <= x + 1e-9) ?? 10;
+  return step * p;
 }
 const short = (s: string, n = 14) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
@@ -37,6 +39,18 @@ export function Legend({ names }: { names: string[] }) {
 export function Chart({ type, data, height = 240, format = defaultFormat, ariaLabel, onPick }: ChartProps) {
   const [tip, setTip] = useState<{ x: number; y: number; text: string; title?: string; rows?: { color: string; name: string; value: string }[] } | null>(null);
   const [hover, setHover] = useState<number | null>(null);
+  // Draw at the real pixel width, so type and marks keep their size on a wide monitor and a phone alike.
+  const wrap = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(DEFAULT_W);
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const measure = () => { const w = Math.round(el.getBoundingClientRect().width); if (w > 0) setW(Math.max(280, Math.min(1400, w))); };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const place = (e: React.MouseEvent | React.FocusEvent) => {
     const box = (e.currentTarget.closest(".chart") as HTMLElement).getBoundingClientRect();
     const t = e.currentTarget.getBoundingClientRect();
@@ -56,7 +70,7 @@ export function Chart({ type, data, height = 240, format = defaultFormat, ariaLa
   const empty = data.labels.length === 0 || data.series.every((s) => s.values.every((v) => v == null));
   const body = useMemo<ReactNode>(() => {
     if (empty) return null;
-    const H = height, padL = 44, padR = 12, padT = 12, padB = 30;
+    const H = height, padL = 58, padR = 12, padT = 12, padB = 30;
     const iw = W - padL - padR, ih = H - padT - padB;
     const pick = (i: number, s: number) => onPick?.(data.labels[i]!, s);
     const grid = (max: number) => [0, 0.25, 0.5, 0.75, 1].map((f) => (
@@ -215,11 +229,11 @@ export function Chart({ type, data, height = 240, format = defaultFormat, ariaLa
         })}
       </svg>
     );
-  }, [type, data, height, format, ariaLabel, onPick, empty, hover]);
+  }, [type, data, height, format, ariaLabel, onPick, empty, hover, W]);
 
   if (empty) return <div className="chart-empty">—</div>;
   return (
-    <div className="chart" style={{ position: "relative" }}>
+    <div className="chart" ref={wrap} style={{ position: "relative" }}>
       {type !== "pie" && type !== "funnel" && type !== "scatter" && type !== "heat" && <Legend names={names} />}
       {body}
       {tip && (
