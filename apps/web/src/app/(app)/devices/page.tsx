@@ -75,7 +75,7 @@ export default function DevicesPage() {
     { key: "volt", header: t("dv_voltage"), value: (d) => d.extVoltage, numeric: true, width: 120, render: (d) => (d.extVoltage == null ? "—" : `${d.extVoltage.toFixed(1)} V`) },
     { key: "fuel", header: t("dv_fuel"), value: (d) => d.fuelLevelPct, numeric: true, width: 120, render: (d) => (d.fuelLevelPct == null ? "—" : `${Math.round(d.fuelLevelPct)}%`) },
     ...(canManage ? [{
-      key: "act", header: "", value: () => "", width: 100, noGroup: true,
+      key: "act", header: t("dv_actions"), value: () => "", width: 100, noGroup: true,
       render: (d: Device) => (
         <span className="row">
           {d.vehicleId && <button type="button" className="btn ghost sm" onClick={() => void unassign(d)}>{t("dv_unassign")}</button>}

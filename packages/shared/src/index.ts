@@ -22,3 +22,4 @@ export * from "./rate-engine.js";
 export * from "./telemetry.js";
 export * from "./telematics.js";
 export * from "./hos.js";
+export * from "./password.js";
