@@ -1,7 +1,7 @@
 import type { Permission } from "@routenorth/shared";
 import type { MessageKey } from "@routenorth/shared";
 import {
-  Activity, AlertTriangle, HeartPulse, LifeBuoy, Lock, Sparkles, Scale, ShieldCheck, MessageSquareHeart, BarChart3, Banknote, Clock, Inbox, Receipt, Workflow, CheckSquare, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
+  Activity, AlertTriangle, Antenna, HeartPulse, LifeBuoy, Lock, Sparkles, Scale, ShieldCheck, MessageSquareHeart, BarChart3, Banknote, Clock, Inbox, Receipt, Workflow, CheckSquare, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
   Plug, SlidersHorizontal, Upload, ScrollText, Settings, Truck, UsersRound, Warehouse, Wrench, CalendarDays, ListChecks, Wallet, Users, type LucideIcon,
 } from "lucide-react";
 
@@ -40,6 +40,7 @@ export const NAV: NavItem[] = [
   { href: "/fuel", label: "navFuel", icon: Fuel, perms: ["fleet.view", "reports.view"], group: "fleet", keywords: "gas diesel litres carburant" },
   { href: "/trips", label: "navTripLog", icon: MapPinned, perms: ["fleet.view", "reports.view"], group: "fleet", keywords: "mileage tax business personal kilométrage" },
   { href: "/geofences", label: "navGeofences", icon: Hexagon, perms: ["fleet.view", "alerts.view"], group: "fleet", keywords: "zones alerts enter exit géoclôtures" },
+  { href: "/devices", label: "navDevices", icon: Antenna, perms: ["fleet.view"], group: "fleet", keywords: "gps trackers imei devices health battery traceurs appareils" },
   { href: "/fleet/inspections", label: "navInspections", icon: ClipboardCheck, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "checklist check-in check-out defects" },
   { href: "/fleet/incidents", label: "navIncidents", icon: AlertTriangle, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "accident report photos" },
   { href: "/fleet/equipment", label: "navEquipment", icon: Container, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "trailers remorques" },

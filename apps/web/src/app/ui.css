@@ -437,3 +437,18 @@ progress.meter.over { accent-color: var(--danger); }
 
 /* Feature flag "compactTables": denser rows for people who like to see more at once. */
 [data-compact] .ptable th, [data-compact] .ptable td { padding-block: 4px; }
+
+/* Horizontal bars for outcome counts (data quality). Value is always printed, so colour is never the only signal. */
+.bar-row { display: grid; grid-template-columns: minmax(120px, 1.2fr) 2fr auto; gap: var(--s3); align-items: center; font-size: var(--fs-caption); }
+.bar-label { color: var(--fg-2); }
+.bar-track { height: 8px; background: var(--surface-2); border-radius: var(--r-pill); overflow: hidden; }
+.bar-fill { display: block; height: 100%; background: var(--chart-1); border-radius: var(--r-pill); }
+.bar-fill.bad { background: var(--danger); }
+.bar-n { font-variant-numeric: tabular-nums; color: var(--fg); min-width: 4ch; text-align: end; }
+
+.telemetry { border-top: 1px solid var(--line); padding-top: var(--s2); }
+.telemetry summary { cursor: pointer; font-weight: 600; font-size: var(--fs-caption); color: var(--fg-2); }
+.telemetry dl { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2) var(--s4); margin: var(--s2) 0 0; }
+.telemetry .kv { display: flex; flex-direction: column; min-width: 0; }
+.telemetry dt { color: var(--muted); font-size: 12px; }
+.telemetry dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }

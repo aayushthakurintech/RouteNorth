@@ -120,7 +120,9 @@ describe("score, safety and compliance", () => {
 
   it("flags hours-rule breaches from shifts and reports company compliance", async () => {
     const d = await h.addUser(h.orgA, "lee@example.com", "driver", { display_name: "Lee" });
-    for (let k = 1; k <= 5; k++) await h.admin.query("INSERT INTO shifts (org_id, driver_id, started_at, ended_at) VALUES ($1,$2,$3,$4)", [h.orgA, d, new Date(Date.now() - k * 86_400_000 - 12 * 3_600_000).toISOString(), new Date(Date.now() - k * 86_400_000).toISOString()]);
+    // One 16 hour shift is over the 14 hour daily limit whatever day of the week the test runs on
+    // (a weekly-overtime setup would depend on where the calendar week starts).
+    await h.admin.query("INSERT INTO shifts (org_id, driver_id, started_at, ended_at) VALUES ($1,$2,$3,$4)", [h.orgA, d, new Date(Date.now() - 2 * 86_400_000 - 16 * 3_600_000).toISOString(), new Date(Date.now() - 2 * 86_400_000).toISOString()]);
     const hrs = (await get(`/portal/drivers/${d}/hours`, owner)).body;
     expect(hrs.violations.length).toBeGreaterThan(0);
     expect(hrs.note).toMatch(/not a certified ELD/);

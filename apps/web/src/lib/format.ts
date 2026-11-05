@@ -39,3 +39,15 @@ function cell(v: string | number): string {
 export function toCsv(header: string[], rows: (string | number)[][]): string {
   return [header, ...rows].map((r) => r.map(cell).join(",")).join("\r\n") + "\r\n";
 }
+
+/** Relative time that stays correct without a timer: "3 min ago", "2 h ago", "5 d ago". */
+export function ago(iso: string | null, locale: string, now = Date.now()): string {
+  if (!iso) return "—";
+  const s = Math.max(0, Math.round((now - Date.parse(iso)) / 1000));
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto", style: "short" });
+  if (s < 90) return rtf.format(-Math.max(0, Math.round(s / 60)), "minute");
+  if (s < 5400) return rtf.format(-Math.round(s / 60), "minute");
+  if (s < 129_600) return rtf.format(-Math.round(s / 3600), "hour");
+  return rtf.format(-Math.round(s / 86_400), "day");
+}
+
