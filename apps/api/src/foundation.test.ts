@@ -43,7 +43,7 @@ suite("foundation API (roles, audit, search, settings)", () => {
     expect(me.user.email).toBe("a@example.com");
     expect(me.perms).toContain("audit.view");
     expect(me.org.name).toBe("A");
-    expect(me.home).toBe("/");
+    expect(me.home).toBe("/live");
     expect(me.org.settings.idleThresholdMin).toBe(5);
     expect(me.org.settings.ipAllowList).toBeUndefined(); // security settings stay on the server
   });

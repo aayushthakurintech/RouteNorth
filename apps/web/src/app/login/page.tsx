@@ -44,7 +44,7 @@ function LoginForm() {
       const { token, user } = body;
       saveSession({ token, locale: user.locale, role: user.role });
       setLocale(user.locale);
-      router.replace(user.home ?? (user.role === "driver" ? "/driver" : "/"));
+      router.replace(user.home ?? (user.role === "driver" ? "/driver" : "/live"));
     } catch {
       // fetch itself failed: API not running, wrong address, or blocked by CORS.
       setError("loginUnreachable");

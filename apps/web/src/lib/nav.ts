@@ -20,7 +20,7 @@ export interface NavItem {
 
 /** Every page in the sidebar and the command palette. Later features add their pages here. */
 export const NAV: NavItem[] = [
-  { href: "/", label: "navLive", icon: Map, perms: ["fleet.view"], group: "main", keywords: "map vehicles tracking carte" },
+  { href: "/live", label: "navLive", icon: Map, perms: ["fleet.view"], group: "main", keywords: "map vehicles tracking carte" },
   { href: "/routes", label: "navRoutes", icon: Route, perms: ["routes.view"], group: "main", keywords: "stops plan itinéraires" },
   { href: "/dispatch", label: "navDispatch", icon: KanbanSquare, perms: ["routes.view"], group: "main", keywords: "board assign drivers répartition tableau" },
   { href: "/jobs", label: "navJobs", icon: ClipboardList, perms: ["routes.view"], group: "main", keywords: "orders deliveries pickups tâches commandes" },
@@ -75,7 +75,7 @@ export function visibleNav(can: (...p: Permission[]) => boolean): NavItem[] {
 
 /** Is `href` the page we are on (or a parent of it)? "/" only matches itself. */
 export function isActive(href: string, pathname: string): boolean {
-  if (href === "/") return pathname === "/";
+  if (href === "/live") return pathname === "/live";
   if (href === "/settings") return pathname === "/settings";
   if (href === "/analytics") return pathname === "/analytics" || pathname.startsWith("/analytics/goals");
   if (href === "/jobs") return pathname === "/jobs" || pathname.startsWith("/jobs/");

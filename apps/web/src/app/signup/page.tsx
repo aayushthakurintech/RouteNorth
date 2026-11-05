@@ -40,7 +40,7 @@ export default function SignupPage() {
       const { token, user } = await res.json();
       saveSession({ token, locale: user.locale, role: user.role });
       setLocale(user.locale);
-      router.replace(user.home ?? "/");
+      router.replace(user.home ?? "/live");
     } catch {
       setError(t("loginUnreachable"));
     } finally {

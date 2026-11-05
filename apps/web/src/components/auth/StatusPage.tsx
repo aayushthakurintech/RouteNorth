@@ -18,7 +18,7 @@ export function StatusPage({ kind, onRetry }: { kind: "notFound" | "error"; onRe
       <p className="status-body">{kind === "notFound" ? t("au_404_body") : t("au_err_body")}</p>
       <div className="status-actions">
         {action}
-        <Link href="/" className="status-link">{t("au_goto_app")}</Link>
+        <Link href="/live" className="status-link">{t("au_goto_app")}</Link>
       </div>
     </main>
   );
