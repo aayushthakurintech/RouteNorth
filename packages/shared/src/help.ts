@@ -5,7 +5,7 @@ export type HelpTopic = (typeof HELP_TOPICS)[number];
 export interface HelpArticle { id: string; topic: HelpTopic; href: string }
 
 export const HELP_ARTICLES: readonly HelpArticle[] = [
-  { id: "start", topic: "basics", href: "/" },
+  { id: "start", topic: "basics", href: "/live" },
   { id: "language", topic: "basics", href: "/settings/profile" },
   { id: "vehicles", topic: "fleet", href: "/fleet/vehicles" },
   { id: "drivers", topic: "fleet", href: "/drivers" },

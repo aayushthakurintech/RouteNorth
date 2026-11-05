@@ -35,7 +35,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
       const { token: jwt, user } = await res.json();
       saveSession({ token: jwt, locale: user.locale, role: user.role });
       setLocale(user.locale);
-      router.replace(user.home ?? "/");
+      router.replace(user.home ?? "/live");
     } catch { setErr(t("loginUnreachable")); } finally { setBusy(false); }
   }
 

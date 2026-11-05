@@ -19,3 +19,8 @@ export * from "./portal-access.js";
 export * from "./vehicle-logic.js";
 export * from "./driver-logic.js";
 export * from "./rate-engine.js";
+export * from "./telemetry.js";
+export * from "./telematics.js";
+export * from "./hos.js";
+export * from "./password.js";
+export * from "./legal.js";

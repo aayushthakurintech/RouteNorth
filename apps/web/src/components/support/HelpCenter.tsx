@@ -31,7 +31,7 @@ export function HelpCenter({ onContact }: { onContact: () => void }) {
             <details key={a.id} className="card" onToggle={(e) => { if ((e.target as HTMLDetailsElement).open) track("feature", `help.${a.id}`); }}>
               <summary style={{ cursor: "pointer", fontWeight: 600 }}>{title}</summary>
               <p>{body}</p>
-              {(me?.perms.length ?? 0) > 0 && a.href !== "/" && <Link className="btn sm alt" href={a.href}>{t("sp_open")}</Link>}
+              {(me?.perms.length ?? 0) > 0 && a.href !== "/live" && <Link className="btn sm alt" href={a.href}>{t("sp_open")}</Link>}
             </details>
           ))}
         </div>

@@ -47,7 +47,7 @@ export function CommandMenu({ open, setOpen }: { open: boolean; setOpen: (b: boo
           ))}
         </CommandGroup>
         <CommandGroup heading="Other">
-          <CommandItem value="live map" onSelect={() => go("/")}>Live map (full screen)</CommandItem>
+          <CommandItem value="live map" onSelect={() => go("/live")}>Live map (full screen)</CommandItem>
           <CommandItem value="dispatch board" onSelect={() => go("/dispatch")}>Dispatch board</CommandItem>
         </CommandGroup>
       </CommandList>

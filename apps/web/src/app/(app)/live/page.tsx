@@ -11,7 +11,8 @@ import { apiSend } from "@/lib/api";
 import { useMe } from "@/lib/me-context";
 import { useToast } from "@/lib/toast";
 import { useApi } from "@/lib/use-api";
-import { filterFleet, STATUS_COLORS } from "@/lib/fleet";
+import { filterFleet, STATUS_COLORS, type LiveVehicle } from "@/lib/fleet";
+import { ago } from "@/lib/format";
 import { useI18n } from "@/lib/i18n-context";
 import { loadSession } from "@/lib/session";
 import { useFleet } from "@/lib/use-fleet";
@@ -43,8 +44,18 @@ function LiveView() {
   useEffect(() => { setToken(loadSession()?.token ?? null); }, []);
   const { fleet, connected, loaded } = useFleet(token);
 
-  const list = useMemo(() => filterFleet(fleet, query), [fleet, query]);
+  const [statusFilter, setStatusFilter] = useState<"all" | "moving" | "idle" | "stopped" | "offline">("all");
+  const searched = useMemo(() => filterFleet(fleet, query), [fleet, query]);
+  const counts = useMemo(() => {
+    const c = { all: searched.length, moving: 0, idle: 0, stopped: 0, offline: 0 };
+    for (const v of searched) c[v.status] += 1;
+    return c;
+  }, [searched]);
+  const list = useMemo(() => (statusFilter === "all" ? searched : searched.filter((v) => v.status === statusFilter)), [searched, statusFilter]);
   const selected = selectedId ? fleet[selectedId] : undefined;
+  // Sensor values change slowly and are not in the WebSocket message, so refresh them once a minute.
+  const live = useApi<LiveVehicle[]>(selected ? "/vehicles/live" : null, { intervalMs: 60_000 });
+  const telemetry = live.data?.find((v) => v.deviceId === selectedId)?.telemetry ?? selected?.telemetry;
   const weather = useApi<{ available: boolean; tempC?: number; label?: string; level?: string; reason?: string | null; windKmh?: number; precipProb?: number }>(selected ? `/weather?lat=${selected.lat.toFixed(3)}&lng=${selected.lng.toFixed(3)}` : null);
   async function share() {
     if (!selected) return;
@@ -75,8 +86,18 @@ function LiveView() {
           </select>
         </div>
         <input type="search" placeholder={t("searchVehicles")} aria-label={t("searchVehicles")} value={query} onChange={(e) => setQuery(e.target.value)} />
-        {!loaded && <SkeletonList rows={3} h={44} />}
-        {loaded && list.length === 0 && <EmptyState title={t("noVehicles")} />}
+        <div className="status-chips" role="group" aria-label={t("live_filter")}>
+          {(["all", "moving", "idle", "stopped", "offline"] as const).map((k) => (
+            <button key={k} type="button" aria-pressed={statusFilter === k} onClick={() => setStatusFilter(k)}>
+              {k !== "all" && <span className="dot" style={{ background: STATUS_COLORS[k] }} aria-hidden />}
+              {k === "all" ? t("live_all") : t(`status_${k}` as MessageKey)}
+              <span className="count">{counts[k]}</span>
+            </button>
+          ))}
+        </div>
+        {!loaded && <SkeletonList rows={3} h={52} />}
+        {loaded && Object.keys(fleet).length === 0 && <EmptyState title={t("noVehicles")} body={t("live_emptyBody")} action={can("fleet.manage") ? <Link className="btn sm" href="/devices">{t("dv_add")}</Link> : undefined} />}
+        {loaded && Object.keys(fleet).length > 0 && list.length === 0 && <p className="meta" role="status">{t("live_noMatch")}</p>}
         {list.length > 0 && (
           <ul className="vehicles" aria-label={t("vehicles")}>
             {list.map((v) => (
@@ -84,7 +105,8 @@ function LiveView() {
                 <button type="button" aria-pressed={v.deviceId === selectedId} onClick={() => { setSelectedId(v.deviceId); setFollow(false); }}>
                   <span className="dot" style={{ background: STATUS_COLORS[v.status] }} aria-hidden />
                   <span className="name">{v.name}</span>
-                  <span className="meta">{t(`status_${v.status}` as MessageKey)} · {Math.round(v.speed)} km/h</span>
+                  <span className="speed">{v.status === "moving" ? `${Math.round(v.speed)} km/h` : t(`status_${v.status}` as MessageKey)}</span>
+                  <span className="meta">{t(`kind_${v.kind}` as MessageKey)} · {ago(v.time, locale)}</span>
                 </button>
               </li>
             ))}
@@ -100,6 +122,7 @@ function LiveView() {
               <dt>{t("lastUpdate")}</dt><dd>{time(selected.time)}</dd>
               {weather.data?.available && <><dt>{t("planWeather")}</dt><dd>{Math.round(weather.data.tempC ?? 0)}°C · {weather.data.label}{weather.data.reason ? ` · ${weather.data.reason}` : ""}</dd></>}
             </dl>
+            {telemetry && <TelemetryPanel tm={telemetry} />}
             {shareUrl && <input readOnly aria-label={t("shareLink")} value={shareUrl} onFocus={(e) => e.currentTarget.select()} />}
             <div className="row">
               <button type="button" className="btn alt sm" aria-pressed={follow} onClick={() => setFollow((f) => !f)}><Crosshair size={14} aria-hidden />{follow ? t("stopFollowing") : t("follow")}</button>
@@ -110,5 +133,32 @@ function LiveView() {
         )}
       </aside>
     </div>
+  );
+}
+
+const has = (...v: (number | null)[]) => v.some((x) => x != null);
+
+/** What the tracker itself reports beyond position. Only values the tracker actually sends are shown. */
+function TelemetryPanel({ tm }: { tm: NonNullable<LiveVehicle["telemetry"]> }) {
+  const { t, locale } = useI18n();
+  const nf = (n: number, d = 0) => new Intl.NumberFormat(locale, { maximumFractionDigits: d }).format(n);
+  const rows: [string, string][] = [];
+  if (tm.fuelLevelPct != null) rows.push([t("tm_fuel"), `${nf(tm.fuelLevelPct)}%`]);
+  if (tm.rpm != null) rows.push([t("tm_rpm"), nf(tm.rpm)]);
+  if (tm.coolantC != null) rows.push([t("tm_coolant"), `${nf(tm.coolantC)} °C`]);
+  if (tm.extVoltage != null) rows.push([t("tm_voltage"), `${nf(tm.extVoltage, 1)} V`]);
+  if (tm.batteryPct != null) rows.push([t("tm_battery"), `${nf(tm.batteryPct)}%`]);
+  if (tm.satellites != null) rows.push([t("tm_sats"), nf(tm.satellites)]);
+  if (tm.hdop != null) rows.push([t("tm_hdop"), nf(tm.hdop, 1)]);
+  if (tm.signal != null) rows.push([t("tm_signal"), `${tm.signal}/5`]);
+  if (tm.engineHours != null) rows.push([t("tm_hours"), `${nf(tm.engineHours, 1)} h`]);
+  if (tm.odometerKm != null) rows.push([t("tm_odometer"), `${nf(tm.odometerKm, 1)} km`]);
+  if (tm.altitude != null) rows.push([t("tm_altitude"), `${nf(tm.altitude)} m`]);
+  if (!has(tm.fuelLevelPct, tm.rpm, tm.extVoltage, tm.batteryPct, tm.satellites) || rows.length === 0) return <p className="meta">{t("tm_none")}</p>;
+  return (
+    <details className="telemetry" open>
+      <summary>{t("tm_section")}</summary>
+      <dl>{rows.map(([k, v]) => <div key={k} className="kv"><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+    </details>
   );
 }

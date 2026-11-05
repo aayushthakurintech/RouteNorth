@@ -29,7 +29,7 @@ export function SetupChecklist({ onTour }: { onTour: () => void }) {
     { id: "route", label: "setupRoute", href: "/routes", done: d.routes > 0 },
     { id: "team", label: "setupTeam", href: "/settings/teams", done: d.teammates > 0 },
     { id: "secure", label: "setupSecure", href: "/settings/security", done: d.twoFactor },
-    { id: "map", label: "setupMap", href: "/", done: seen.includes("map") },
+    { id: "map", label: "setupMap", href: "/live", done: seen.includes("map") },
     { id: "tour", label: "setupTour", done: !!prefs.onboarding?.tourDone },
   ];
   const done = steps.filter((x) => x.done).length;
@@ -47,7 +47,7 @@ export function SetupChecklist({ onTour }: { onTour: () => void }) {
         return s.id === "tour" ? (
           <button key={s.id} type="button" className={`step ${s.done ? "done" : ""}`} onClick={onTour}>{icon}{t(s.label)}</button>
         ) : (
-          <Link key={s.id} href={s.href ?? "/"} className={s.done ? "done" : ""}>{icon}{t(s.label)}</Link>
+          <Link key={s.id} href={s.href ?? "/live"} className={s.done ? "done" : ""}>{icon}{t(s.label)}</Link>
         );
       })}
       {d.jobs === 0 && d.sampleJobs === 0 && <button type="button" className="link" onClick={() => void sample(true)}>{t("setupSampleAdd")}</button>}

@@ -13,6 +13,7 @@
   <entry key='teltonika.port'>5027</entry>
   <!-- Forward every position to the RouteNorth normalizer (added in step 2). -->
   <entry key='forward.enable'>true</entry>
+  <!-- In production add the shared secret: ...:4100/ingest/traccar?token=${INGEST_TOKEN} (see docs/DATA_PIPELINE.md). -->
   <entry key='forward.url'>http://host.docker.internal:4100/ingest/traccar</entry>
   <entry key='forward.json'>true</entry>
 </properties>

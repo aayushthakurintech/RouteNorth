@@ -13,6 +13,14 @@ export interface LiveVehicle {
   heading: number;
   ignition: boolean | null;
   status: VehicleStatus;
+  /** Sensor values from the tracker's last report (absent in older API responses and in tests). */
+  telemetry?: Telemetry;
+}
+
+export interface Telemetry {
+  satellites: number | null; hdop: number | null; batteryPct: number | null; extVoltage: number | null;
+  fuelLevelPct: number | null; rpm: number | null; engineHours: number | null; coolantC: number | null; signal: number | null;
+  altitude: number | null; odometerKm: number | null;
 }
 
 /** What the WebSocket sends for each new fix. */

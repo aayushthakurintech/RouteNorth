@@ -11,7 +11,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <MeProvider>
       <CrumbsProvider>
-        <AppShell flush={pathname === "/"}>{children}</AppShell>
+        <AppShell flush={pathname === "/live"}>{children}</AppShell>
       </CrumbsProvider>
     </MeProvider>
   );

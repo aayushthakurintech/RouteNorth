@@ -91,7 +91,7 @@ export function OwnerShell({ children }: { children: ReactNode }) {
           </SidebarContent>
           <SidebarFooter>
             <SidebarMenu>
-              <SidebarMenuItem><SidebarMenuButton asChild tooltip="Back to the live map and dispatch"><Link href="/"><Search /><span>Live map and dispatch</span></Link></SidebarMenuButton></SidebarMenuItem>
+              <SidebarMenuItem><SidebarMenuButton asChild tooltip="Back to the live map and dispatch"><Link href="/live"><Search /><span>Live map and dispatch</span></Link></SidebarMenuButton></SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>
           <SidebarRail />

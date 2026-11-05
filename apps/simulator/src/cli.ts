@@ -1,5 +1,5 @@
 import { DEFAULT_FLEET } from "./routes.js";
-import { initialState, step, type SimState, type SimVehicle } from "./vehicle.js";
+import { initialState, sensors, step, type SimState, type SimVehicle } from "./vehicle.js";
 
 /**
  * Drives simulated vehicles and reports them to Traccar over the OsmAnd protocol
@@ -14,18 +14,19 @@ const traccar = process.env.TRACCAR_URL ?? "http://localhost:5055";
 const tick = Number(process.env.TICK_SECONDS ?? 5);
 const speedup = Number(process.env.SPEEDUP ?? 1);
 const ingest = process.env.INGEST_URL;
+const ingestToken = process.env.INGEST_TOKEN;
 
 const states = new Map<string, SimState>(DEFAULT_FLEET.map((v) => [v.id, initialState(v)]));
 
 async function send(v: SimVehicle, s: SimState): Promise<void> {
   if (ingest) {
     const res = await fetch(`${ingest}/ingest/traccar`, {
-      method: "POST", headers: { "content-type": "application/json" },
+      method: "POST", headers: { "content-type": "application/json", ...(ingestToken ? { authorization: `Bearer ${ingestToken}` } : {}) },
       body: JSON.stringify({
         device: { uniqueId: v.id },
         position: {
           fixTime: new Date().toISOString(), latitude: s.position.lat, longitude: s.position.lng, valid: true,
-          speed: s.speedKmh / 1.852, course: s.heading, attributes: { ignition: true, totalDistance: s.odometer },
+          speed: s.speedKmh / 1.852, course: s.heading, attributes: { ignition: true, totalDistance: s.odometer, ...sensors(s) },
         },
       }),
     });
@@ -41,6 +42,9 @@ async function send(v: SimVehicle, s: SimState): Promise<void> {
     timestamp: String(Math.floor(Date.now() / 1000)),
     ignition: "true",
     totalDistance: s.odometer.toFixed(0),
+    batteryLevel: String(sensors(s).batteryLevel),
+    sat: String(sensors(s).sat),
+    hdop: String(sensors(s).hdop),
   });
   const res = await fetch(`${traccar}/?${q}`, { method: "POST" });
   if (!res.ok) console.error(`${v.id}: traccar replied ${res.status}`);

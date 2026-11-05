@@ -63,3 +63,29 @@ export function step(v: SimVehicle, s: SimState, dt: number): SimState {
     }
   }
 }
+
+export interface SimSensors {
+  sat: number; hdop: number; batteryLevel: number; power: number; fuel: number; rpm: number; hours: number; coolantTemp: number; rssi: number;
+  alarm?: string;
+}
+
+/**
+ * Plausible sensor values for a simulated tracker, so the demo shows the same fields a real one sends.
+ * Deterministic for a given vehicle state (no randomness), which keeps screenshots and tests stable.
+ * `fuel` is a percentage that falls with distance (a 100 L tank at 30 L/100 km).
+ */
+export function sensors(s: SimState): SimSensors {
+  const km = s.odometer / 1000;
+  const wave = Math.sin(km * 7.3);
+  return {
+    sat: 10 + Math.round(wave * 2),
+    hdop: Math.round((1 + Math.abs(wave) * 0.4) * 10) / 10,
+    batteryLevel: 96,
+    power: 13.8 + Math.round(wave * 3) / 10,
+    fuel: Math.max(8, Math.round((100 - ((km * 30) / 100) % 92) * 10) / 10),
+    rpm: s.speedKmh > 0 ? Math.round(900 + s.speedKmh * 15) : 750,
+    hours: Math.round((km / 40) * 3_600_000),
+    coolantTemp: s.speedKmh > 0 ? 88 : 84,
+    rssi: 4,
+  };
+}

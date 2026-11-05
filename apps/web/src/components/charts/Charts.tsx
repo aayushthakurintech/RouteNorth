@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 /**
  * Small SVG charts with no chart library. Colors come from the theme tokens (--chart-1 to --chart-8, a color-blind-safe set),
@@ -16,12 +16,14 @@ export interface ChartProps {
 
 const color = (i: number) => `var(--chart-${(i % 8) + 1})`;
 const defaultFormat = (n: number) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(n);
-const W = 640;
+const DEFAULT_W = 640;
 
 function niceMax(v: number): number {
   if (v <= 0) return 1;
   const p = 10 ** Math.floor(Math.log10(v)); const f = v / p;
-  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p;
+  // Steps whose quarters are tidy numbers, so the four grid lines read 60, 120, 180, 240 and not 62.5, 125...
+  const step = [1, 1.2, 1.6, 2, 2.4, 2.8, 3.2, 4, 4.8, 6, 8, 10].find((x) => f <= x + 1e-9) ?? 10;
+  return step * p;
 }
 const short = (s: string, n = 14) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
@@ -35,18 +37,40 @@ export function Legend({ names }: { names: string[] }) {
 }
 
 export function Chart({ type, data, height = 240, format = defaultFormat, ariaLabel, onPick }: ChartProps) {
-  const [tip, setTip] = useState<{ x: number; y: number; text: string } | null>(null);
-  const show = (e: React.MouseEvent | React.FocusEvent, text: string) => {
+  const [tip, setTip] = useState<{ x: number; y: number; text: string; title?: string; rows?: { color: string; name: string; value: string }[] } | null>(null);
+  const [hover, setHover] = useState<number | null>(null);
+  // Draw at the real pixel width, so type and marks keep their size on a wide monitor and a phone alike.
+  const wrap = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(DEFAULT_W);
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const measure = () => { const w = Math.round(el.getBoundingClientRect().width); if (w > 0) setW(Math.max(280, Math.min(1400, w))); };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const place = (e: React.MouseEvent | React.FocusEvent) => {
     const box = (e.currentTarget.closest(".chart") as HTMLElement).getBoundingClientRect();
     const t = e.currentTarget.getBoundingClientRect();
-    setTip({ x: t.left - box.left + t.width / 2, y: t.top - box.top, text });
+    return { x: t.left - box.left + t.width / 2, y: t.top - box.top };
   };
-  const hide = () => setTip(null);
+  const show = (e: React.MouseEvent | React.FocusEvent, text: string) => setTip({ ...place(e), text });
+  /** One card per category: its label and a coloured row per series, so values are read off the card, not off colour alone. */
+  const showMulti = (e: React.MouseEvent | React.FocusEvent, i: number) => {
+    setHover(i);
+    setTip({
+      ...place(e), text: "", title: data.labels[i],
+      rows: data.series.map((s, k) => ({ color: color(k), name: s.name, value: s.values[i] == null ? "—" : format(s.values[i]!) })),
+    });
+  };
+  const hide = () => { setTip(null); setHover(null); };
   const names = data.series.map((s) => s.name);
   const empty = data.labels.length === 0 || data.series.every((s) => s.values.every((v) => v == null));
   const body = useMemo<ReactNode>(() => {
     if (empty) return null;
-    const H = height, padL = 44, padR = 12, padT = 12, padB = 30;
+    const H = height, padL = 58, padR = 12, padT = 12, padB = 30;
     const iw = W - padL - padR, ih = H - padT - padB;
     const pick = (i: number, s: number) => onPick?.(data.labels[i]!, s);
     const grid = (max: number) => [0, 0.25, 0.5, 0.75, 1].map((f) => (
@@ -147,56 +171,81 @@ export function Chart({ type, data, height = 240, format = defaultFormat, ariaLa
 
     if (type === "line") {
       const x = (i: number) => padL + (data.labels.length === 1 ? iw / 2 : (i / (data.labels.length - 1)) * iw);
+      const lastIdx = (vals: (number | null)[]) => { for (let i = vals.length - 1; i >= 0; i--) if (vals[i] != null) return i; return -1; };
       return (
         <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
           {grid(maxV)}
           {xLabels(data.labels.length, x)}
+          {data.series.length === 1 && (() => {
+            const s0 = data.series[0]!;
+            const pts = s0.values.map((v, i) => (v == null ? null : [x(i), y(v)] as const)).filter((p): p is readonly [number, number] => p != null);
+            if (pts.length < 2) return null;
+            return <path d={`M${pts[0]![0]} ${padT + ih} ${pts.map((p) => `L${p[0]} ${p[1]}`).join(" ")} L${pts[pts.length - 1]![0]} ${padT + ih} Z`} fill={color(0)} opacity={0.1} />;
+          })()}
           {data.series.map((s, k) => {
             let d = "", pen = false;
             s.values.forEach((v, i) => { if (v == null) { pen = false; return; } d += `${pen ? "L" : "M"}${x(i)} ${y(v)} `; pen = true; });
             return <path key={k} d={d} fill="none" stroke={color(k)} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />;
           })}
+          {hover != null && <line x1={x(hover)} x2={x(hover)} y1={padT} y2={padT + ih} className="chart-cross" />}
+          {data.series.map((s, k) => {
+            const end = lastIdx(s.values);
+            const idxs = [...new Set([end, hover ?? -1].filter((i) => i >= 0))];
+            return idxs.map((i) => (s.values[i] == null ? null : <circle key={`${k}-${i}`} cx={x(i)} cy={y(s.values[i]!)} r={4} fill={color(k)} stroke="var(--surface)" strokeWidth={2} pointerEvents="none" />));
+          })}
           {data.labels.map((l, i) => (
-            <g key={i}>
-              <rect x={x(i) - iw / data.labels.length / 2} y={padT} width={iw / data.labels.length} height={ih} fill="transparent" className="chart-hit" tabIndex={0}
-                onClick={() => pick(i, 0)} onMouseEnter={(e) => show(e, `${l}: ${data.series.map((s) => `${s.name} ${s.values[i] == null ? "—" : format(s.values[i]!)}`).join(" · ")}`)} onMouseLeave={hide} onFocus={(e) => show(e, `${l}`)} onBlur={hide} />
-              {data.labels.length <= 40 && data.series.map((s, k) => (s.values[i] == null ? null : <circle key={k} cx={x(i)} cy={y(s.values[i]!)} r={3} fill={color(k)} stroke="var(--surface)" strokeWidth={1.5} pointerEvents="none" />))}
-            </g>
+            <rect key={i} x={x(i) - iw / data.labels.length / 2} y={padT} width={iw / data.labels.length} height={ih} fill="transparent" className="chart-hit" tabIndex={0}
+              onClick={() => pick(i, 0)} onMouseEnter={(e) => showMulti(e, i)} onMouseLeave={hide} onFocus={(e) => showMulti(e, i)} onBlur={hide} />
           ))}
         </svg>
       );
     }
 
-    // bar and stacked
-    const n = data.labels.length, slot = iw / n, groups = stacked ? 1 : data.series.length, bw = Math.max(3, Math.min(36, (slot * 0.7) / groups));
+    // bar and stacked: thin marks, 4px rounded at the data end and square on the baseline, a 2px gap between neighbours
+    const n = data.labels.length, slot = iw / n, groups = stacked ? 1 : data.series.length, bw = Math.max(3, Math.min(24, (slot * 0.7) / groups));
+    const barPath = (bx: number, by: number, w: number, h: number, round: boolean) => {
+      const r = round ? Math.min(4, w / 2, h) : 0;
+      return `M${bx} ${by + h} L${bx} ${by + r} Q${bx} ${by} ${bx + r} ${by} L${bx + w - r} ${by} Q${bx + w} ${by} ${bx + w} ${by + r} L${bx + w} ${by + h} Z`;
+    };
     return (
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
         {grid(maxV)}
         {xLabels(n, (i) => padL + slot * i + slot / 2)}
         {data.labels.map((l, i) => {
           let acc = 0;
+          const tops = stacked ? data.series.map((s, k) => ((s.values[i] ?? 0) > 0 ? k : -1)).filter((k) => k >= 0) : [];
+          const topK = tops.length ? tops[tops.length - 1] : -1;
           return (
-            <g key={i} className="chart-mark" tabIndex={0} onClick={() => pick(i, 0)} onMouseEnter={(e) => show(e, `${l}: ${data.series.map((s) => `${s.name} ${s.values[i] == null ? "—" : format(s.values[i]!)}`).join(" · ")}`)} onMouseLeave={hide} onFocus={(e) => show(e, l)} onBlur={hide}>
-              <rect x={padL + slot * i} y={padT} width={slot} height={ih} fill="transparent" />
+            <g key={i} className="chart-mark" tabIndex={0} onClick={() => pick(i, 0)} onMouseEnter={(e) => showMulti(e, i)} onMouseLeave={hide} onFocus={(e) => showMulti(e, i)} onBlur={hide}>
+              <rect x={padL + slot * i} y={padT} width={slot} height={ih} fill={hover === i ? "var(--chart-grid)" : "transparent"} opacity={0.5} />
               {data.series.map((s, k) => {
                 const v = Math.max(0, s.values[i] ?? 0);
-                if (stacked) { const y0 = y(acc + v), h = y(acc) - y0; acc += v; return h > 0 ? <rect key={k} x={padL + slot * i + (slot - bw) / 2} y={y0} width={bw} height={Math.max(0, h - 2)} rx={3} fill={color(k)} /> : null; }
+                if (stacked) { const y0 = y(acc + v), h = y(acc) - y0; acc += v; return h > 0 ? <path key={k} d={barPath(padL + slot * i + (slot - bw) / 2, y0, bw, Math.max(1, h - 2), k === topK)} fill={color(k)} /> : null; }
                 const h = ih * (v / maxV);
-                return <rect key={k} x={padL + slot * i + (slot - bw * groups) / 2 + k * bw} y={padT + ih - h} width={bw - 2} height={h} rx={3} fill={color(k)} />;
+                return h > 0 ? <path key={k} d={barPath(padL + slot * i + (slot - bw * groups) / 2 + k * bw, padT + ih - h, bw - 2, h, true)} fill={color(k)} /> : null;
               })}
             </g>
           );
         })}
       </svg>
     );
-  }, [type, data, height, format, ariaLabel, onPick, empty]);
+  }, [type, data, height, format, ariaLabel, onPick, empty, hover, W]);
 
   if (empty) return <div className="chart-empty">—</div>;
   return (
-    <div className="chart" style={{ position: "relative" }}>
+    <div className="chart" ref={wrap} style={{ position: "relative" }}>
       {type !== "pie" && type !== "funnel" && type !== "scatter" && type !== "heat" && <Legend names={names} />}
       {body}
-      {tip && <div className="chart-tip" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
+      {tip && (
+        <div className="chart-tip" style={{ left: tip.x, top: tip.y }} role="status">
+          {tip.rows ? (
+            <>
+              <strong>{tip.title}</strong>
+              {tip.rows.map((r, i) => <span key={i} className="tip-row"><span className="swatch" style={{ background: r.color }} aria-hidden />{tip.rows!.length > 1 && <span className="tip-name">{r.name}</span>}<span className="tip-val">{r.value}</span></span>)}
+            </>
+          ) : tip.text}
+        </div>
+      )}
     </div>
   );
 }
