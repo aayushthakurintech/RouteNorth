@@ -597,3 +597,10 @@ input[type="date"] { min-width: 150px; }
 .legal-body ul { padding-inline-start: 22px; display: grid; gap: 8px; margin: 0; }
 .legal-back { color: var(--brand); font-weight: 600; }
 @media (max-width: 800px) { .legal-grid { grid-template-columns: minmax(0, 1fr); } .legal-toc { position: static; } }
+
+/* Phones: give the page title room by tightening the top bar and leaving the pin button to the desktop bar. */
+@media (max-width: 560px) {
+  .topbar { gap: 4px; padding-inline: 8px; }
+  .top-actions { gap: 0; }
+  .top-actions .icon-btn[aria-pressed] { display: none; }
+}
