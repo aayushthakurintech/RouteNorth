@@ -1,6 +1,6 @@
 import { BadRequestException, Body, ConflictException, Controller, HttpCode, Inject, Post, Req } from "@nestjs/common";
 import { pg } from "@routenorth/db";
-import { effectivePermissions, homePath, LOCALES, passwordProblem } from "@routenorth/shared";
+import { effectivePermissions, homePath, LOCALES, passwordProblem, TERMS_VERSION } from "@routenorth/shared";
 import { createHash, randomBytes } from "node:crypto";
 import { AuditService } from "../audit/audit.service.js";
 import { limit } from "../customer/public.controller.js";
@@ -12,7 +12,7 @@ import { JWT_SECRET, NOTIFY, PG_POOL } from "../tokens.js";
 import type { AuthedRequest } from "./auth.guard.js";
 
 /** Which version of the terms and privacy notice a person agreed to. Bump it whenever those pages change in substance. */
-export const TERMS_VERSION = "2026-11";
+export { TERMS_VERSION };
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 const str = (v: unknown, name: string, min: number, max: number): string => {
