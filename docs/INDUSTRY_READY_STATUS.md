@@ -15,13 +15,17 @@ Seven phases on top of the playbook and owner-portal branches. This page is writ
 ## Checks that were run
 
 - Typecheck and lint on all packages; production build of all apps.
-- Unit tests: shared 274, web 169, sdk 9, db 5, simulator 4. API 458 of 461 pass (see below).
+- Unit tests: shared 274, web 169, sdk 9, db 5, simulator 4. API 461 of 461 pass.
 - axe-core accessibility scan: no violations on the landing, auth, legal, Devices, Reports and Safety pages at 390 px and 1280 px widths, light and dark (the sweep over the signed-in pages was run in earlier phases; the landing and legal pages were re-run after the last change).
 - Screenshots reviewed by eye at 390 px and 1440 px, English and French, light and dark, for the landing page.
 
-## Known failure
+## Fixed after the first run
 
-`apps/api/src/portal/pay.test.ts` has three failing tests. They are in the owner-portal pay code from the earlier branch, not in this work. They depend on the weekday: today is a Thursday and the tests build a "last seven days" run that straddles two calendar weeks, so a weekly bonus rule does not match. Fix the test dates or the rule window before merging.
+Three tests in `apps/api/src/portal/pay.test.ts` failed on the week after the clocks change. The test helper subtracted whole 24-hour days, so a "last seven days" window counted as six and the weekly bonus rule (which needs a seven-day run) was skipped. The product code was right; the helper now uses calendar dates. API tests: 461 of 461 pass.
+
+## Click-through in a real browser (phone width, automated)
+
+Landing menu and pricing slider; sign-up (weak and common passwords refused, consent required, duplicate email message, success lands in the app); wrong-password message; forgot password, reset link, reused link refused, sign-in with the new password. All behaved as designed. The phone top bar was cramped (page title cut to "Liv…"), so it was tightened.
 
 ## Not verified or not built
 
