@@ -89,3 +89,6 @@ DO $$ BEGIN
     ALTER TABLE devices ADD CONSTRAINT devices_vehicle_org_fk FOREIGN KEY (vehicle_id, org_id) REFERENCES vehicles (id, org_id) ON DELETE SET NULL (vehicle_id);
   END IF;
 END $$;
+
+-- Fuel tank size, so a fuel-level percentage can be turned into litres (refuel and drain events).
+ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS tank_litres numeric(6,1) CHECK (tank_litres IS NULL OR (tank_litres > 0 AND tank_litres <= 2000));

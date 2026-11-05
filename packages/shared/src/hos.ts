@@ -243,26 +243,53 @@ function normalize(log: readonly DutySegment[], from: number, now: number): Seg[
 }
 
 /**
- * Build a duty log from what RouteNorth knows: the driver's shifts (on duty) and the times the assigned vehicle was moving
- * during them (driving). Outside shifts the driver is off duty. Driving is clipped to the shift it happened in.
+ * Build a duty log from what RouteNorth knows: the driver's shifts (on duty), the times the assigned vehicle was moving
+ * during them (driving) and the breaks they took (off duty). Outside shifts the driver is off duty.
  */
-export function dutyLogFromShifts(shifts: readonly { start: string; end: string | null }[], driving: readonly { start: string; end: string }[]): DutySegment[] {
+export function dutyLogFromShifts(
+  shifts: readonly { start: string; end: string | null; breaks?: readonly { start: string; end: string | null }[] }[],
+  driving: readonly { start: string; end: string }[],
+): DutySegment[] {
   const out: DutySegment[] = [];
   for (const sh of [...shifts].sort((a, b) => a.start.localeCompare(b.start))) {
     const s0 = Date.parse(sh.start), s1 = sh.end ? Date.parse(sh.end) : Number.POSITIVE_INFINITY;
+    const parts: DutySegment[] = [];
     const inside = driving
       .map((d) => ({ a: Math.max(Date.parse(d.start), s0), b: Math.min(Date.parse(d.end), s1) }))
       .filter((d) => d.b > d.a)
       .sort((x, y) => x.a - y.a);
     let cursor = s0;
     for (const d of inside) {
-      if (d.a > cursor) out.push({ status: "on", start: new Date(cursor).toISOString(), end: new Date(d.a).toISOString() });
+      if (d.a > cursor) parts.push({ status: "on", start: new Date(cursor).toISOString(), end: new Date(d.a).toISOString() });
       const a = Math.max(d.a, cursor);
-      if (d.b > a) out.push({ status: "driving", start: new Date(a).toISOString(), end: new Date(d.b).toISOString() });
+      if (d.b > a) parts.push({ status: "driving", start: new Date(a).toISOString(), end: new Date(d.b).toISOString() });
       cursor = Math.max(cursor, d.b);
     }
-    if (sh.end == null) out.push({ status: "on", start: new Date(cursor).toISOString(), end: null });
-    else if (cursor < s1) out.push({ status: "on", start: new Date(cursor).toISOString(), end: sh.end });
+    if (sh.end == null) parts.push({ status: "on", start: new Date(cursor).toISOString(), end: null });
+    else if (cursor < s1) parts.push({ status: "on", start: new Date(cursor).toISOString(), end: sh.end });
+    out.push(...carveBreaks(parts, sh.breaks ?? []));
+  }
+  return out;
+}
+
+/** Replace the parts of a shift covered by a break with off-duty time (an unpaid break is not duty time). */
+function carveBreaks(parts: DutySegment[], breaks: readonly { start: string; end: string | null }[]): DutySegment[] {
+  if (!breaks.length) return parts;
+  const bs = breaks.map((b) => ({ a: Date.parse(b.start), b: b.end ? Date.parse(b.end) : Number.POSITIVE_INFINITY })).sort((x, y) => x.a - y.a);
+  const out: DutySegment[] = [];
+  const iso = (n: number) => new Date(n).toISOString();
+  for (const p of parts) {
+    const ps = Date.parse(p.start), pe = p.end ? Date.parse(p.end) : Number.POSITIVE_INFINITY;
+    let cur = ps;
+    for (const b of bs) {
+      if (b.b <= cur || b.a >= pe) continue;
+      if (b.a > cur) out.push({ status: p.status, start: iso(cur), end: iso(b.a) });
+      const offEnd = Math.min(b.b, pe);
+      out.push({ status: "off", start: iso(Math.max(b.a, cur)), end: Number.isFinite(offEnd) ? iso(offEnd) : null });
+      cur = offEnd;
+      if (!Number.isFinite(cur)) break;
+    }
+    if (cur < pe) out.push({ status: p.status, start: iso(cur), end: p.end });
   }
   return out;
 }

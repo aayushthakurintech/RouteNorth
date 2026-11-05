@@ -327,10 +327,14 @@ table.plain tr.median th, table.plain tr.median td { color: var(--muted); font-s
 .chip-text { font-size: var(--fs-caption); color: var(--muted); } .chip-text.met { color: var(--ok); } .chip-text.behind { color: var(--danger); }
 /* charts */
 .chart svg { width: 100%; height: auto; display: block; overflow: visible; }
-.chart-grid { stroke: var(--line); stroke-width: 1; } .chart-axis { fill: var(--muted); font-size: 11px; font-family: var(--font-ui); }
-.chart-mark { cursor: pointer; outline: none; } .chart-mark:hover, .chart-mark:focus-visible { filter: brightness(1.1); stroke: var(--fg); stroke-width: 1; }
+.chart-grid { stroke: var(--chart-grid); stroke-width: 1; } .chart-axis { fill: var(--chart-ink); font-size: 11px; font-family: var(--font-ui); font-variant-numeric: tabular-nums; } .chart-cross { stroke: var(--chart-axis); stroke-width: 1; pointer-events: none; }
+.chart-mark { cursor: pointer; outline: none; } .chart-mark:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 .chart-hit:hover { fill: color-mix(in srgb, var(--fg) 6%, transparent); }
-.chart-tip { position: absolute; transform: translate(-50%, -110%); background: var(--fg); color: var(--surface); padding: 4px 8px; border-radius: var(--r-sm); font-size: 12px; pointer-events: none; white-space: nowrap; z-index: 5; max-width: 90vw; overflow: hidden; text-overflow: ellipsis; }
+.chart-tip { position: absolute; transform: translate(-50%, calc(-100% - 8px)); background: var(--surface); color: var(--fg); border: 1px solid var(--line-strong); box-shadow: var(--sh-float); padding: 8px 10px; border-radius: var(--r); font-size: 12.5px; pointer-events: none; white-space: nowrap; z-index: 5; max-width: 90vw; display: flex; flex-direction: column; gap: 4px; }
+.chart-tip strong { font-weight: 600; }
+.chart-tip .tip-row { display: flex; align-items: center; gap: 6px; }
+.chart-tip .swatch { width: 10px; height: 10px; border-radius: 2px; border: 0; flex: none; }
+.chart-tip .tip-name { color: var(--muted); } .chart-tip .tip-val { margin-inline-start: auto; font-variant-numeric: tabular-nums; font-weight: 600; padding-inline-start: 12px; }
 .chart-empty { color: var(--muted); padding: var(--s5); text-align: center; }
 .legend { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); list-style: none; margin: 0 0 var(--s2); padding: 0; font-size: var(--fs-caption); color: var(--fg-2); }
 .legend li { display: inline-flex; gap: 6px; align-items: center; } .legend .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
@@ -452,3 +456,16 @@ progress.meter.over { accent-color: var(--danger); }
 .telemetry .kv { display: flex; flex-direction: column; min-width: 0; }
 .telemetry dt { color: var(--muted); font-size: 12px; }
 .telemetry dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* Live map fleet panel */
+.status-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.status-chips button { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--r-pill); border: 1px solid var(--line-strong); background: var(--surface); font-size: 12.5px; font-weight: 600; color: var(--fg-2); }
+.status-chips button:hover { background: var(--surface-2); }
+.status-chips button[aria-pressed="true"] { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+.status-chips .dot { width: 8px; height: 8px; border-radius: 50%; }
+.status-chips .count { font-variant-numeric: tabular-nums; opacity: .75; font-weight: 500; }
+.vehicles button { grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; row-gap: 1px; }
+.vehicles .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vehicles .speed { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13px; color: var(--fg-2); }
+.vehicles .meta { grid-column: 2 / -1; font-size: 12.5px; }
+.vehicles .dot { width: 10px; height: 10px; border-radius: 50%; }

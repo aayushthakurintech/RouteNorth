@@ -71,6 +71,9 @@ export const IDLE_LITRES_PER_HOUR: Record<VehicleClass, number> = { truck: 3.8, 
 /** Typical on-road consumption in litres per 100 km, used only when nothing better is known. */
 export const DRIVING_LITRES_PER_100KM: Record<VehicleClass, number> = { truck: 32, bus: 30, van: 14, car: 9 };
 
+/** Typical tank sizes in litres, used only when the vehicle has none recorded. */
+export const DEFAULT_TANK_LITRES: Record<VehicleClass, number> = { truck: 400, bus: 250, van: 80, car: 60 };
+
 export const vehicleClass = (kind: string | null | undefined): VehicleClass => (kind === "truck" || kind === "bus" || kind === "van" ? kind : "car");
 
 export interface IdleCost { hours: number; litres: number; cost: number | null; co2Kg: number }

@@ -96,6 +96,10 @@ export const ops12 = defineMessages({
     "tm_odometer": "Odometer",
     "tm_none": "This tracker does not send engine or sensor data.",
     "tm_section": "Tracker data",
+    "live_filter": "Filter by status",
+    "live_all": "All",
+    "live_emptyBody": "Add a GPS tracker to a vehicle and it will appear here as soon as it reports.",
+    "live_noMatch": "No vehicles match.",
   },
   fr: {
     "navDevices": "Traceurs",
@@ -191,5 +195,9 @@ export const ops12 = defineMessages({
     "tm_odometer": "Odomètre",
     "tm_none": "Ce traceur n'envoie pas de données moteur ni de capteurs.",
     "tm_section": "Données du traceur",
+    "live_filter": "Filtrer par état",
+    "live_all": "Tous",
+    "live_emptyBody": "Ajoutez un traceur GPS à un véhicule : il apparaîtra ici dès qu'il transmet.",
+    "live_noMatch": "Aucun véhicule ne correspond.",
   },
 });

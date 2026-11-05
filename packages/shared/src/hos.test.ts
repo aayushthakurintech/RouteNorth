@@ -156,4 +156,15 @@ describe("dutyLogFromShifts", () => {
   it("drives that are outside any shift are not duty time", () => {
     expect(dutyLogFromShifts([{ start: at(0), end: at(2) }], [{ start: at(5), end: at(6) }])).toEqual([{ status: "on", start: at(0), end: at(2) }]);
   });
+  it("an unpaid break is off duty, and a long enough one resets the US break clock", () => {
+    const log = dutyLogFromShifts([{ start: at(0), end: at(10), breaks: [{ start: at(5), end: at(5.5) }] }], [{ start: at(0), end: at(10) }]);
+    expect(log.map((s) => s.status)).toEqual(["driving", "off", "driving"]);
+    const s = hosClocks(log, "us_70_8", new Date(at(10)));
+    expect(s.breakClock!.usedH).toBe(4.5);
+    expect(s.driving.usedH).toBe(9.5);
+  });
+  it("an open break stays open", () => {
+    const log = dutyLogFromShifts([{ start: at(0), end: null, breaks: [{ start: at(2), end: null }] }], []);
+    expect(log.map((s) => `${s.status}:${s.end === null ? "open" : "closed"}`)).toEqual(["on:closed", "off:open"]);
+  });
 });

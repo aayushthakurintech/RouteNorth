@@ -24,6 +24,33 @@ interface Props {
   heat?: { lat: number; lng: number; weight: number }[];
 }
 
+const STATUSES = ["moving", "idle", "stopped", "offline"] as const;
+
+/**
+ * Marker pictures drawn at runtime: a navigation arrow for a vehicle that is driving (it points where the vehicle heads)
+ * and a round badge for one that is not, both with a white ring so they stay readable on any basemap, light or satellite.
+ * Drawn at 2x for sharp edges on high-density screens.
+ */
+export function markerImage(kind: "arrow" | "dot", color: string): { width: number; height: number; data: Uint8ClampedArray } {
+  const size = 64, c = document.createElement("canvas");
+  c.width = c.height = size;
+  const g = c.getContext("2d")!;
+  g.translate(size / 2, size / 2);
+  g.lineJoin = "round";
+  g.shadowColor = "rgba(8,16,32,.35)"; g.shadowBlur = 6; g.shadowOffsetY = 2;
+  if (kind === "arrow") {
+    g.beginPath();
+    g.moveTo(0, -22); g.lineTo(16, 18); g.lineTo(0, 9); g.lineTo(-16, 18); g.closePath();
+  } else {
+    g.beginPath(); g.arc(0, 0, 15, 0, Math.PI * 2);
+  }
+  g.fillStyle = color; g.strokeStyle = "#ffffff"; g.lineWidth = 5;
+  g.stroke(); g.shadowColor = "transparent"; g.fill();
+  if (kind === "dot") { g.beginPath(); g.arc(0, 0, 5, 0, Math.PI * 2); g.fillStyle = "#ffffff"; g.fill(); }
+  const img = g.getImageData(0, 0, size, size);
+  return { width: size, height: size, data: img.data };
+}
+
 const colorExpr = [
   "match", ["get", "status"],
   "moving", STATUS_COLORS.moving,
@@ -62,7 +89,7 @@ export function FleetMap({ fleet, selectedId, follow, onSelect, zones, heat }: P
         features: vehicles.map((v) => ({
           type: "Feature",
           geometry: { type: "Point", coordinates: pos[v.deviceId] ?? [v.lng, v.lat] },
-          properties: { id: v.deviceId, name: v.name, status: v.status, selected: v.deviceId === sel },
+          properties: { id: v.deviceId, name: v.name, status: v.status, selected: v.deviceId === sel, heading: v.heading, moving: v.status === "moving" },
         })),
       });
     cancelAnimationFrame(raf.current);
@@ -132,28 +159,40 @@ export function FleetMap({ fleet, selectedId, follow, onSelect, zones, heat }: P
       m.addLayer({ id: "zones-fill", type: "fill", source: "zones", paint: { "fill-color": "#2563eb", "fill-opacity": 0.12 } });
       m.addLayer({ id: "zones-line", type: "line", source: "zones", paint: { "line-color": "#2563eb", "line-width": 1.5, "line-dasharray": [3, 2] } });
       m.addSource("trail", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-      m.addLayer({ id: "trail", type: "line", source: "trail", paint: { "line-color": "#2563eb", "line-width": 3, "line-opacity": 0.8 } });
+      m.addLayer({ id: "trail-casing", type: "line", source: "trail", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#ffffff", "line-width": 6, "line-opacity": 0.9 } });
+      m.addLayer({ id: "trail", type: "line", source: "trail", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#2a78d6", "line-width": 3.5 } });
       m.addSource("vehicles", {
         type: "geojson", data: { type: "FeatureCollection", features: [] },
         cluster: true, clusterRadius: 40, clusterMaxZoom: 13,
       });
       m.addLayer({
         id: "clusters", type: "circle", source: "vehicles", filter: ["has", "point_count"],
-        paint: { "circle-color": "#1e3a8a", "circle-radius": 18, "circle-stroke-width": 2, "circle-stroke-color": "#fff" },
+        paint: { "circle-color": "#184f95", "circle-radius": 18, "circle-stroke-width": 2, "circle-stroke-color": "#fff" },
       });
       m.addLayer({
         id: "cluster-count", type: "symbol", source: "vehicles", filter: ["has", "point_count"],
         layout: { "text-field": ["get", "point_count_abbreviated"], "text-size": 13, "text-font": ["Open Sans Regular"] },
         paint: { "text-color": "#fff" },
       });
+      for (const st of STATUSES) {
+        m.addImage(`arrow-${st}`, markerImage("arrow", STATUS_COLORS[st]), { pixelRatio: 2 });
+        m.addImage(`dot-${st}`, markerImage("dot", STATUS_COLORS[st]), { pixelRatio: 2 });
+      }
+      // A soft halo under the selected vehicle
       m.addLayer({
-        id: "vehicle", type: "circle", source: "vehicles", filter: ["!", ["has", "point_count"]],
-        paint: {
-          "circle-color": colorExpr,
-          "circle-radius": ["case", ["get", "selected"], 11, 8],
-          "circle-stroke-width": ["case", ["get", "selected"], 3, 2],
-          "circle-stroke-color": "#fff",
+        id: "vehicle-halo", type: "circle", source: "vehicles", filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "selected"], true]],
+        paint: { "circle-radius": 24, "circle-color": "#2a78d6", "circle-opacity": 0.18, "circle-stroke-width": 1.5, "circle-stroke-color": "#2a78d6", "circle-stroke-opacity": 0.6 },
+      });
+      m.addLayer({
+        id: "vehicle", type: "symbol", source: "vehicles", filter: ["!", ["has", "point_count"]],
+        layout: {
+          "icon-image": ["concat", ["case", ["get", "moving"], "arrow-", "dot-"], ["get", "status"]],
+          "icon-rotate": ["case", ["get", "moving"], ["get", "heading"], 0],
+          "icon-rotation-alignment": "map", "icon-allow-overlap": true, "icon-ignore-placement": true,
+          "icon-size": ["case", ["get", "selected"], 0.95, 0.7],
+          "text-field": ["get", "name"], "text-font": ["Open Sans Regular"], "text-size": 12, "text-offset": [0, 1.7], "text-anchor": "top", "text-optional": true,
         },
+        paint: { "text-color": "#0e1726", "text-halo-color": "#ffffff", "text-halo-width": 2, "text-halo-blur": 0.5 },
       });
       m.on("click", "vehicle", (e) => onSelect(String(e.features?.[0]?.properties?.id ?? "")));
       m.on("click", "clusters", (e) => {
