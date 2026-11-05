@@ -9,7 +9,11 @@ const patch = (p: string, t: string, b?: unknown) => h.call("patch", p, t, b);
 const put = (p: string, t: string, b?: unknown) => h.call("put", p, t, b);
 
 let tz = "America/Toronto";
-const dayOf = (offset: number) => new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date(Date.now() + offset * 86_400_000));
+// Calendar arithmetic, not "now minus N x 24 hours": a daylight-saving change inside the window would otherwise make a 7-day span count as 6.
+const dayOf = (offset: number) => {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
+  return new Date(Date.parse(`${today}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
+};
 const at = (offset: number) => `${dayOf(offset)}T17:00:00Z`;
 const WORKED = { startedAt: at(-1), distanceKm: 25, durationMin: 40, waitingMin: 10, stops: 1, tipCents: 500, conditions: { peak: true } };
 const SPEC = { type: "base_distance_time", baseCents: 400, perKmCents: 120, perMinCents: 30, waiting: { freeMin: 5, perMinCents: 50 }, peakPct: 20 };
