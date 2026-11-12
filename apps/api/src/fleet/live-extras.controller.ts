@@ -18,15 +18,21 @@ export class ShareController {
   constructor(@Inject(PG_POOL) private readonly pool: pg.Pool) {}
 
   @Post()
-  async create(@Req() req: AuthedRequest, @Body() body: { deviceId?: unknown; routeId?: unknown; hours?: unknown; label?: unknown }) {
+  async create(@Req() req: AuthedRequest, @Body() body: { deviceId?: unknown; routeId?: unknown; stopId?: unknown; allStops?: unknown; hours?: unknown; label?: unknown }) {
     const orgId = requireAny(req, "fleet.manage", "routes.dispatch");
     const hours = body?.hours == null ? 24 : Number(body.hours);
     if (!(hours > 0 && hours <= MAX_SHARE_HOURS)) throw new BadRequestException(`hours must be between 0 and ${MAX_SHARE_HOURS}`);
     const deviceId = body?.deviceId ? parseUuid(String(body.deviceId)) : null;
     const routeId = body?.routeId ? parseUuid(String(body.routeId)) : null;
     if (!deviceId && !routeId) throw new BadRequestException("choose a vehicle or a route to share");
+    const stopId = body?.stopId ? parseUuid(String(body.stopId)) : null;
+    if (stopId && !routeId) throw new BadRequestException("a stop link needs the route it belongs to");
+    // A route link shows no names or places unless it is tied to one stop (the customer's own) or allStops says the route is for one customer.
+    const allStops = body?.allStops === true;
+    if (stopId && allStops) throw new BadRequestException("choose one stop or all stops, not both");
     const token = randomBytes(24).toString("base64url");
     return withOrg(this.pool, orgId, async (c) => {
+      if (stopId && !(await c.query("SELECT 1 FROM stops WHERE id = $1 AND route_id = $2", [stopId, routeId])).rowCount) throw new NotFoundException("stop not found on that route");
       let device = deviceId;
       if (routeId && !deviceId) {
         const r = (await c.query(`SELECT d.id FROM routes r JOIN devices d ON d.vehicle_id = r.vehicle_id WHERE r.id = $1 LIMIT 1`, [routeId])).rows[0];
@@ -35,8 +41,8 @@ export class ShareController {
       }
       if (deviceId && !(await c.query("SELECT 1 FROM devices WHERE id = $1", [deviceId])).rowCount) throw new NotFoundException();
       const row = (await c.query(
-        `INSERT INTO share_links (org_id, token_hash, device_id, route_id, label, expires_at, created_by) VALUES ($1,$2,$3,$4,$5,now() + make_interval(secs => $6),$7)
-         RETURNING id, expires_at AS "expiresAt"`, [orgId, sha(token), device, routeId, body?.label ? String(body.label).slice(0, 80) : null, hours * 3600, req.session!.userId])).rows[0];
+        `INSERT INTO share_links (org_id, token_hash, device_id, route_id, stop_id, all_stops, label, expires_at, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,now() + make_interval(secs => $8),$9)
+         RETURNING id, expires_at AS "expiresAt"`, [orgId, sha(token), device, routeId, stopId, allStops, body?.label ? String(body.label).slice(0, 80) : null, hours * 3600, req.session!.userId])).rows[0];
       return { ...row, token, path: `/track/${token}` };
     });
   }
@@ -75,7 +81,7 @@ export class PublicTrackController {
   async track(@Req() req: AuthedRequest, @Param("token") token: string) {
     limit(`${req.ip ?? "?"}`, 90);
     if (!/^[A-Za-z0-9_-]{20,64}$/.test(token)) throw new NotFoundException();
-    const link = (await this.pool.query("SELECT org_id, device_id, route_id, label, expires_at FROM resolve_share($1)", [sha(token)])).rows[0];
+    const link = (await this.pool.query("SELECT org_id, device_id, route_id, label, expires_at, stop_id, all_stops FROM resolve_share($1)", [sha(token)])).rows[0];
     if (!link) throw new NotFoundException();
     return withOrg(this.pool, link.org_id, async (c) => {
       const org = (await c.query(`SELECT coalesce(brand_name, name) AS name, brand_color AS color, logo_data_url AS logo FROM organizations WHERE id = $1`, [link.org_id])).rows[0];
@@ -85,8 +91,13 @@ export class PublicTrackController {
       const trail = link.device_id ? (await c.query(
         `SELECT lat, lng FROM (SELECT lat, lng, time, row_number() OVER (ORDER BY time DESC) AS rn FROM positions WHERE device_id = $1 AND time > now() - interval '90 minutes') x
          WHERE rn % 3 = 1 ORDER BY time LIMIT 200`, [link.device_id])).rows : [];
-      const stops = link.route_id ? (await c.query(
-        "SELECT name, lat, lng, status, eta, sequence FROM stops WHERE route_id = $1 ORDER BY sequence", [link.route_id])).rows : [];
+      // Other customers' stops are never shown: only the link's own stop, or (when the office allowed it) the whole route.
+      // Otherwise the page gets progress only: order, status and time, with no names or places.
+      const all = link.route_id ? (await c.query(
+        "SELECT id, name, lat, lng, status, eta, sequence FROM stops WHERE route_id = $1 ORDER BY sequence", [link.route_id])).rows as { id: string; name: string; lat: number; lng: number; status: string; eta: string | null; sequence: number }[] : [];
+      const stops = link.stop_id ? all.filter((r) => r.id === link.stop_id).map(({ id: _id, ...r }) => r)
+        : link.all_stops ? all.map(({ id: _id, ...r }) => r)
+        : all.map((r) => ({ name: `Stop ${r.sequence}`, lat: null, lng: null, status: r.status, eta: r.eta, sequence: r.sequence }));
       return {
         label: link.label, expiresAt: link.expires_at, org,
         vehicle: pos ? { name: pos.name, lat: pos.lat, lng: pos.lng, heading: pos.heading, speed: Math.round(pos.speed), time: pos.time, status: vehicleStatus({ time: new Date(pos.time).toISOString(), speed: pos.speed, ignition: pos.ignition }) } : null,

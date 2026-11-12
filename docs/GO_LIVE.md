@@ -84,3 +84,7 @@ Order should follow what the first pilot customers ask for.
 The web app sends a Content-Security-Policy, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` and, in production, HSTS (`apps/web/next.config.mjs`). Only the pages that can be embedded (`/track`, `/shared`, `/book`, `/j`, `/status`) may be shown inside another site's frame. `connect-src` names `NEXT_PUBLIC_API_URL` and its live-update socket, so set that variable at build time. The API sends `nosniff`, a deny-all CSP, `X-Frame-Options: DENY` and, in production, HSTS.
 
 Webhook, Slack and Teams addresses are resolved before each call. A name that points at a private network is refused, and redirects are not followed.
+
+## Shared route links and privacy
+
+A tracking link made for a route no longer shows other customers' names, addresses or times. `POST /share` takes `stopId` (the link shows that one stop, for the customer who owns it) or `allStops: true` (for a route that serves a single customer or is shared internally). A route link with neither shows progress only: stop order, status and times, with no names or places. Vehicle links are unchanged. Existing route links become progress-only.

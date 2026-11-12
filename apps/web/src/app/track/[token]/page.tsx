@@ -14,7 +14,7 @@ interface Track extends TrackData {
   label: string | null; expiresAt: string;
   org: { name: string; color: string | null; logo: string | null };
   vehicle: { name: string; lat: number; lng: number; heading: number; speed: number; time: string; status: string } | null;
-  stops: { name: string; lat: number; lng: number; status: string; eta: string | null; sequence: number }[];
+  stops: { name: string; lat: number | null; lng: number | null; status: string; eta: string | null; sequence: number }[];
 }
 
 /** After the last stop, the customer can rate the delivery: 1 to 5 stars and how likely they are to recommend (0 to 10). */
