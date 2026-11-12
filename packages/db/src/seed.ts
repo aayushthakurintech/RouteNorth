@@ -1,4 +1,5 @@
 import { randomBytes, scryptSync } from "node:crypto";
+import { seedHistory } from "./history.js";
 import { migrate, pg } from "./index.js";
 
 /**
@@ -73,6 +74,11 @@ if (!hasRoute) {
     await q("INSERT INTO stops (org_id, route_id, sequence, name, address, lat, lng, packages) VALUES ($1, $2, $3, $4, $5, $6, $7, 3)", [org, route, i + 1, name, address, lat, lng]);
   }
   console.log("created today's demo route");
+}
+
+if (process.env.SEED_HISTORY !== "0") {
+  const h = await seedHistory(pool, org);
+  if (h.positions) console.log(`created ${h.positions.toLocaleString("en-CA")} demo positions and ${h.events} tracker alarms (14 days)`);
 }
 
 console.log(`

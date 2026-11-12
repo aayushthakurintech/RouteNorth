@@ -77,7 +77,7 @@ export default function DriverPage() {
   useEffect(() => {
     const s = loadSession();
     if (!s) { router.replace("/login"); return; }
-    if (s.role && s.role !== "driver") { router.replace("/"); return; }
+    if (s.role && s.role !== "driver") { router.replace("/live"); return; }
     setBase(loadCache());
     setOnline(navigator.onLine);
     setReady(true);

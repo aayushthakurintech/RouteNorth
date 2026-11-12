@@ -48,9 +48,9 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
   useEffect(() => { if (!loading && !loadSession()) router.replace("/login"); }, [loading, router]);
   useEffect(() => { setOpen(false); }, [pathname]);
   // Drivers and customers have their own apps.
-  useEffect(() => { if (me && me.home !== "/" && pathname === "/") router.replace(me.home); }, [me, pathname, router]);
+  useEffect(() => { if (me && me.home !== "/live" && pathname === "/live") router.replace(me.home); }, [me, pathname, router]);
   useEffect(() => {
-    if (pathname === "/" && me && !(prefs.onboarding?.steps ?? []).includes("map") && can("settings.manage")) {
+    if (pathname === "/live" && me && !(prefs.onboarding?.steps ?? []).includes("map") && can("settings.manage")) {
       setPrefs({ onboarding: { ...prefs.onboarding, steps: [...(prefs.onboarding?.steps ?? []), "map"] } });
     }
   }, [pathname, me]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -98,7 +98,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
       if (e.key === "t") { cycleTheme(); return; }
       if (chord.current === "g") {
         chord.current = null;
-        const dest: Record<string, string> = { l: "/", r: "/routes", p: "/reports" };
+        const dest: Record<string, string> = { l: "/live", r: "/routes", p: "/reports" };
         const href = dest[e.key];
         if (href) go(href);
         return;
@@ -147,7 +147,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
     <div className="app" data-collapsed={collapsed} data-open={open}>
       <a className="skip-link" href="#main">{t("skipToContent")}</a>
       <nav className="sidenav" aria-label={t("mainNav")}>
-        <Link href="/" className="brand">
+        <Link href="/live" className="brand">
           <span className="brand-mark" aria-hidden>
             {me.org.logoDataUrl ? <img src={me.org.logoDataUrl} alt="" /> : <svg width="18" height="18" viewBox="0 0 18 18"><path d="M4 15V3l10 12V3" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
           </span>

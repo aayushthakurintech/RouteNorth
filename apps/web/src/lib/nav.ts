@@ -1,7 +1,7 @@
 import type { Permission } from "@routenorth/shared";
 import type { MessageKey } from "@routenorth/shared";
 import {
-  Activity, AlertTriangle, HeartPulse, LifeBuoy, Lock, Sparkles, Scale, ShieldCheck, MessageSquareHeart, BarChart3, Banknote, Clock, Inbox, Receipt, Workflow, CheckSquare, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
+  Activity, AlertTriangle, Antenna, HeartPulse, LifeBuoy, Lock, Sparkles, Scale, ShieldCheck, MessageSquareHeart, BarChart3, Banknote, Clock, Inbox, Receipt, Workflow, CheckSquare, LayoutDashboard, BellRing, ClipboardCheck, ClipboardList, Container, FileText, Fuel, Gauge, Hexagon, History, IdCard, KanbanSquare, Map, MapPinned, Palette, Repeat, Route,
   Plug, SlidersHorizontal, Upload, ScrollText, Settings, Truck, UsersRound, Warehouse, Wrench, CalendarDays, ListChecks, Wallet, Users, type LucideIcon,
 } from "lucide-react";
 
@@ -20,7 +20,7 @@ export interface NavItem {
 
 /** Every page in the sidebar and the command palette. Later features add their pages here. */
 export const NAV: NavItem[] = [
-  { href: "/", label: "navLive", icon: Map, perms: ["fleet.view"], group: "main", keywords: "map vehicles tracking carte" },
+  { href: "/live", label: "navLive", icon: Map, perms: ["fleet.view"], group: "main", keywords: "map vehicles tracking carte" },
   { href: "/routes", label: "navRoutes", icon: Route, perms: ["routes.view"], group: "main", keywords: "stops plan itinéraires" },
   { href: "/dispatch", label: "navDispatch", icon: KanbanSquare, perms: ["routes.view"], group: "main", keywords: "board assign drivers répartition tableau" },
   { href: "/jobs", label: "navJobs", icon: ClipboardList, perms: ["routes.view"], group: "main", keywords: "orders deliveries pickups tâches commandes" },
@@ -40,6 +40,7 @@ export const NAV: NavItem[] = [
   { href: "/fuel", label: "navFuel", icon: Fuel, perms: ["fleet.view", "reports.view"], group: "fleet", keywords: "gas diesel litres carburant" },
   { href: "/trips", label: "navTripLog", icon: MapPinned, perms: ["fleet.view", "reports.view"], group: "fleet", keywords: "mileage tax business personal kilométrage" },
   { href: "/geofences", label: "navGeofences", icon: Hexagon, perms: ["fleet.view", "alerts.view"], group: "fleet", keywords: "zones alerts enter exit géoclôtures" },
+  { href: "/devices", label: "navDevices", icon: Antenna, perms: ["fleet.view"], group: "fleet", keywords: "gps trackers imei devices health battery traceurs appareils" },
   { href: "/fleet/inspections", label: "navInspections", icon: ClipboardCheck, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "checklist check-in check-out defects" },
   { href: "/fleet/incidents", label: "navIncidents", icon: AlertTriangle, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "accident report photos" },
   { href: "/fleet/equipment", label: "navEquipment", icon: Container, perms: ["fleet.view", "routes.view"], group: "fleet", keywords: "trailers remorques" },
@@ -74,7 +75,7 @@ export function visibleNav(can: (...p: Permission[]) => boolean): NavItem[] {
 
 /** Is `href` the page we are on (or a parent of it)? "/" only matches itself. */
 export function isActive(href: string, pathname: string): boolean {
-  if (href === "/") return pathname === "/";
+  if (href === "/live") return pathname === "/live";
   if (href === "/settings") return pathname === "/settings";
   if (href === "/analytics") return pathname === "/analytics" || pathname.startsWith("/analytics/goals");
   if (href === "/jobs") return pathname === "/jobs" || pathname.startsWith("/jobs/");

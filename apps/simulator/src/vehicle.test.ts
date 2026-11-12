@@ -38,3 +38,15 @@ describe("simulator", () => {
 });
 
 const HWY = DEFAULT_FLEET[2]!;
+
+import { sensors } from "./vehicle.js";
+describe("sensors", () => {
+  it("are deterministic and in believable ranges", () => {
+    const s = { leg: 0, along: 0, dwellLeft: 0, odometer: 52_000, position: { lat: 43, lng: -79 }, heading: 0, speedKmh: 60 };
+    expect(sensors(s)).toEqual(sensors(s));
+    const x = sensors(s);
+    expect(x.sat).toBeGreaterThanOrEqual(8); expect(x.hdop).toBeLessThan(2);
+    expect(x.fuel).toBeGreaterThan(0); expect(x.fuel).toBeLessThanOrEqual(100);
+    expect(x.rpm).toBeGreaterThan(750);
+  });
+});

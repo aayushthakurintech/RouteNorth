@@ -61,5 +61,5 @@ export function effectivePermissions(role: string, custom?: readonly string[] | 
 export function homePath(role: string, perms: ReadonlySet<Permission>): string {
   if (perms.has("driver.app") && perms.size === 1) return "/driver";
   if (perms.has("customer.portal") && perms.size === 1) return "/portal";
-  return "/";
+  return "/live";
 }

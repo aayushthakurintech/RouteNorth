@@ -63,7 +63,7 @@ export default function HistoryPage() {
     [data],
   );
   const current = track[Math.min(index, track.length - 1)];
-  useBreadcrumbs([{ label: t("navLive"), href: "/" }, { label: t("history") }]);
+  useBreadcrumbs([{ label: t("navLive"), href: "/live" }, { label: t("history") }]);
 
   return (
     <SplitView id="history">

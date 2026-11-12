@@ -16,6 +16,25 @@ Canadian context worth keeping in mind from day one: PIPEDA, and Quebec's Law 25
 | Availability | Public status page and incident history |
 | Change record | Release notes inside the app |
 
+## Public legal pages (draft, needs a lawyer)
+
+`/terms`, `/privacy` and `/accessibility` (English and French) are linked from the landing page footer and from sign-up. They describe what the product does today and are marked on the page as a draft for legal review. They cover PIPEDA, Quebec Law 25 (privacy officer, rights including portability, automated-decision notice, incident register), CASL (consent, identification, unsubscribe) and accessibility (WCAG 2.2 AA as a target, with no conformance claim).
+
+Sign-up records the accepted version (`TERMS_VERSION` in `packages/shared/src/legal.ts`), the time and the marketing choice in `signup_consents`. Change the version whenever the text changes in substance.
+
+Before launch the company must supply, through environment variables, the facts only it knows:
+
+| Variable | Used for |
+| --- | --- |
+| `NEXT_PUBLIC_COMPANY_NAME` | legal name |
+| `NEXT_PUBLIC_PRIVACY_EMAIL` | privacy officer contact (Law 25 requires a named person) |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | accessibility feedback |
+| `NEXT_PUBLIC_GOVERNING_PROVINCE` | governing law |
+
+Until set, the pages show an obvious placeholder address and province. Also confirm with counsel: hosting region and cross-border transfer wording, the liability cap, consumer-rights wording for Quebec, and the Quebec French text (the French is a careful translation, not a certified legal translation).
+
+Not done: an independent accessibility audit, a Quebec privacy impact assessment for each cross-border provider, and a cookie banner (none is needed while only essential storage is used; add one before adding analytics or advertising).
+
 ## What it cannot do for you
 
 - **Encryption at rest and in transit** is provided by your host (disk encryption, TLS at the proxy). Turn both on and write down that you did.

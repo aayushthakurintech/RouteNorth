@@ -18,6 +18,12 @@ export interface LiveVehicle {
   heading: number;
   ignition: boolean | null;
   status: VehicleStatus;
+  /** Sensor values from the tracker's latest report. Null where the tracker does not send that value. */
+  telemetry: {
+    satellites: number | null; hdop: number | null; batteryPct: number | null; extVoltage: number | null;
+    fuelLevelPct: number | null; rpm: number | null; engineHours: number | null; coolantC: number | null; signal: number | null;
+    altitude: number | null; odometerKm: number | null;
+  };
 }
 
 @Controller("vehicles")
@@ -42,7 +48,8 @@ export class VehiclesController {
       const priv = withDefaults((await c.query("SELECT settings FROM organizations WHERE id = $1", [orgId])).rows[0]?.settings).trackOnlyDuringShift;
       return c.query(
         `SELECT d.id AS device_id, v.id AS vehicle_id, coalesce(v.name, d.external_id) AS name,
-                coalesce(v.kind, 'car') AS kind, lp.time, lp.lat, lp.lng, lp.speed, lp.heading, lp.ignition
+                coalesce(v.kind, 'car') AS kind, lp.time, lp.lat, lp.lng, lp.speed, lp.heading, lp.ignition,
+                lp.satellites, lp.hdop, lp.battery_pct, lp.ext_voltage, lp.fuel_level_pct, lp.rpm, lp.engine_hours, lp.coolant_c, lp.signal, lp.altitude, lp.odometer
          FROM latest_positions lp
          JOIN devices d ON d.id = lp.device_id
          LEFT JOIN vehicles v ON v.id = d.vehicle_id${priv ? `\n         WHERE NOT ${offShiftSql("lp.time", "lp.device_id")}` : ""}
@@ -55,6 +62,11 @@ export class VehiclesController {
         deviceId: r.device_id, vehicleId: r.vehicle_id, name: r.name, kind: r.kind, time,
         lat: r.lat, lng: r.lng, speed: r.speed, heading: r.heading, ignition: r.ignition,
         status: vehicleStatus({ time, speed: r.speed, ignition: r.ignition }),
+        telemetry: {
+          satellites: r.satellites, hdop: r.hdop, batteryPct: r.battery_pct, extVoltage: r.ext_voltage, fuelLevelPct: r.fuel_level_pct,
+          rpm: r.rpm, engineHours: r.engine_hours, coolantC: r.coolant_c, signal: r.signal, altitude: r.altitude,
+          odometerKm: r.odometer != null ? Math.round(r.odometer / 100) / 10 : null,
+        },
       };
     });
   }

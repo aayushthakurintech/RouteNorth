@@ -13,8 +13,12 @@
   --ok: #067647; --ok-soft: #e7f6ee; --warn: #a15c07; --warn-soft: #fdf3e0; --danger: #b42318; --danger-soft: #fdeceb; --info: #175cd3; --info-soft: #e8f0fd;
   /* vehicle status colors (map markers and chips) */
   --st-moving: #1a9850; --st-idle: #d99500; --st-stopped: #6b7280; --st-offline: #c0392b;
-  /* color-blind-safe categorical palette (Okabe-Ito), also used for route colors */
-  --chart-1: #0072b2; --chart-2: #e69f00; --chart-3: #009e73; --chart-4: #cc79a7; --chart-5: #56b4e9; --chart-6: #d55e00; --chart-7: #f0e442; --chart-8: #4d4d4d;
+  /* Categorical chart palette, fixed order, validated with the data-viz validator against the card surface
+     (adjacent colour-blind separation >= 8, normal-vision >= 19; the first three also hold for every pair). */
+  --chart-1: #2a78d6; --chart-2: #eb6834; --chart-3: #1baf7a; --chart-4: #eda100; --chart-5: #e87ba4; --chart-6: #008300; --chart-7: #6250d6; --chart-8: #e34948;
+  /* One-hue sequential ramp (light = little, dark = a lot) for heat maps and utilization */
+  --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5; --seq-5: #256abf; --seq-6: #184f95; --seq-7: #0d366b;
+  --chart-grid: #e8eaee; --chart-axis: #c3cad6; --chart-ink: #5d6b82;
   /* spacing: 8-point grid with a half step */
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
   /* radius: one family */
@@ -36,7 +40,9 @@
   --brand: #5aa9f0; --brand-hover: #7bbcf5; --brand-soft: #14304d; --brand-fg: #04121f;
   --ok: #4cc38a; --ok-soft: #12302a; --warn: #f0b24a; --warn-soft: #33270f; --danger: #ff8a80; --danger-soft: #3a1a18; --info: #7ab0ff; --info-soft: #172a4a;
   --st-moving: #3ccf7a; --st-idle: #f0b24a; --st-stopped: #94a3b8; --st-offline: #ff7a6b;
-  --chart-8: #c9cdd6;
+  --chart-1: #3987e5; --chart-2: #d95926; --chart-3: #199e70; --chart-4: #c98500; --chart-5: #d55181; --chart-6: #008300; --chart-7: #9085e9; --chart-8: #e66767;
+  --seq-1: #14304d; --seq-2: #184f95; --seq-3: #256abf; --seq-4: #3987e5; --seq-5: #5598e7; --seq-6: #86b6ef; --seq-7: #b7d3f6;
+  --chart-grid: #232e44; --chart-axis: #34415c; --chart-ink: #98a3b8;
   --sh-float: 0 8px 28px rgb(0 0 0 / .55), 0 2px 6px rgb(0 0 0 / .4);
 }
 :root[data-theme="contrast"] {

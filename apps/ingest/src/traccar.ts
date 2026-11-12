@@ -1,4 +1,4 @@
-import { isValidPosition } from "@routenorth/shared";
+import { knotsToKmh, sensorsFromAttributes, type Reading } from "@routenorth/shared";
 
 /** Shape of the JSON Traccar forwards for each position (only fields we use). */
 export interface TraccarForward {
@@ -15,45 +15,34 @@ export interface TraccarForward {
   device?: { uniqueId?: string };
 }
 
-export interface NormalizedFix {
-  externalId: string;
-  time: string;
-  lat: number;
-  lng: number;
-  speed: number; // km/h
-  heading: number;
-  ignition: boolean | null;
-  odometer: number | null;
-  attributes: Record<string, unknown>;
-}
+/** What the pipeline works with. Kept as an alias so older imports keep working. */
+export type NormalizedFix = Reading;
 
-const KNOTS_TO_KMH = 1.852;
+const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 
-/** Convert a Traccar forward payload into our position shape, or null if unusable. */
-export function normalizeTraccar(msg: TraccarForward, now: Date = new Date()): NormalizedFix | null {
+/**
+ * Convert a Traccar forward payload into a `Reading`, or null when the message cannot be a position at all
+ * (no device, no coordinates, or the tracker itself says it has no GPS fix). Range and plausibility checks
+ * live in `assessReading`, so that every refusal is counted with a reason.
+ */
+export function normalizeTraccar(msg: TraccarForward): Reading | null {
   const p = msg.position;
   const externalId = msg.device?.uniqueId;
   if (!p || !externalId || p.valid === false) return null;
   if (typeof p.latitude !== "number" || typeof p.longitude !== "number" || !p.fixTime) return null;
-
   const t = new Date(p.fixTime);
-  if (Number.isNaN(t.getTime())) return null;
-  // Drop fixes from the future (bad device clock); allow a minute of skew.
-  if (t.getTime() > now.getTime() + 60_000) return null;
-
-  const speed = Math.round((p.speed ?? 0) * KNOTS_TO_KMH * 10) / 10;
-  if (!isValidPosition({ lat: p.latitude, lng: p.longitude, speed })) return null;
-
   const a = p.attributes ?? {};
   return {
     externalId,
-    time: t.toISOString(),
+    time: Number.isNaN(t.getTime()) ? "invalid" : t.toISOString(),
     lat: p.latitude,
     lng: p.longitude,
-    speed,
-    heading: ((p.course ?? 0) % 360 + 360) % 360,
+    speed: knotsToKmh(p.speed ?? 0),
+    heading: (((p.course ?? 0) % 360) + 360) % 360,
     ignition: typeof a.ignition === "boolean" ? a.ignition : null,
-    odometer: typeof a.totalDistance === "number" ? a.totalDistance : null,
+    odometer: num(a.totalDistance),
+    altitude: num(p.altitude),
+    ...sensorsFromAttributes(a),
     attributes: a,
   };
 }
