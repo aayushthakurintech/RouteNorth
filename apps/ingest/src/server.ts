@@ -8,6 +8,7 @@ import { updateGeofences } from "./geofence.js";
 import { updateRouteProgress } from "./progress.js";
 import { authenticateFeedKey, keyFromRequest, withinRate } from "./feed.js";
 import { countOutcome, flushCounters, ingestReading, outcomeKey, type Outcome } from "./store.js";
+import { pullDueConnections } from "./connectors.js";
 
 
 const pool = new pg.Pool({ connectionString: process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL, max: Number(process.env.DB_POOL ?? 10) });
@@ -130,6 +131,27 @@ const server = createServer(async (req, res) => {
 
 const flusher = setInterval(() => void flushCounters(pool), 10_000);
 flusher.unref();
+
+// Pull connectors (Geotab, Samsara): sign in to a company's own provider account and pull new positions.
+// Needs the same JWT_SECRET (or ENCRYPTION_KEY) as the API, which encrypted the saved logins.
+const connectorKey = process.env.JWT_SECRET ?? "";
+if ((connectorKey || process.env.ENCRYPTION_KEY) && process.env.CONNECTORS_DISABLED !== "1") {
+  let running = false;
+  const poller = setInterval(() => {
+    if (running) return;
+    running = true;
+    pullDueConnections(pool, {
+      fetchFn: (url, init) => fetch(url, init),
+      secretKey: connectorKey,
+      ingest: async (orgId, r) => { const o = await ingestReading(pool, "feed", r, new Date(), orgId); await afterIngest("feed", o); return o; },
+    }).then((rs) => { for (const r of rs) bump(`routenorth_connector_pulls_total{outcome="${r.error ? "error" : "ok"}"}`); })
+      .catch((err) => console.error("connector poll failed", err))
+      .finally(() => { running = false; });
+  }, Number(process.env.CONNECTOR_POLL_MS ?? 15_000));
+  poller.unref();
+} else {
+  console.log("provider connectors off: set JWT_SECRET (same as the API) to pull from Geotab and Samsara accounts");
+}
 
 server.listen(port, () => console.log(`ingest listening on :${port}${token ? "" : " (INGEST_TOKEN not set: accepting unauthenticated requests)"}`));
 

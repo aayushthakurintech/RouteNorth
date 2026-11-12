@@ -24,3 +24,4 @@ export * from "./telematics.js";
 export * from "./hos.js";
 export * from "./password.js";
 export * from "./legal.js";
+export * from "./connectors.js";
