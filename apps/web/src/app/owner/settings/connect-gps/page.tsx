@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Async } from "@/components/portal/states";
 import { PageHeader, StatusBadge } from "@/components/portal/parts";
+import { ProviderAccounts } from "@/components/portal/ProviderAccounts";
 import { apiSend } from "@/lib/api";
 import { ago } from "@/lib/portal/data-sources";
 import { useApi } from "@/lib/use-api";
@@ -100,12 +101,14 @@ export default function ConnectGpsPage() {
                     <Code text={`<entry key='forward.enable'>true</entry>\n<entry key='forward.json'>true</entry>\n<entry key='forward.url'>${url}/ingest/feed/traccar?key=${key}</entry>`} />
                   </section>
                   <section className="space-y-2">
-                    <h3 className="font-medium">Your provider only offers its own API (Samsara, Geotab, Motive and similar)</h3>
-                    <p className="text-muted-foreground">Ready-made connectors that pull from those APIs are <strong>not built yet</strong>. Ask the provider whether it can forward positions to a web address or to a Traccar-style server; many can. Tell us which provider you use so we build that connector first.</p>
+                    <h3 className="font-medium">Your provider only offers its own API (Geotab, Samsara)</h3>
+                    <p className="text-muted-foreground">Skip the key: sign in to the provider account in the next box and RouteNorth pulls the positions itself. Other providers (Motive and similar) are not built yet; ask whether they can forward to a web address or a Traccar-style server, and tell us which one you use.</p>
                   </section>
                   <p className="text-xs text-muted-foreground">Nothing here has been tried against a real provider yet; the address and formats were tested with stand-in senders. If a provider cannot be made to work, <Link href="/help" className="underline underline-offset-2">tell us</Link>.</p>
                 </CardContent>
               </Card>
+
+              <ProviderAccounts />
 
               <Card>
                 <CardHeader>

@@ -56,6 +56,7 @@ export class PortalDataSourcesController {
         `SELECT coalesce(sum(n),0)::float8 AS total,
                 coalesce(sum(n) FILTER (WHERE outcome IN ('stored','latest_only','history_only')),0)::float8 AS accepted
          FROM ingest_counters WHERE day >= (now() AT TIME ZONE 'UTC')::date - 6`);
+      const providers = (await c.query(`SELECT name, status, last_data_at, last_error FROM provider_connections`)).rows;
       const shifts = await one(`SELECT max(started_at) AS last, count(*) FILTER (WHERE started_at > now() - interval '7 days')::int AS week FROM shifts`);
       const jobs = (await c.query(
         `SELECT source, count(*)::int AS n, max(created_at) AS last, count(*) FILTER (WHERE created_at > now() - interval '30 days')::int AS month FROM jobs GROUP BY source`)).rows;
@@ -77,7 +78,7 @@ export class PortalDataSourcesController {
                 max(last_used_at) FILTER (WHERE kind = 'api') AS api_last
          FROM api_keys`);
       const totals = await one(`SELECT (SELECT count(*)::int FROM vehicles WHERE archived_at IS NULL AND status NOT IN ('sold','retired')) AS vehicles, (SELECT count(*)::int FROM driver_profiles WHERE archived_at IS NULL) AS drivers, (SELECT count(*)::int FROM jobs) AS orders`);
-      return { devices, quality, shifts, jobs, fuelImport, hooks, msgs, sms, keys, totals };
+      return { providers, devices, quality, shifts, jobs, fuelImport, hooks, msgs, sms, keys, totals };
     });
 
     const sources: DataSource[] = [];
@@ -111,6 +112,16 @@ export class PortalDataSourcesController {
         : !feedDevices.length ? "A key is ready but nothing has arrived yet. Check the address and key in your provider's settings."
         : `${feedDevices.length} device${feedDevices.length === 1 ? "" : "s"} sending through your feed, last position ${ago(feedLast, now)}.`,
       lastDataAt: feedLast, next: { label: feedKeys || feedDevices.length ? "Open Connect your GPS" : "Connect your GPS", href: "/owner/settings/connect-gps" }, needs: process.env.INGEST_PUBLIC_URL ? [] : ["INGEST_PUBLIC_URL (on the API)"], canTest: false });
+    const provs = d.providers as { name: string; status: string; last_data_at: Date | null; last_error: string | null }[];
+    const provLast = iso(provs.map((p) => p.last_data_at).filter(Boolean).map((x) => new Date(x!).toISOString()).sort().at(-1));
+    const provBad = provs.filter((p) => p.status === "error");
+    add({ id: "provider-accounts", name: "Geotab and Samsara accounts", group: "positions",
+      state: !provs.length ? "not_connected" : provBad.length ? "problem" : !provLast ? "quiet" : (ageMin(provLast, now) ?? 9e9) > 60 ? "problem" : "live",
+      summary: !provs.length ? "No provider account is connected. If your GPS lives in Geotab or Samsara, sign in once and RouteNorth pulls positions every minute."
+        : provBad.length ? `${provBad[0]!.name}: ${provBad[0]!.last_error ?? "the last pull failed"}`
+        : `${provs.length} account${provs.length === 1 ? "" : "s"} connected, last position ${ago(provLast, now)}.`,
+      lastDataAt: provLast, next: { label: provs.length ? "Open Connect your GPS" : "Connect an account", href: "/owner/settings/connect-gps" },
+      needs: process.env.JWT_SECRET || process.env.ENCRYPTION_KEY ? [] : ["JWT_SECRET (on the ingest service, same as the API)"], canTest: false });
     add({ id: "phone-feed", name: "Phone apps and vendor feeds", group: "positions",
       state: !phones.length ? "not_connected" : (ageMin(newest(phones), now) ?? 9e9) > 60 ? "quiet" : "live",
       summary: phones.length ? `${phones.length} feed device${phones.length === 1 ? "" : "s"}, last position ${ago(newest(phones), now)}.` : "No device is sending through the JSON feed yet.",
