@@ -155,6 +155,32 @@ describe("share links", () => {
   });
 });
 
+describe("route share links", () => {
+  it("never show other customers' stops: one stop, all stops only when allowed, or progress only", async () => {
+    const route = (await h.admin.query("INSERT INTO routes (org_id, name, route_date, status) VALUES ($1,'Share scope',current_date,'in_progress') RETURNING id", [h.orgA])).rows[0].id as string;
+    const mk = async (n: number, name: string) => (await h.admin.query("INSERT INTO stops (org_id, route_id, sequence, name, lat, lng, status) VALUES ($1,$2,$3,$4,43.7,-79.4,'pending') RETURNING id", [h.orgA, route, n, name])).rows[0].id as string;
+    const mine = await mk(1, "Acme Warehouse"); await mk(2, "Beta Homes, 12 Oak St");
+    const body = async (extra: Record<string, unknown>) => {
+      const l = await h.call("post", "/share", owner, { routeId: route, hours: 1, ...extra });
+      expect(l.status, JSON.stringify(l.body)).toBe(201);
+      return (await h.call("get", `/public/track/${l.body.token}`)).body as { stops: { name: string; lat: number | null }[] };
+    };
+    const own = await body({ stopId: mine });
+    expect(own.stops.map((x) => x.name)).toEqual(["Acme Warehouse"]);
+    const all = await body({ allStops: true });
+    expect(all.stops).toHaveLength(2);
+    const progress = await body({});
+    expect(progress.stops).toHaveLength(2);
+    expect(JSON.stringify(progress)).not.toMatch(/Acme|Beta|Oak/);
+    expect(progress.stops.every((x) => x.lat === null)).toBe(true);
+    // a stop from another route, or both options at once, is refused
+    const other = (await h.admin.query("INSERT INTO routes (org_id, name, route_date) VALUES ($1,'Other',current_date) RETURNING id", [h.orgA])).rows[0].id;
+    expect((await h.call("post", "/share", owner, { routeId: other, stopId: mine })).status).toBe(404);
+    expect((await h.call("post", "/share", owner, { routeId: route, stopId: mine, allStops: true })).status).toBe(400);
+    expect((await h.call("post", "/share", owner, { stopId: mine, deviceId: dev })).status).toBe(400);
+  });
+});
+
 describe("heat layers and weather", () => {
   it("aggregates stops and speeding into grid cells", async () => {
     const t = Date.UTC(2026, 6, 3, 12);

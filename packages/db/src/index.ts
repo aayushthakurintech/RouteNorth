@@ -95,4 +95,4 @@ export async function recomputeRouteStatus(client: pg.PoolClient, routeId: strin
 }
 
 export { pg };
-export { decryptSecret, encryptSecret } from "./secrets.js";
+export { decryptSecret, encryptionKeyProblem, encryptSecret } from "./secrets.js";

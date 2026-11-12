@@ -4,6 +4,7 @@ import { PERMISSIONS, ROLES, ROLE_PERMISSIONS, isPermission } from "@routenorth/
 import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { parseUuid } from "../history/range.js";
 import { PG_POOL } from "../tokens.js";
+import { assertCanGrant } from "./grant.js";
 
 function parseRoleBody(body: { name?: unknown; permissions?: unknown }) {
   if (typeof body?.name !== "string" || !body.name.trim() || body.name.trim().length > 60) throw new BadRequestException("name must be 1 to 60 characters");
@@ -40,6 +41,7 @@ export class RolesController {
   async create(@Req() req: AuthedRequest, @Body() body: { name?: unknown; permissions?: unknown }) {
     const orgId = requirePerm(req, "roles.manage");
     const r = parseRoleBody(body);
+    assertCanGrant(req, r.permissions);
     try {
       return (await withOrg(this.pool, orgId, (c) =>
         c.query(`INSERT INTO custom_roles (org_id, name, permissions) VALUES ($1,$2,$3) RETURNING id, name, permissions`, [orgId, r.name, r.permissions]))).rows[0];
@@ -53,10 +55,15 @@ export class RolesController {
   async update(@Req() req: AuthedRequest, @Param("id") id: string, @Body() body: { name?: unknown; permissions?: unknown }) {
     const orgId = requirePerm(req, "roles.manage");
     const r = parseRoleBody(body);
+    assertCanGrant(req, r.permissions);
     try {
-      const row = (await withOrg(this.pool, orgId, (c) =>
-        c.query(`UPDATE custom_roles SET name=$2, permissions=$3 WHERE id=$1 RETURNING id, name, permissions`, [parseUuid(id), r.name, r.permissions]))).rows[0];
-      if (!row) throw new NotFoundException();
+      const row = await withOrg(this.pool, orgId, async (c) => {
+        // The role as it is now must also be within the caller's reach, so no one can edit a role more powerful than their own.
+        const current = (await c.query<{ permissions: string[] }>("SELECT permissions FROM custom_roles WHERE id = $1 FOR UPDATE", [parseUuid(id)])).rows[0];
+        if (!current) throw new NotFoundException();
+        assertCanGrant(req, current.permissions);
+        return (await c.query(`UPDATE custom_roles SET name=$2, permissions=$3 WHERE id=$1 RETURNING id, name, permissions`, [parseUuid(id), r.name, r.permissions])).rows[0];
+      });
       return row;
     } catch (e) {
       if ((e as { code?: string }).code === "23505") throw new ConflictException("a role with that name already exists");

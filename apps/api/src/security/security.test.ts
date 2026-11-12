@@ -213,6 +213,21 @@ describe("your data", () => {
     const me = ((await h.admin.query("SELECT id FROM users WHERE email = 'a@example.com'")).rows[0].id) as string;
     expect((await h.call("post", `/security/users/${me}/erase`, owner, { confirm: "a@example.com" })).status).toBe(400);
   });
+  it("a new password follows the password rules and signs out every other device", async () => {
+    await h.addUser(h.orgA, "mover@example.com", "viewer");
+    const first = await h.token("mover@example.com"), second = await h.token("mover@example.com");
+    expect((await h.call("post", "/me/password", first, { current: PASSWORD, next: "password123" })).status).toBe(400);
+    const r = ok(await h.call("post", "/me/password", first, { current: PASSWORD, next: "a-brand-new-passphrase" }), 201);
+    expect(r.signedOut).toBeGreaterThanOrEqual(1);
+    expect((await h.call("get", "/me", second)).status).toBe(401);
+    expect((await h.call("get", "/me", first)).status).toBe(200);
+  });
+  it("slows down password guessing with 429 after five wrong passwords for one email", async () => {
+    await h.addUser(h.orgA, "guess@example.com", "viewer");
+    for (let i = 0; i < 5; i++) expect((await login("guess@example.com", "wrong-" + i)).status).toBe(401);
+    expect((await login("guess@example.com")).status).toBe(429);
+    expect((await login("a@example.com")).status).toBe(200);
+  });
   it("deletes a whole organization only for its owner, with the password and the exact name", async () => {
     const org = (await h.admin.query("INSERT INTO organizations (name) VALUES ('Doomed Ltd') RETURNING id")).rows[0].id as string;
     await h.addUser(org, "boss@doomed.ca", "owner"); await h.addUser(org, "admin@doomed.ca", "admin");
@@ -228,6 +243,9 @@ describe("your data", () => {
     }
     expect((await h.admin.query("SELECT 1 FROM organizations WHERE id = $1", [h.orgA])).rowCount).toBe(1);
     expect((await h.call("get", "/me", boss)).status).toBe(401);
+    // the function only erases the company the session is in, even though it runs with the owner's rights
+    await expect(h.app.query("SELECT erase_organization($1)", [h.orgA])).rejects.toThrow(/does not match/);
+    expect((await h.admin.query("SELECT 1 FROM organizations WHERE id = $1", [h.orgA])).rowCount).toBe(1);
     // the audit log of the others is still protected
     await expect(h.admin.query("DELETE FROM audit_log WHERE org_id = $1", [h.orgA])).rejects.toThrow(/cannot be changed or deleted/);
   });

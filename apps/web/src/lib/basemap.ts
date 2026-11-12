@@ -1,5 +1,5 @@
 import { tileChoice } from "@routenorth/shared";
-import type { StyleSpecification } from "maplibre-gl";
+import type { Map as MapLibreMap, StyleSpecification } from "maplibre-gl";
 
 /** Public tile servers for development and small sites. CARTO's free tiles have usage limits: for production self-host (NEXT_PUBLIC_TILE_URL / _DARK / _SATELLITE) or choose MapTiler, Mapbox or HERE in settings. */
 export const TILES = {
@@ -42,7 +42,7 @@ export function basemapLayer(basemap: Basemap, theme: "light" | "dark" | "contra
   return theme === "dark" ? "base-dark" : "base-street";
 }
 
-export function applyBasemap(map: { setLayoutProperty: (id: string, k: string, v: string) => void }, basemap: Basemap, theme: "light" | "dark" | "contrast") {
+export function applyBasemap(map: Pick<MapLibreMap, "setLayoutProperty">, basemap: Basemap, theme: "light" | "dark" | "contrast") {
   const show = basemapLayer(basemap, theme);
   for (const id of ["base-street", "base-dark", "base-satellite"]) map.setLayoutProperty(id, "visibility", id === show ? "visible" : "none");
 }

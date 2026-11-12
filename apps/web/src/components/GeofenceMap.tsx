@@ -1,5 +1,6 @@
 "use client";
-import maplibregl, { type GeoJSONSource, type Map as MapLibreMap } from "maplibre-gl";
+import maplibregl from "@/lib/maplibre";
+import { type GeoJSONSource, type Map as MapLibreMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef } from "react";
 import { applyBasemap, baseStyle } from "@/lib/basemap";

@@ -3,14 +3,14 @@ import {
   BadRequestException, Body, ConflictException, Controller, Delete, ForbiddenException, Get, HttpCode, Inject, NotFoundException, Param, Patch, Post, Put, Req, UseGuards,
 } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
-import { effectivePermissions, homePath, INVITE_ROLES, LOCALES } from "@routenorth/shared";
+import { effectivePermissions, homePath, INVITE_ROLES, LOCALES, passwordProblem } from "@routenorth/shared";
 import { AuthGuard, requireAny, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { startSession } from "../security/sessions.js";
 import { webUrl } from "../customer/links.js";
 import { parseUuid } from "../history/range.js";
 import { deliver, type Providers } from "../notify/notifier.js";
 import { withDefaults } from "../org/settings.js";
-import { hashPassword } from "../passwords.js";
+import { hashPassword, PROBLEM_TEXT } from "../passwords.js";
 import { JWT_SECRET, NOTIFY, PG_POOL } from "../tokens.js";
 import { ensureSteps } from "../portal/drivers.service.js";
 import { addNotification } from "./notifications.js";
@@ -191,7 +191,9 @@ export class PublicInviteController {
   @HttpCode(200)
   async accept(@Param("token") token: string, @Body() b: { password?: unknown; displayName?: unknown; locale?: unknown }, @Req() req: AuthedRequest) {
     const f = await this.find(token);
-    if (typeof b?.password !== "string" || b.password.length < 10 || b.password.length > 200) throw new BadRequestException("password must be 10 to 200 characters");
+    if (typeof b?.password !== "string") throw new BadRequestException("password is required");
+    const bad = passwordProblem(b.password, { email: f.email });
+    if (bad) throw new BadRequestException(PROBLEM_TEXT[bad]);
     const name = typeof b.displayName === "string" && b.displayName.trim() ? b.displayName.trim().slice(0, 80) : null;
     const locale = (LOCALES as readonly unknown[]).includes(b.locale) ? (b.locale as string) : "en";
     const hash = await hashPassword(b.password);

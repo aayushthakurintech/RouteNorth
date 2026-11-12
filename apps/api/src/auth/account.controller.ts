@@ -5,7 +5,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { AuditService } from "../audit/audit.service.js";
 import { limit } from "../customer/public.controller.js";
 import { deliver, type Providers } from "../notify/notifier.js";
-import { hashPassword } from "../passwords.js";
+import { hashPassword, PROBLEM_TEXT } from "../passwords.js";
 import { startSession } from "../security/sessions.js";
 import { withDefaults } from "../org/settings.js";
 import { JWT_SECRET, NOTIFY, PG_POOL } from "../tokens.js";
@@ -21,11 +21,6 @@ const str = (v: unknown, name: string, min: number, max: number): string => {
   if (s.length < min || s.length > max) throw new BadRequestException(`${name} must be ${min} to ${max} characters`);
   return s;
 };
-const PROBLEM_TEXT = {
-  short: "use at least 10 characters", long: "use at most 200 characters", common: "that password is too common, choose another",
-  repeated: "avoid repeated characters", personal: "do not use your name, email or company in the password",
-} as const;
-
 /**
  * Self-service accounts: create a company (its first owner), and reset a forgotten password by emailed link.
  * Every route is public, so every one is rate limited, and none says whether an email is known except sign-up (which must).

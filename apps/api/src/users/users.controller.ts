@@ -3,10 +3,11 @@ import {
   Param, Patch, Post, Query, Req, UseGuards,
 } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
-import { LOCALES } from "@routenorth/shared";
+import { LOCALES, passwordProblem } from "@routenorth/shared";
 import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { parseUuid } from "../history/range.js";
-import { hashPassword } from "../passwords.js";
+import { hashPassword, PROBLEM_TEXT } from "../passwords.js";
+import { assertCanGrant } from "../roles/grant.js";
 import { PG_POOL } from "../tokens.js";
 
 /** Roles that can be given to a new person. Owners are created with the organization, not through the API. */
@@ -41,9 +42,9 @@ export class UsersController {
     const orgId = requirePerm(req, "users.manage");
     const caller = req.session!;
     if (typeof body?.email !== "string" || !EMAIL.test(body.email) || body.email.length > 200) throw new BadRequestException("a valid email is required");
-    if (typeof body.password !== "string" || body.password.length < 10 || body.password.length > 200) {
-      throw new BadRequestException("password must be 10 to 200 characters");
-    }
+    if (typeof body.password !== "string") throw new BadRequestException("password is required");
+    const weak = passwordProblem(body.password, { email: body.email, name: typeof body.displayName === "string" ? body.displayName : undefined });
+    if (weak) throw new BadRequestException(PROBLEM_TEXT[weak]);
     if (typeof body.role !== "string" || !ASSIGNABLE.includes(body.role)) throw new BadRequestException(`role must be one of ${ASSIGNABLE.join(", ")}`);
     // Only an owner can create another admin.
     if (body.role === "admin" && caller.role !== "owner") throw new ForbiddenException();
@@ -53,6 +54,11 @@ export class UsersController {
     const locale = (LOCALES as readonly unknown[]).includes(body.locale) ? (body.locale as string) : "en";
     const customRoleId = body.customRoleId ? parseUuid(String(body.customRoleId)) : null;
     const hash = await hashPassword(body.password);
+    if (customRoleId) {
+      const cr = (await withOrg(this.pool, orgId, (c) => c.query<{ permissions: string[] }>("SELECT permissions FROM custom_roles WHERE id = $1", [customRoleId]))).rows[0];
+      if (!cr) throw new BadRequestException("unknown custom role");
+      assertCanGrant(req, cr.permissions);
+    }
     try {
       const rows = await withOrg(this.pool, orgId, (c) =>
         c.query(
@@ -94,7 +100,17 @@ export class UsersController {
         if ((body.role === "admin" || body.role === "owner") && caller.role !== "owner") throw new ForbiddenException("only an owner can make an admin or owner");
         add("role", body.role);
       }
-      if (body.customRoleId !== undefined) add("custom_role_id", body.customRoleId ? parseUuid(String(body.customRoleId)) : null);
+      if (body.customRoleId !== undefined) {
+        // Your own role is changed by someone else, and a role can only be given by someone who could hold everything in it.
+        if (uid === caller.userId) throw new BadRequestException("you cannot change your own role");
+        const roleId = body.customRoleId ? parseUuid(String(body.customRoleId)) : null;
+        if (roleId) {
+          const cr = (await c.query<{ permissions: string[] }>("SELECT permissions FROM custom_roles WHERE id = $1", [roleId])).rows[0];
+          if (!cr) throw new BadRequestException("unknown custom role");
+          assertCanGrant(req, cr.permissions);
+        }
+        add("custom_role_id", roleId);
+      }
       if (body.displayName !== undefined) {
         if (body.displayName !== null && (typeof body.displayName !== "string" || body.displayName.length > 80)) throw new BadRequestException("displayName must be up to 80 characters");
         add("display_name", body.displayName ? String(body.displayName).trim() : null);

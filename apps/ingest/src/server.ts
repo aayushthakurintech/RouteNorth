@@ -16,6 +16,11 @@ const redis = process.env.REDIS_URL ? new Redis(process.env.REDIS_URL) : null;
 const port = Number(process.env.PORT ?? 4100);
 /** When set, every ingest request must carry it (header `Authorization: Bearer <token>` or query `?token=`). */
 const token = process.env.INGEST_TOKEN ?? "";
+// An open ingest service lets anyone write positions for any registered tracker. Refuse to run that way in production.
+if (!token && process.env.NODE_ENV === "production") {
+  console.error("INGEST_TOKEN is required when NODE_ENV=production (see docs/DATA_PIPELINE.md)");
+  process.exit(1);
+}
 
 const metrics = new Map<string, number>();
 const bump = (name: string, n = 1) => metrics.set(name, (metrics.get(name) ?? 0) + n);
@@ -133,8 +138,9 @@ const flusher = setInterval(() => void flushCounters(pool), 10_000);
 flusher.unref();
 
 // Pull connectors (Geotab, Samsara): sign in to a company's own provider account and pull new positions.
-// Needs the same JWT_SECRET (or ENCRYPTION_KEY) as the API, which encrypted the saved logins.
-const connectorKey = process.env.JWT_SECRET ?? "";
+// Needs the API's ENCRYPTION_KEY, which encrypted the saved logins. The ingest service never needs JWT_SECRET
+// (which signs sign-ins); outside production it may stand in for a missing ENCRYPTION_KEY, as on the API.
+const connectorKey = process.env.ENCRYPTION_KEY ? "" : process.env.NODE_ENV === "production" ? "" : process.env.JWT_SECRET ?? "";
 if ((connectorKey || process.env.ENCRYPTION_KEY) && process.env.CONNECTORS_DISABLED !== "1") {
   let running = false;
   const poller = setInterval(() => {
@@ -150,7 +156,7 @@ if ((connectorKey || process.env.ENCRYPTION_KEY) && process.env.CONNECTORS_DISAB
   }, Number(process.env.CONNECTOR_POLL_MS ?? 15_000));
   poller.unref();
 } else {
-  console.log("provider connectors off: set JWT_SECRET (same as the API) to pull from Geotab and Samsara accounts");
+  console.log("provider connectors off: set ENCRYPTION_KEY (same as the API) to pull from Geotab and Samsara accounts");
 }
 
 server.listen(port, () => console.log(`ingest listening on :${port}${token ? "" : " (INGEST_TOKEN not set: accepting unauthenticated requests)"}`));

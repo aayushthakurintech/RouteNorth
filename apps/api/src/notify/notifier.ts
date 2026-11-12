@@ -1,3 +1,6 @@
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
+
 /**
  * Sending messages out: email, SMS, Slack, Teams and generic webhooks.
  * Each channel is a small adapter over `fetch`, so tests can stand in for the network. Email and SMS need an outside account
@@ -13,6 +16,7 @@ export interface Message {
   /** SMS only: send the text as it is, without the subject in front. */
   plain?: boolean;
 }
+
 export type Fetch = typeof fetch;
 
 export interface Providers {
@@ -21,14 +25,21 @@ export interface Providers {
   email?: { apiKey: string; from: string; url?: string } | null;
   /** Twilio SMS. */
   sms?: { accountSid: string; authToken: string; from: string; url?: string } | null;
+  /**
+   * Checks a customer-set address just before it is called (the real server resolves its name and refuses private
+   * addresses). Left out in tests, which stand in for the network.
+   */
+  guard?: (url: string) => Promise<string | null>;
 }
 /** `unconfigured` means the server has no account for this channel (not that the send was tried and failed). */
 export type Result = { ok: true } | { ok: false; error: string; unconfigured?: boolean };
 
 export function providersFromEnv(env: NodeJS.ProcessEnv = process.env): Providers {
   return {
-    // A slow server must not hold up the rest of the pass.
-    fetch: ((url, init) => fetch(url, { ...init, signal: init?.signal ?? AbortSignal.timeout(10_000) })) as Fetch,
+    // A slow server must not hold up the rest of the pass. Redirects are not followed, so a public address cannot
+    // bounce the call to an internal one.
+    fetch: ((url, init) => fetch(url, { ...init, redirect: "manual", signal: init?.signal ?? AbortSignal.timeout(10_000) })) as Fetch,
+    guard: (url) => publicAddressProblem(url),
     email: env.RESEND_API_KEY && env.EMAIL_FROM ? { apiKey: env.RESEND_API_KEY, from: env.EMAIL_FROM, url: env.EMAIL_API_URL } : null,
     sms: env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_FROM ? { accountSid: env.TWILIO_ACCOUNT_SID, authToken: env.TWILIO_AUTH_TOKEN, from: env.TWILIO_FROM, url: env.TWILIO_API_URL } : null,
   };
@@ -39,6 +50,36 @@ const PRIVATE = /^(localhost|.*\.local|.*\.internal|127\.|10\.|192\.168\.|169\.2
 export function isSafeWebhookUrl(raw: string): boolean {
   try { const u = new URL(raw); return u.protocol === "https:" && !u.username && !u.password && !PRIVATE.test(u.hostname); } catch { return false; }
 }
+/** True for loopback, private, link-local, carrier-grade NAT, multicast and other addresses that are not on the public internet. */
+export function isPrivateIp(ip: string): boolean {
+  const v = isIP(ip);
+  if (v === 4) {
+    const [a, b] = ip.split(".").map(Number) as [number, number];
+    return a === 0 || a === 10 || a === 127 || a >= 224 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254)
+      || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 198 && (b === 18 || b === 19));
+  }
+  if (v === 6) {
+    const x = ip.toLowerCase();
+    const mapped = x.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+    if (mapped) return isPrivateIp(mapped[1]!);
+    return x === "::" || x === "::1" || /^f[cd]/.test(x) || /^fe[89ab]/.test(x) || /^ff/.test(x) || x.startsWith("64:ff9b:");
+  }
+  return true;
+}
+
+/**
+ * Resolves the address's host name and says why it must not be called, or null. The name check in isSafeWebhookUrl
+ * alone can be beaten by a public name that points at a private address.
+ */
+export async function publicAddressProblem(raw: string, resolve: (host: string) => Promise<string[]> = async (h) => (await lookup(h, { all: true })).map((a) => a.address)): Promise<string | null> {
+  if (!isSafeWebhookUrl(raw)) return "the address is not a public https address";
+  const host = new URL(raw).hostname.replace(/^\[|\]$/g, "");
+  let ips: string[];
+  try { ips = isIP(host) ? [host] : await resolve(host); } catch { return "the address could not be found"; }
+  if (!ips.length || ips.some(isPrivateIp)) return "the address points to a private network";
+  return null;
+}
+
 export function checkTarget(kind: EndpointKind, target: string): string | null {
   switch (kind) {
     case "email": return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(target) && target.length <= 254 ? null : "enter a valid email address";
@@ -54,6 +95,10 @@ const ICON = { info: "ℹ️", warn: "⚠️", critical: "🚨" } as const;
 export async function deliver(ep: Endpoint, m: Message, p: Providers): Promise<Result> {
   const bad = checkTarget(ep.kind, ep.target);
   if (bad) return { ok: false, error: bad };
+  if (p.guard && (ep.kind === "slack" || ep.kind === "teams" || ep.kind === "webhook")) {
+    const blocked = await p.guard(ep.target);
+    if (blocked) return { ok: false, error: blocked };
+  }
   try {
     let res: Response;
     switch (ep.kind) {

@@ -172,6 +172,7 @@ export async function deliverWebhooks(pool: pg.Pool, deps: Pick<Deps, "providers
     const ts = Math.floor(now.getTime() / 1000);
     let status: number | null = null, error: string | null = null;
     if (!isSafeWebhookUrl(d.url)) error = "the address is not a public https address";
+    else if (deps.providers.guard && (error = await deps.providers.guard(d.url))) { /* refused before calling */ }
     else {
       try {
         const r = await deps.providers.fetch(d.url, { method: "POST", headers: { "content-type": "application/json", "user-agent": "RouteNorth-Webhooks/1", "routenorth-event": d.kind, "routenorth-delivery": d.id, "routenorth-signature": `t=${ts},v1=${signWebhook(d.secret, ts, body)}` }, body });

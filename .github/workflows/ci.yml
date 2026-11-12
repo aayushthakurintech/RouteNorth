@@ -4,6 +4,10 @@ on:
     branches: [main]
   pull_request:
 
+# Read-only token: CI only checks out code and runs tests.
+permissions:
+  contents: read
+
 jobs:
   checks:
     runs-on: ubuntu-latest
@@ -26,6 +30,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Runtime dependencies only; test tools (vitest) are not shipped.
+      - run: pnpm audit --prod --audit-level high
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test

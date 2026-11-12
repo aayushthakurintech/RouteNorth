@@ -1,8 +1,8 @@
 import { BadRequestException, Body, Controller, Get, Inject, Patch, Post, Put, Req, UnauthorizedException, UseGuards } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
-import { LOCALES, homePath, resolveFlags } from "@routenorth/shared";
+import { LOCALES, homePath, passwordProblem, resolveFlags } from "@routenorth/shared";
 import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
-import { hashPassword, verifyPassword } from "../passwords.js";
+import { hashPassword, PROBLEM_TEXT, verifyPassword } from "../passwords.js";
 import { PG_POOL } from "../tokens.js";
 import { publicSettings, withDefaults } from "../org/settings.js";
 
@@ -77,12 +77,18 @@ export class MeController {
   @Post("password")
   async password(@Req() req: AuthedRequest, @Body() body: { current?: unknown; next?: unknown }) {
     if (typeof body?.current !== "string" || typeof body?.next !== "string") throw new BadRequestException("current and next are required");
-    if (body.next.length < 10 || body.next.length > 200) throw new BadRequestException("password must be 10 to 200 characters");
-    const { orgId, userId } = req.session!;
-    const row = (await withOrg(this.pool, orgId, (c) => c.query("SELECT password_hash FROM users WHERE id = $1", [userId]))).rows[0];
+    const { orgId, userId, sid } = req.session!;
+    const row = (await withOrg(this.pool, orgId, (c) => c.query<{ password_hash: string; email: string; display_name: string | null }>(
+      "SELECT password_hash, email, display_name FROM users WHERE id = $1", [userId]))).rows[0];
     if (!row || !(await verifyPassword(body.current, row.password_hash))) throw new UnauthorizedException("current password is wrong");
+    const bad = passwordProblem(body.next, { email: row.email, name: row.display_name ?? undefined });
+    if (bad) throw new BadRequestException(PROBLEM_TEXT[bad]);
     const hash = await hashPassword(body.next);
-    await withOrg(this.pool, orgId, (c) => c.query("UPDATE users SET password_hash = $2 WHERE id = $1", [userId, hash]));
-    return { ok: true };
+    // A new password signs out every other device, so a stolen sign-in stops working when the person changes it.
+    const signedOut = await withOrg(this.pool, orgId, async (c) => {
+      await c.query("UPDATE users SET password_hash = $2 WHERE id = $1", [userId, hash]);
+      return (await c.query("UPDATE user_sessions SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL AND id IS DISTINCT FROM $2::uuid", [userId, sid ?? null])).rowCount ?? 0;
+    });
+    return { ok: true, signedOut };
   }
 }
