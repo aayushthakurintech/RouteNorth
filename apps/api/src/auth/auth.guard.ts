@@ -15,6 +15,8 @@ export interface AuthedRequest {
   session?: Session;
   /** What this person may do, loaded from the database on every request so role changes apply at once. */
   perms?: ReadonlySet<Permission>;
+  /** Set when a handler already wrote its own audit row (with old and new values), so the generic one is skipped. */
+  auditDone?: boolean;
   /** Who is calling, for the audit log. */
   actor?: { email: string; displayName: string | null };
 }

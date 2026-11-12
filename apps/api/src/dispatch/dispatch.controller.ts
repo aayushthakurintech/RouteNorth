@@ -11,6 +11,9 @@ import { ATTACHMENT_TYPES } from "../configure.js";
 import { matchesImageType } from "../driver/proof-files.js";
 import { parseUuid } from "../history/range.js";
 import { hourIn, zonedToEpoch } from "../plan/time.js";
+import { companyFormat } from "../portal/common.js";
+import { assertDriverAvailable } from "../portal/drivers.service.js";
+import { todayIn } from "../portal/vehicles.service.js";
 import { csvToObjects } from "../routes/csv.js";
 import { parseDate } from "../routes/validate.js";
 import { GEOCODER, PG_POOL } from "../tokens.js";
@@ -109,6 +112,8 @@ export class DispatchController {
         const driverId = parseUuid(String(body.driverId));
         const d = (await c.query("SELECT coalesce(display_name, email) AS name FROM users WHERE id = $1 AND role = 'driver' AND disabled_at IS NULL", [driverId])).rows[0];
         if (!d) throw new BadRequestException("unknown driver");
+        const tz = (await companyFormat(c)).timezone;
+        await assertDriverAvailable(c, driverId, { tz, today: todayIn(tz), now: new Date() });
         const day = job.scheduled_date ?? (await c.query("SELECT (now() AT TIME ZONE timezone)::date::text AS d FROM organizations")).rows[0].d;
         routeId = await routeForDriver(c, orgId, driverId, day, d.name);
         if (!job.scheduled_date) await c.query("UPDATE jobs SET scheduled_date = $2 WHERE id = $1", [jobId, day]);

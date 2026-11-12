@@ -10,7 +10,7 @@ import { useToast } from "@/lib/toast";
 import { useApi } from "@/lib/use-api";
 
 interface Invite { id: string; email: string; role: string; teamName: string | null; expiresAt: string; acceptedAt: string | null; revokedAt: string | null; open: boolean }
-const ROLES = ["admin", "dispatcher", "manager", "driver", "customer", "viewer"];
+const ROLES = ["admin", "dispatcher", "manager", "accountant", "driver", "customer", "viewer"];
 
 export function InvitesTab() {
   const { t, locale } = useI18n(); const { toast } = useToast(); const { me } = useMe();

@@ -1,6 +1,9 @@
 import type { pg } from "@routenorth/db";
 import { emit } from "../automation/events.js";
 import { withDefaults } from "../org/settings.js";
+import { companyFormat } from "../portal/common.js";
+import { assertDriverAvailable } from "../portal/drivers.service.js";
+import { todayIn } from "../portal/vehicles.service.js";
 
 export interface Shift { id: string; startedAt: Date; endedAt: Date | null; source: string; breaks: { id: string; kind: string; startedAt: Date; endedAt: Date | null }[] }
 
@@ -31,6 +34,11 @@ export async function openShift(c: pg.PoolClient, driverId: string): Promise<Shi
 export async function startShift(c: pg.PoolClient, orgId: string, driverId: string, source: "manual" | "auto", at: Date, where?: { lat?: number | null; lng?: number | null }): Promise<{ id: string; started: boolean }> {
   const open = await c.query<{ id: string }>("SELECT id FROM shifts WHERE driver_id = $1 AND ended_at IS NULL", [driverId]);
   if (open.rows[0]) return { id: open.rows[0].id, started: false };
+  // A driver whose required papers have expired, who is suspended or still onboarding cannot go on duty by hand.
+  if (source === "manual") {
+    const tz = (await companyFormat(c)).timezone;
+    await assertDriverAvailable(c, driverId, { tz, today: todayIn(tz), now: new Date() });
+  }
   const row = (await c.query("INSERT INTO shifts (org_id, driver_id, started_at, source, start_lat, start_lng) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id", [orgId, driverId, at, source, where?.lat ?? null, where?.lng ?? null])).rows[0];
   return { id: row.id, started: true };
 }

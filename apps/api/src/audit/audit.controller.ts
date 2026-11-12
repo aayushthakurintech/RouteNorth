@@ -4,7 +4,7 @@ import type { Response } from "express";
 import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { PG_POOL } from "../tokens.js";
 
-const COLUMNS = `id, at, actor_id AS "actorId", actor_label AS "actor", action, entity, entity_id AS "entityId", method, path, status, detail, ip`;
+const COLUMNS = `id, at, actor_id AS "actorId", actor_label AS "actor", action, entity, entity_id AS "entityId", item_label AS "label", method, path, status, detail, ip, old_value AS "oldValue", new_value AS "newValue", sensitive`;
 const csvCell = (v: unknown) => {
   const s = v === null || v === undefined ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
   return /[",\n\r]/.test(s) || /^[=+\-@]/.test(s) ? `"${(/^[=+\-@]/.test(s) ? "'" : "") + s.replace(/"/g, '""')}"` : s;
@@ -22,6 +22,7 @@ export class AuditController {
     @Query("actor") actor?: string, @Query("entity") entity?: string, @Query("q") q?: string,
     @Query("from") from?: string, @Query("to") to?: string, @Query("before") before?: string,
     @Query("limit") limit?: string, @Query("format") format?: string,
+    @Query("action") action?: string, @Query("sensitive") sensitive?: string,
   ) {
     const orgId = requirePerm(req, "audit.view");
     const date = (v: string | undefined, name: string) => {
@@ -40,15 +41,21 @@ export class AuditController {
              AND ($3::text IS NULL OR action ILIKE $3 OR path ILIKE $3 OR actor_label ILIKE $3)
              AND ($4::timestamptz IS NULL OR at >= $4) AND ($5::timestamptz IS NULL OR at < $5)
              AND ($6::timestamptz IS NULL OR at < $6)
+             AND ($7::text IS NULL OR action ILIKE $7) AND ($8::boolean IS NOT TRUE OR sensitive)
            ORDER BY at DESC LIMIT ${max}`,
-          [actor ? `%${actor.replace(/[\\%_]/g, "\\$&")}%` : null, entity ?? null, like, date(from, "from"), date(to, "to"), date(before, "before")],
+          [actor ? `%${actor.replace(/[\\%_]/g, "\\$&")}%` : null, entity ?? null, like, date(from, "from"), date(to, "to"), date(before, "before"),
+            action ? `${action.replace(/[\\%_]/g, "\\$&")}%` : null, sensitive === "1" || sensitive === "true"],
         ),
       )
     ).rows;
     if (format === "csv") {
       res.type("text/csv").setHeader("Content-Disposition", 'attachment; filename="audit-log.csv"');
-      const head = ["time", "actor", "action", "entity", "entity_id", "method", "path", "status", "detail", "ip"];
-      const lines = rows.map((r) => [new Date(r.at).toISOString(), r.actor, r.action, r.entity, r.entityId, r.method, r.path, r.status, r.detail, r.ip].map(csvCell).join(","));
+      // Exporting the log is itself logged.
+      await withOrg(this.pool, orgId, (c) => c.query(
+        `INSERT INTO audit_log (org_id, actor_id, actor_label, action, entity, method, path, status, ip, detail) VALUES ($1,$2,$3,'audit.export','audit','GET','/audit',200,$4,$5)`,
+        [orgId, req.session!.userId, req.actor?.email ?? null, req.ip ?? null, JSON.stringify({ rows: rows.length })]));
+      const head = ["time", "actor", "action", "entity", "entity_id", "item", "old_value", "new_value", "sensitive", "method", "path", "status", "detail", "ip"];
+      const lines = rows.map((r) => [new Date(r.at).toISOString(), r.actor, r.action, r.entity, r.entityId, r.label, r.oldValue, r.newValue, r.sensitive, r.method, r.path, r.status, r.detail, r.ip].map(csvCell).join(","));
       return [head.join(","), ...lines].join("\n");
     }
     return rows;

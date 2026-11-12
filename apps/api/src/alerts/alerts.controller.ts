@@ -83,8 +83,9 @@ export class AlertsController {
     const orgId = requirePerm(req, "alerts.manage");
     const ev = EVALUATORS[body?.kind as RuleKind];
     if (!ev) throw new BadRequestException("unknown rule kind");
-    const today = (await withOrg(this.pool, orgId, (c) => c.query<{ d: string }>("SELECT (now() AT TIME ZONE timezone)::date::text AS d FROM organizations"))).rows[0]!.d;
-    const matches = await withOrg(this.pool, orgId, (c) => ev.run(c, body.params && typeof body.params === "object" ? body.params : {}, { orgId, today, svc: this.svc, now: new Date() }));
+    const meta = (await withOrg(this.pool, orgId, (c) => c.query<{ d: string; tz: string }>("SELECT (now() AT TIME ZONE timezone)::date::text AS d, timezone AS tz FROM organizations"))).rows[0]!;
+    const today = meta.d;
+    const matches = await withOrg(this.pool, orgId, (c) => ev.run(c, body.params && typeof body.params === "object" ? body.params : {}, { orgId, today, tz: meta.tz, svc: this.svc, now: new Date() }));
     return { count: matches.length, matches: matches.slice(0, 20).map((m) => ({ title: m.title, detail: m.detail })) };
   }
 }

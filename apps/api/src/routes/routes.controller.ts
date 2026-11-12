@@ -7,6 +7,9 @@ import { classifyStop, type StopOutcome, type StopStatus } from "@routenorth/sha
 import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { PG_POOL } from "../tokens.js";
 import { parseUuid } from "../history/range.js";
+import { companyFormat } from "../portal/common.js";
+import { assertDriverAvailable } from "../portal/drivers.service.js";
+import { assertVehicleAvailable, todayIn } from "../portal/vehicles.service.js";
 import { csvToObjects } from "./csv.js";
 import { MAX_STOPS_PER_ROUTE, parseDate, parseName, parseStopInput, type StopInput } from "./validate.js";
 
@@ -58,6 +61,7 @@ export class RoutesController {
 
     return withOrg(this.pool, orgId, async (c) => {
       await this.assertRefs(c, vehicleId, driverId);
+      await this.assertAvailable(c, vehicleId, driverId);
       const route = (
         await c.query(
           `INSERT INTO routes (org_id, name, route_date, vehicle_id, driver_id, objective, avoid, depot_id, start_time)
@@ -160,6 +164,9 @@ export class RoutesController {
       const vehicleId = body?.vehicleId === undefined ? undefined : body.vehicleId === null ? null : parseUuid(String(body.vehicleId));
       const driverId = body?.driverId === undefined ? undefined : body.driverId === null ? null : parseUuid(String(body.driverId));
       await this.assertRefs(c, vehicleId ?? null, driverId ?? null);
+      // Only a car being newly put on this route is checked, so an old route can still be edited.
+      const before = (await c.query("SELECT vehicle_id, driver_id FROM routes WHERE id = $1", [routeId])).rows[0];
+      await this.assertAvailable(c, vehicleId && vehicleId !== before?.vehicle_id ? vehicleId : null, driverId && driverId !== before?.driver_id ? driverId : null);
       if (vehicleId !== undefined) add("vehicle_id", vehicleId);
       if (driverId !== undefined) add("driver_id", driverId);
       if (sets.length === 0) throw new BadRequestException("nothing to update");
@@ -302,6 +309,15 @@ export class RoutesController {
       try { return parseStopInput(s); }
       catch (e) { throw new BadRequestException(`stop ${i + 1}: ${(e as Error).message}`); }
     });
+  }
+
+  /** A car with an expired legal document, an unsigned failed inspection, or out of service cannot be given new routes. */
+  private async assertAvailable(c: pg.PoolClient, vehicleId: string | null, driverId: string | null = null): Promise<void> {
+    if (!vehicleId && !driverId) return;
+    const tz = (await companyFormat(c)).timezone;
+    const ctx = { tz, today: todayIn(tz), now: new Date() };
+    if (vehicleId) await assertVehicleAvailable(c, vehicleId, ctx);
+    if (driverId) await assertDriverAvailable(c, driverId, ctx);
   }
 
   /** Vehicle and driver must belong to the caller's organization (the composite FKs enforce it too). */
