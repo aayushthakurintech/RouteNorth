@@ -48,7 +48,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
   useEffect(() => { if (!loading && !loadSession()) router.replace("/login"); }, [loading, router]);
   useEffect(() => { setOpen(false); }, [pathname]);
   // Drivers and customers have their own apps.
-  useEffect(() => { if (me && me.home !== "/live" && pathname === "/live") router.replace(me.home); }, [me, pathname, router]);
+  useEffect(() => { if (me && (me.home === "/driver" || me.home === "/portal") && pathname === "/live") router.replace(me.home); }, [me, pathname, router]);
   useEffect(() => {
     if (pathname === "/live" && me && !(prefs.onboarding?.steps ?? []).includes("map") && can("settings.manage")) {
       setPrefs({ onboarding: { ...prefs.onboarding, steps: [...(prefs.onboarding?.steps ?? []), "map"] } });

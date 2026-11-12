@@ -39,6 +39,9 @@ function ReportCard({ r, onPref }: { r: Item; onPref: (id: string, p: { favorite
   );
 }
 
+/** The five an owner opens first: money, which cars lose money, drivers, what needs servicing, and whether trips are on time. */
+const KEY_REPORTS = ["F1", "V2", "D2", "V6", "T2"];
+
 /** Reports: 56 ready-made reports in 7 groups, favorites and recent, saved reports in folders, a builder, and a box to ask in plain words. */
 export default function ReportsPage() {
   const fmt = useFmt(); const { can } = useMe(); const router = useRouter();
@@ -58,6 +61,7 @@ export default function ReportsPage() {
     const d = cat.data; if (!d) return null;
     const reports = d.reports.filter((r) => match(`${r.id} ${r.name} ${r.question}`));
     return {
+      start: KEY_REPORTS.map((id) => d.reports.find((r) => r.id === id && r.available)).filter((r): r is Item => !!r),
       favorites: [...d.reports.filter((r) => r.favorite && r.available)],
       recent: [...d.reports.filter((r) => r.lastOpenedAt && r.available)].sort((a, b) => b.lastOpenedAt!.localeCompare(a.lastOpenedAt!)).slice(0, 4),
       byGroup: d.groups.map((g) => ({ ...g, items: reports.filter((r) => r.group === g.key) })).filter((g) => g.items.length),
@@ -85,6 +89,7 @@ export default function ReportsPage() {
         </div>)}
       <Async state={cat}>{() => view && (
         <div className="space-y-6">
+          {view.start.length > 0 && !q && <section aria-label="Start here"><h2 className="mb-1 text-sm font-semibold">Start here</h2><p className="mb-2 text-xs text-muted-foreground">The five most owners open first. The other reports are below, or ask for one in plain words.</p><ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{view.start.map((r) => <ReportCard key={r.id} r={r} onPref={pref} />)}</ul></section>}
           {view.favorites.length > 0 && !q && <section aria-label="Favorites"><h2 className="mb-2 text-sm font-semibold">Favorites</h2><ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{view.favorites.map((r) => <ReportCard key={r.id} r={r} onPref={pref} />)}</ul></section>}
           {view.recent.length > 0 && !q && <section aria-label="Recent"><h2 className="mb-2 text-sm font-semibold">Recently opened</h2><ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{view.recent.map((r) => <ReportCard key={r.id} r={r} onPref={pref} />)}</ul></section>}
           {view.saved.length > 0 && (

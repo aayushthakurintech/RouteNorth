@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { DataTable, type Col } from "@/components/portal/data-table";
@@ -32,7 +33,7 @@ export default function FinancePayoutsPage() {
         <StatCard label="Earned, not in a payout yet" value={fmt.money(api.data?.totals.unbuiltCents)} loading={!api.data} hint="Approved lines not yet in a run" />
       </div>
       <DataTable id="finance-payouts" data={api.data?.rows ?? null} loading={api.loading} error={api.error} onRetry={api.reload} columns={columns} rowId={(r) => r.id} searchText={(r) => `${r.driver} ${r.status}`} selectable={false} exportName="payouts" onRowClick={(r) => setOpen(r.id)}
-        empty={{ title: "No payouts in these dates", description: "Make a payout run under Pay rates." }} />
+        empty={{ title: "No payouts in these dates", description: "Make a payout run under Pay rates.", action: <Button asChild size="sm" variant="outline"><Link href="/owner/pay-rates">Open pay rates</Link></Button> }} />
       {open && <StatementDialog id={open} onClose={() => setOpen(null)} />}
     </>
   );

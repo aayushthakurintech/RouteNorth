@@ -20,6 +20,7 @@ export interface NavItem {
 
 /** Every page in the sidebar and the command palette. Later features add their pages here. */
 export const NAV: NavItem[] = [
+  { href: "/owner", label: "navOwnerPortal", icon: Wallet, perms: ["reports.view", "finance.view"], group: "main", keywords: "owner dashboard money vehicles drivers pay finance reports alerts start data sources propriétaire tableau finances" },
   { href: "/live", label: "navLive", icon: Map, perms: ["fleet.view"], group: "main", keywords: "map vehicles tracking carte" },
   { href: "/routes", label: "navRoutes", icon: Route, perms: ["routes.view"], group: "main", keywords: "stops plan itinéraires" },
   { href: "/dispatch", label: "navDispatch", icon: KanbanSquare, perms: ["routes.view"], group: "main", keywords: "board assign drivers répartition tableau" },

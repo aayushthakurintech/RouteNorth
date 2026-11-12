@@ -3,7 +3,7 @@ import { defineMessages } from "./define.js";
 /** App shell, navigation, search, settings, roles, audit log, common states. */
 export const shell = defineMessages({
   en: {
-    navLive: "Live map", navRoutes: "Routes", navReports: "Reports", navFleet: "Fleet", navSettings: "Settings",
+    navLive: "Live map", navOwnerPortal: "Owner dashboard", navRoutes: "Routes", navReports: "Reports", navFleet: "Fleet", navSettings: "Settings",
     navAudit: "Audit log", navUsers: "People & roles", navStyle: "Style guide", navHome: "Home",
     collapseNav: "Collapse menu", expandNav: "Expand menu", openMenu: "Open menu", mainNav: "Main navigation",
     skipToContent: "Skip to content", breadcrumbs: "Breadcrumbs",
@@ -69,7 +69,7 @@ export const shell = defineMessages({
     passwordChanged: "Password changed.", language2: "Language",
   },
   fr: {
-    navLive: "Carte en direct", navRoutes: "Itinéraires", navReports: "Rapports", navFleet: "Flotte", navSettings: "Paramètres",
+    navLive: "Carte en direct", navOwnerPortal: "Tableau du propriétaire", navRoutes: "Itinéraires", navReports: "Rapports", navFleet: "Flotte", navSettings: "Paramètres",
     navAudit: "Journal d’audit", navUsers: "Personnes et rôles", navStyle: "Guide de style", navHome: "Accueil",
     collapseNav: "Réduire le menu", expandNav: "Développer le menu", openMenu: "Ouvrir le menu", mainNav: "Navigation principale",
     skipToContent: "Aller au contenu", breadcrumbs: "Fil d’Ariane",
