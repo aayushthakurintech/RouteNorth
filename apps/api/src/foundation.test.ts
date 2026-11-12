@@ -102,6 +102,28 @@ suite("foundation API (roles, audit, search, settings)", () => {
     expect(id).toBeTruthy();
   });
 
+  it("stops an admin from giving anyone permissions the admin role is denied", async () => {
+    await h.addUser(h.orgA, "boss-admin@example.com", "admin");
+    const adminId = (await h.admin.query("SELECT id FROM users WHERE email = 'boss-admin@example.com'")).rows[0].id as string;
+    const admin = await h.token("boss-admin@example.com");
+    // cannot create a role with owner-only permissions, nor one with anything the admin does not hold
+    for (const p of ["payouts.approve", "finance.manage", "drivers.sensitive", "billing.manage"]) {
+      expect((await h.call("post", "/roles", admin, { name: `x-${p}`, permissions: ["fleet.view", p] })).status, p).toBe(403);
+    }
+    // can create and assign a role within their own reach, but not to themselves
+    const ok = await h.call("post", "/roles", admin, { name: "Within reach", permissions: ["fleet.view", "audit.view"] });
+    expect(ok.status).toBe(201);
+    expect((await h.call("patch", `/users/${adminId}`, admin, { customRoleId: ok.body.id })).status).toBe(400);
+    // cannot widen that role afterwards, nor edit or assign a role the owner made with owner-only permissions
+    expect((await h.call("put", `/roles/${ok.body.id}`, admin, { name: "Within reach", permissions: ["fleet.view", "payouts.approve"] })).status).toBe(403);
+    const rich = (await h.call("post", "/roles", owner, { name: "Payout approvers", permissions: ["payouts.approve", "fleet.view"] })).body;
+    expect((await h.call("put", `/roles/${rich.id}`, admin, { name: "Payout approvers", permissions: ["fleet.view"] })).status).toBe(403);
+    const other = await h.addUser(h.orgA, "someone@example.com", "viewer");
+    expect((await h.call("patch", `/users/${other}`, admin, { customRoleId: rich.id })).status).toBe(403);
+    expect((await h.call("post", "/users", admin, { email: "new1@example.com", password: "a-brand-new-passphrase", role: "viewer", customRoleId: rich.id })).status).toBe(403);
+    // an owner still can
+    expect((await h.call("patch", `/users/${other}`, owner, { customRoleId: rich.id })).status).toBe(200);
+  });
   it("does not let another organization see or use roles", async () => {
     const role = (await h.call("post", "/roles", owner, { name: "Secret", permissions: ["fleet.view"] })).body;
     const bTok = await h.token("b@example.com");
