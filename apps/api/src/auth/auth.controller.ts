@@ -12,11 +12,14 @@ import { effectivePermissions, homePath } from "@routenorth/shared";
 import { withOrg } from "@routenorth/db";
 import { withDefaults } from "../org/settings.js";
 import type { AuthedRequest } from "./auth.guard.js";
+import { LoginThrottle } from "./login-throttle.js";
 
 @Controller("auth")
 export class AuthController {
   /** Wrong second-factor codes per person, so a six-digit code cannot be guessed by trying them all. */
   private readonly fails = new Map<string, { n: number; until: number }>();
+  /** Failed passwords per email and per network address, so passwords cannot be guessed at speed. */
+  readonly throttle = new LoginThrottle();
   constructor(
     @Inject(PG_POOL) private readonly pool: pg.Pool,
     @Inject(JWT_SECRET) private readonly secret: string,
@@ -29,12 +32,17 @@ export class AuthController {
     if (typeof body?.email !== "string" || typeof body?.password !== "string") {
       throw new BadRequestException("email and password are required");
     }
+    const email = body.email.trim().toLowerCase();
+    const ip = req.ip ?? "";
+    const wait = this.throttle.blockedFor(email, ip);
+    if (wait > 0) throw new HttpException(`too many failed sign-ins, try again in ${Math.ceil(wait / 60)} minute(s)`, 429);
     const found = await this.pool.query<{
       user_id: string; org_id: string; password_hash: string; role: string; locale: string; disabled: boolean;
     }>("SELECT * FROM find_login($1)", [body.email]);
     const user = found.rows[0];
     const ok = await verifyPassword(body.password, user?.password_hash ?? DUMMY_HASH);
     if (!user || !ok || user.disabled) {
+      this.throttle.fail(email, ip);
       if (user) await this.audit.record({ orgId: user.org_id, actorId: user.user_id, actorLabel: String(body.email).toLowerCase(), action: "auth.login.failed", entity: "auth", method: "POST", path: "/auth/login", status: 401, ip: req.ip ?? null });
       throw new UnauthorizedException("invalid credentials");
     }
@@ -47,6 +55,7 @@ export class AuthController {
       throw new ForbiddenException("sign-in is not allowed from this network");
     }
 
+    this.throttle.succeed(email);
     const sec = (await withOrg(this.pool, user.org_id, (c) => c.query("SELECT 1 FROM user_security WHERE user_id = $1 AND totp_enabled_at IS NOT NULL", [user.user_id]))).rowCount;
     if (sec) return { mfaRequired: true, challenge: await signChallenge(this.secret, user.user_id, user.org_id) };
     return this.finish(user, settings.sessionHours, req, String(body.email).toLowerCase());

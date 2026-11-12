@@ -234,7 +234,7 @@ export class SecurityController {
     });
     // The audit row is written first; it goes with the organization, which is the point. The log of the deletion is the server log.
     console.log(`organization ${orgId} deleted by ${req.actor?.email}`);
-    await this.pool.query("SELECT erase_organization($1)", [orgId]);
+    await withOrg(this.pool, orgId, (c) => c.query("SELECT erase_organization($1)", [orgId]));
     return { ok: true };
   }
 

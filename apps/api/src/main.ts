@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
-import { pg } from "@routenorth/db";
+import { encryptionKeyProblem, pg } from "@routenorth/db";
 import { AppModule } from "./app.module.js";
 import { configureApp } from "./configure.js";
 import { runScheduledTasks } from "./dispatch/scheduler.js";
@@ -21,6 +21,10 @@ const databaseUrl = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL;
 const jwtSecret = process.env.JWT_SECRET;
 if (!databaseUrl) throw new Error("DATABASE_URL (or APP_DATABASE_URL) is required");
 if (!jwtSecret || jwtSecret.length < 32) throw new Error("JWT_SECRET (32+ characters) is required");
+if (process.env.NODE_ENV === "production") {
+  const problem = encryptionKeyProblem(jwtSecret);
+  if (problem) throw new Error(problem);
+}
 
 const app = await NestFactory.create(
   AppModule.register({
