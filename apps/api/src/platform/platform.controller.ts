@@ -42,7 +42,7 @@ export class PlatformController {
     const orgId = requirePerm(req, "api.manage");
     const name = text(b?.name, "name", 80)!;
     const kind = String(b?.kind ?? "api") as KeyKind;
-    if (!KEY_KINDS.includes(kind)) throw new BadRequestException("kind must be api, feed or inbound");
+    if (!KEY_KINDS.includes(kind)) throw new BadRequestException("kind must be api, feed, inbound or gps");
     const scope = kind === "api" ? String(b?.scope ?? "read") : "read";
     if (!["read", "write"].includes(scope)) throw new BadRequestException("scope must be read or write");
     let days: number | null = null;

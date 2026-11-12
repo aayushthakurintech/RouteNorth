@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { useMemo } from "react";
 import { DataTable, type Col } from "@/components/portal/data-table";
 import { PageHeader, StatCard, StatusBadge } from "@/components/portal/parts";
@@ -31,7 +33,7 @@ export default function InvoicesPage() {
       </div>
       <DataTable id="finance-invoices" data={api.data?.rows ?? null} loading={api.loading} error={api.error} onRetry={api.reload} columns={columns} rowId={(r) => r.id} searchText={(r) => `${r.number} ${r.customer} ${r.status}`} selectable={false} exportName="invoices"
         filters={[{ id: "status", label: "Status", options: ["draft", "sent", "paid", "overdue"].map((s) => ({ value: s, label: s })), get: (r) => (r.overdue ? "overdue" : r.status) }]}
-        empty={{ title: "No invoices yet", description: "Invoices appear here once you make them in Billing." }} />
+        empty={{ title: "No invoices yet", description: "Invoices appear here once you make them in Billing.", action: <Button asChild size="sm" variant="outline"><Link href="/invoices">Open billing</Link></Button> }} />
     </>
   );
 }

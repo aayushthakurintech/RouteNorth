@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bars, MoneyChart, type Point } from "@/components/portal/charts";
+import { DataFreshness } from "@/components/portal/DataFreshness";
 import { PageHeader, StatCard, StatusBadge } from "@/components/portal/parts";
 import { useOwnerRange } from "@/components/portal/range-context";
 import { Async } from "@/components/portal/states";
@@ -155,6 +156,7 @@ export default function OwnerHome() {
   return (
     <>
       <PageHeader title="Dashboard" description="How the business is doing in the dates picked at the top. Click any number to see the rows behind it." />
+      <DataFreshness />
       <Async state={api}>{(d) => (
         <div className="space-y-4">
           {d.attention.some((x) => x.severity === 1) && <p className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-2 text-sm text-destructive"><AlertTriangle className="size-4" /> {d.attention.filter((x) => x.severity === 1).length} urgent {d.attention.filter((x) => x.severity === 1).length === 1 ? "item needs" : "items need"} you. See the list below.</p>}

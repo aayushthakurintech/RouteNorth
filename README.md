@@ -11,6 +11,7 @@ Hardware-agnostic, Canadian-hosted, bilingual (EN/FR) fleet tracking for trucks 
 - `packages/shared` – types, vehicle status logic and translations
 - `packages/db` – migrations and tenant-scoped query helper (Row-Level Security)
 - `apps/web/src/app/owner` – the Owner Portal (vehicles, drivers, pay rates, finance, reports, alerts). Status of every spec item: `docs/owner-portal/STATUS.md`
+- Going from demo data to real data (one tracker, email, road times, phones): `docs/GO_LIVE.md`. In the app: Owner Portal, Get started, and Settings, Data sources.
 - `infra/` – database init and Traccar config for local dev
 
 ## Run it in your browser
