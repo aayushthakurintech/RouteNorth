@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable, type Col } from "@/components/portal/data-table";
@@ -36,7 +38,7 @@ export default function EarningsPage() {
       </div>
       {top.length > 1 && <div className="mb-4 rounded-lg border p-3"><h2 className="mb-2 text-sm font-medium">Biggest {label.toLowerCase()}s</h2><Bars format={fmt.money} rows={top.map((r) => ({ label: r.label, value: r.revenueCents }))} /></div>}
       <DataTable id={`earnings-${by}`} data={api.data?.rows ?? null} loading={api.loading} error={api.error} onRetry={api.reload} columns={columns} rowId={(r) => r.label} searchText={(r) => r.label} selectable={false} exportName={`earnings-by-${by}`}
-        empty={{ title: "No completed trips in these dates", description: "Pick a longer range at the top, or add trips on the Trips page." }} />
+        empty={{ title: "No completed trips in these dates", description: "Pick a longer range at the top, or add trips on the Trips page.", action: <Button asChild size="sm" variant="outline"><Link href="/owner/trips">Open trips</Link></Button> }} />
     </>
   );
 }

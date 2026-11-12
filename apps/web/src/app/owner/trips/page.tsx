@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { Plus, Upload } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -101,7 +102,7 @@ export default function TripsPage() {
         actions={write && <><Button size="sm" variant="outline" onClick={() => setImporting(true)}><Upload className="size-4" /> Import</Button><Button size="sm" onClick={() => setAdding(true)}><Plus className="size-4" /> Add trip</Button></>} />
       <DataTable id="trips" data={api.data?.trips ?? null} loading={api.loading} error={api.error} onRetry={api.reload} columns={columns} rowId={(r) => r.id} searchText={(r) => `${r.driverName} ${r.vehicleName} ${r.customerName} ${r.title} ${r.zone}`} selectable={false} exportName="trips" pageSize={50}
         filters={[{ id: "status", label: "Result", options: ["completed", "cancelled", "failed", "no_show"].map((v) => ({ value: v, label: v.replace("_", " ") })), get: (r) => r.status }]}
-        onRowClick={(r) => setOpen(r.id)} empty={{ title: "No trips in this period", description: "Trips appear here when they are added, imported, or created from completed jobs." } as never} />
+        onRowClick={(r) => setOpen(r.id)} empty={{ title: "No trips in this period", description: "Trips appear here when they are added, imported, or created from completed jobs.", action: <Button asChild size="sm" variant="outline"><Link href="/owner/start">See how data gets in</Link></Button> } as never} />
       <RecordDialog open={adding} onOpenChange={setAdding} title="Add a trip" description="The pay is worked out as soon as it is saved." fields={fields} method="POST" path="/portal/trips" onDone={api.reload} />
       <ImportDialog open={importing} onOpenChange={setImporting} onDone={api.reload} />
       {open && <TripDetail id={open} onClose={() => setOpen(null)} />}

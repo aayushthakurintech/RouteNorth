@@ -61,5 +61,8 @@ export function effectivePermissions(role: string, custom?: readonly string[] | 
 export function homePath(role: string, perms: ReadonlySet<Permission>): string {
   if (perms.has("driver.app") && perms.size === 1) return "/driver";
   if (perms.has("customer.portal") && perms.size === 1) return "/portal";
+  // Owners and the people who run the business land on the dashboard; dispatchers on the board; everyone else on the live map.
+  if (["owner", "admin", "accountant", "manager"].includes(role) && perms.has("reports.view")) return "/owner";
+  if (role === "dispatcher" && perms.has("routes.view")) return "/dispatch";
   return "/live";
 }

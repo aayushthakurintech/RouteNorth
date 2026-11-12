@@ -101,11 +101,11 @@ export function OwnerShell({ children }: { children: ReactNode }) {
           <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/70">
             <SidebarTrigger className="hidden md:inline-flex" aria-label="Collapse sidebar" />
             <Separator orientation="vertical" className="mr-1 hidden h-5 md:block" />
-            <Button variant="outline" size="sm" className="w-full max-w-xs justify-start gap-2 text-muted-foreground" onClick={() => setPalette(true)} aria-label="Search (Ctrl K)">
+            <Button variant="outline" size="sm" className="w-full min-w-0 max-w-xs shrink justify-start gap-2 overflow-hidden text-muted-foreground" onClick={() => setPalette(true)} aria-label="Search (Ctrl K)">
               <Search className="size-4" /> <span className="truncate">Search…</span>
               <kbd className="ml-auto hidden rounded border bg-muted px-1.5 text-[10px] font-medium sm:inline">Ctrl K</kbd>
             </Button>
-            <div className="ml-auto flex items-center gap-1.5">
+            <div className="ml-auto flex shrink-0 items-center gap-1.5">
               <DateRangePicker />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

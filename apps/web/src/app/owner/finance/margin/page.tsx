@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable, type Col } from "@/components/portal/data-table";
@@ -37,7 +39,7 @@ export default function MarginPage() {
       </div>
       {api.data && <p className="mb-3 text-xs text-muted-foreground">{api.data.definition}</p>}
       <DataTable id={`margin-${by}`} data={api.data?.rows ?? null} loading={api.loading} error={api.error} onRetry={api.reload} columns={columns} rowId={(r) => r.label} searchText={(r) => r.label} selectable={false} exportName={`margin-by-${by}`} defaultSort={[{ id: "margin", desc: false }]}
-        empty={{ title: "No completed trips in these dates", description: "Pick a longer range at the top." }} />
+        empty={{ title: "No completed trips in these dates", description: "Pick a longer range at the top.", action: <Button asChild size="sm" variant="outline"><Link href="/owner/start">See how data gets in</Link></Button> }} />
     </>
   );
 }
