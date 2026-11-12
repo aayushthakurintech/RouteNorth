@@ -1,0 +1,70 @@
+/*
+ * RouteNorth design tokens. Colors, spacing (8-point grid), radius, shadow and type live here and nowhere else.
+ * Themes: light (default), dark, contrast (high contrast). Auto follows the device and is resolved in JS
+ * to light or dark, with a CSS fallback below for the first paint.
+ */
+:root {
+  color-scheme: light;
+  /* neutral scale + one accent */
+  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #eef0f4; --surface-3: #e3e6ec;
+  --fg: #0e1726; --fg-2: #3b475c; --muted: #5d6b82; --line: #dde1e8; --line-strong: #c3cad6;
+  --brand: #0f5fa8; --brand-hover: #0b4e8d; --brand-soft: #e6f0fa; --brand-fg: #ffffff;
+  /* semantic */
+  --ok: #067647; --ok-soft: #e7f6ee; --warn: #a15c07; --warn-soft: #fdf3e0; --danger: #b42318; --danger-soft: #fdeceb; --info: #175cd3; --info-soft: #e8f0fd;
+  /* vehicle status colors (map markers and chips) */
+  --st-moving: #1a9850; --st-idle: #d99500; --st-stopped: #6b7280; --st-offline: #c0392b;
+  /* color-blind-safe categorical palette (Okabe-Ito), also used for route colors */
+  --chart-1: #0072b2; --chart-2: #e69f00; --chart-3: #009e73; --chart-4: #cc79a7; --chart-5: #56b4e9; --chart-6: #d55e00; --chart-7: #f0e442; --chart-8: #4d4d4d;
+  /* spacing: 8-point grid with a half step */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
+  /* radius: one family */
+  --r-sm: 6px; --r: 10px; --r-lg: 14px; --r-pill: 999px;
+  /* shadow only for things that float */
+  --sh-float: 0 8px 24px rgb(14 23 38 / .14), 0 2px 6px rgb(14 23 38 / .08);
+  /* type */
+  --font-ui: "Inter Variable", Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Manrope Variable", "Inter Variable", system-ui, sans-serif;
+  --fs-caption: 12.5px; --fs-body: 14.5px; --fs-heading: 18px; --fs-title: 24px; --fs-display: 32px;
+  --lh-body: 1.5; --lh-tight: 1.25;
+  --nav-w: 232px; --nav-w-collapsed: 60px; --topbar-h: 52px;
+  --ease: cubic-bezier(.2, .7, .2, 1); --dur: 160ms;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1019; --surface: #131a27; --surface-2: #1a2334; --surface-3: #232e44;
+  --fg: #eef1f6; --fg-2: #c3cbd9; --muted: #98a3b8; --line: #252f45; --line-strong: #34415c;
+  --brand: #5aa9f0; --brand-hover: #7bbcf5; --brand-soft: #14304d; --brand-fg: #04121f;
+  --ok: #4cc38a; --ok-soft: #12302a; --warn: #f0b24a; --warn-soft: #33270f; --danger: #ff8a80; --danger-soft: #3a1a18; --info: #7ab0ff; --info-soft: #172a4a;
+  --st-moving: #3ccf7a; --st-idle: #f0b24a; --st-stopped: #94a3b8; --st-offline: #ff7a6b;
+  --chart-8: #c9cdd6;
+  --sh-float: 0 8px 28px rgb(0 0 0 / .55), 0 2px 6px rgb(0 0 0 / .4);
+}
+:root[data-theme="contrast"] {
+  color-scheme: light;
+  --bg: #ffffff; --surface: #ffffff; --surface-2: #f0f0f0; --surface-3: #dcdcdc;
+  --fg: #000000; --fg-2: #000000; --muted: #2b2b2b; --line: #000000; --line-strong: #000000;
+  --brand: #0036c7; --brand-hover: #00248a; --brand-soft: #dfe6ff; --brand-fg: #ffffff;
+  --ok: #004d1f; --ok-soft: #d6f5e0; --warn: #6b3a00; --warn-soft: #ffe9c2; --danger: #8a0000; --danger-soft: #ffd9d6; --info: #0036c7; --info-soft: #dfe6ff;
+  --st-moving: #006b2d; --st-idle: #8a5a00; --st-stopped: #333333; --st-offline: #a30000;
+  --sh-float: 0 0 0 2px #000;
+}
+/* First paint before JS picks a theme: follow the device. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg: #0b1019; --surface: #131a27; --surface-2: #1a2334; --surface-3: #232e44;
+    --fg: #eef1f6; --fg-2: #c3cbd9; --muted: #98a3b8; --line: #252f45; --line-strong: #34415c;
+    --brand: #5aa9f0; --brand-hover: #7bbcf5; --brand-soft: #14304d; --brand-fg: #04121f;
+  }
+}
+/* Reduced motion: the setting wins over the device; "reduce" is set by the person, "auto" follows the device. */
+:root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
+  animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) *, :root:not([data-motion="full"]) *::before, :root:not([data-motion="full"]) *::after {
+    animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important;
+  }
+}
+/* Right-to-left languages mirror the layout; components use logical properties. */
+:root[dir="rtl"] { --dir: -1; }

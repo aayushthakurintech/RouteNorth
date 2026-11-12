@@ -2,6 +2,7 @@
 import maplibregl, { type GeoJSONSource, type Map as MapLibreMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef } from "react";
+import { animateLine } from "@/lib/line-draw";
 import { STOP_COLORS, type RouteStop } from "@/lib/routes";
 
 const TILE_URL = process.env.NEXT_PUBLIC_TILE_URL ?? "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -29,6 +30,8 @@ export function RouteMap({ stops, vehicle, onPick, pin }: Props) {
   const latest = useRef({ stops, vehicle, onPick, pin });
   latest.current = { stops, vehicle, onPick, pin };
   const fitted = useRef(false);
+  const drawn = useRef("");
+  const cancelDraw = useRef<() => void>(() => {});
 
   const push = () => {
     const m = map.current;
@@ -41,10 +44,17 @@ export function RouteMap({ stops, vehicle, onPick, pin }: Props) {
         geometry: { type: "Point", coordinates: [s.lng, s.lat] },
       })),
     });
-    (m.getSource("path") as GeoJSONSource).setData({
-      type: "Feature", properties: {},
-      geometry: { type: "LineString", coordinates: st.length > 1 ? st.map((s) => [s.lng, s.lat]) : [] },
-    });
+    const pathSrc = m.getSource("path") as GeoJSONSource;
+    const line = (c: [number, number][]) => pathSrc.setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: c } });
+    const coords: [number, number][] = st.length > 1 ? st.map((s) => [s.lng, s.lat]) : [];
+    const sig = JSON.stringify(coords);
+    // The line draws itself the first time a route appears; later changes just update it.
+    if (sig !== drawn.current) {
+      cancelDraw.current();
+      if (!drawn.current && coords.length > 1) cancelDraw.current = animateLine(line, coords);
+      else line(coords);
+      drawn.current = coords.length > 1 ? sig : "";
+    }
     (m.getSource("vehicle") as GeoJSONSource).setData({
       type: "FeatureCollection",
       features: v ? [{ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [v.lng, v.lat] } }] : [],
@@ -92,7 +102,7 @@ export function RouteMap({ stops, vehicle, onPick, pin }: Props) {
       ready.current = true;
       push();
     });
-    return () => { ready.current = false; fitted.current = false; m.remove(); map.current = null; };
+    return () => { cancelDraw.current(); ready.current = false; fitted.current = false; drawn.current = ""; m.remove(); map.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

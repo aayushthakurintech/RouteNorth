@@ -10,6 +10,12 @@ export interface StopInput {
   windowEnd: string | null;
   packages: number;
   notes: string | null;
+  weightKg: number;
+  volumeM3: number;
+  serviceMin: number;
+  priority: "low" | "normal" | "high" | "urgent";
+  kind: "pickup" | "delivery";
+  jobId: string | null;
 }
 
 export const MAX_STOPS_PER_ROUTE = 500;
@@ -33,6 +39,17 @@ function num(v: unknown, field: string, min: number, max: number, dflt?: number)
     throw new BadRequestException(`${field} must be a number between ${min} and ${max}`);
   }
   return n;
+}
+
+function enumOf<T extends string>(v: unknown, field: string, values: readonly T[], dflt: T): T {
+  if (v === undefined || v === null || v === "") return dflt;
+  if (typeof v !== "string" || !values.includes(v as T)) throw new BadRequestException(`${field} must be one of ${values.join(", ")}`);
+  return v as T;
+}
+
+function uuid(v: unknown, field: string): string {
+  if (typeof v !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)) throw new BadRequestException(`${field} must be an id`);
+  return v;
 }
 
 function time(v: unknown, field: string): string | null {
@@ -62,6 +79,12 @@ export function parseStopInput(raw: unknown): StopInput {
     windowEnd,
     packages: Math.round(num(o.packages, "packages", 0, 100_000, 0)),
     notes: str(o.notes, "notes", 1000),
+    weightKg: num(o.weightKg ?? o.weight_kg, "weightKg", 0, 200_000, 0),
+    volumeM3: num(o.volumeM3 ?? o.volume_m3, "volumeM3", 0, 500, 0),
+    serviceMin: Math.round(num(o.serviceMin ?? o.service_min, "serviceMin", 0, 600, 5)),
+    priority: enumOf(o.priority, "priority", ["low", "normal", "high", "urgent"], "normal"),
+    kind: enumOf(o.kind, "kind", ["pickup", "delivery"], "delivery"),
+    jobId: o.jobId == null || o.jobId === "" ? null : uuid(o.jobId, "jobId"),
   };
 }
 

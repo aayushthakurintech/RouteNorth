@@ -50,6 +50,31 @@ the API needs `APP_DATABASE_URL` (or `DATABASE_URL`), `JWT_SECRET` (32+ characte
 database and Redis; web uses `NEXT_PUBLIC_API_URL` if the API is elsewhere. Services connect as the low-privilege
 `routenorth_app` role so Row-Level Security applies; `pnpm seed` creates it.
 
+### Optional outside services
+
+Everything below is off until you set it; the app still runs without it and shows what is missing.
+
+| Setting | What it turns on |
+| --- | --- |
+| `PUBLIC_WEB_URL` | Base address used in customer links (tracking, booking, portal). |
+| `ROUTING_PROVIDER` (`osrm` or `valhalla`) and `ROUTING_URL` | Road-network routing for planning. |
+| `GEOCODER_URL`, `GEOCODER_CONTACT` | Address lookup (Nominatim-compatible). |
+| `WEATHER_URL` (`off` disables) | Weather alerts. |
+| `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_API_URL` | Customer email. |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` | Customer SMS. |
+| `ENCRYPTION_KEY` | Separate key for encrypting two-factor secrets (defaults to `JWT_SECRET`). Set it in production. |
+| `SUPPORT_EMAIL` | Emails messages from Help and feedback to this address (needs the email settings above). |
+
+`pnpm seed` also re-grants table privileges to `routenorth_app`, so run it after applying new migrations to an existing database.
+WhatsApp, masked calling, background push, biometrics and watch/car screens need outside accounts or native apps and are not built;
+see `docs/FEATURE_PLAYBOOK_STATUS.md` for the status of every playbook item.
+
+Backups: `pnpm backup` writes a checked dump; `pnpm restore <file>` restores into an empty database named by
+`RESTORE_DATABASE_URL`. See `docs/OPERATIONS.md` (backups, incidents, status page, roadmap) and `docs/COMPLIANCE_PLAN.md`
+(what exists toward SOC 2 / ISO 27001, which is not certified).
+
+Public pages that need no sign-in: `/status`, `/roadmap`, `/security`.
+
 Tests: `pnpm test`. Set `DATABASE_URL` to a Postgres superuser URL to also run the database
 and API tests (they reset the `public` schema, so use a throwaway database).
 
