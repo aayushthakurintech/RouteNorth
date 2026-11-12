@@ -213,6 +213,15 @@ describe("your data", () => {
     const me = ((await h.admin.query("SELECT id FROM users WHERE email = 'a@example.com'")).rows[0].id) as string;
     expect((await h.call("post", `/security/users/${me}/erase`, owner, { confirm: "a@example.com" })).status).toBe(400);
   });
+  it("a new password follows the password rules and signs out every other device", async () => {
+    await h.addUser(h.orgA, "mover@example.com", "viewer");
+    const first = await h.token("mover@example.com"), second = await h.token("mover@example.com");
+    expect((await h.call("post", "/me/password", first, { current: PASSWORD, next: "password123" })).status).toBe(400);
+    const r = ok(await h.call("post", "/me/password", first, { current: PASSWORD, next: "a-brand-new-passphrase" }), 201);
+    expect(r.signedOut).toBeGreaterThanOrEqual(1);
+    expect((await h.call("get", "/me", second)).status).toBe(401);
+    expect((await h.call("get", "/me", first)).status).toBe(200);
+  });
   it("slows down password guessing with 429 after five wrong passwords for one email", async () => {
     await h.addUser(h.orgA, "guess@example.com", "viewer");
     for (let i = 0; i < 5; i++) expect((await login("guess@example.com", "wrong-" + i)).status).toBe(401);

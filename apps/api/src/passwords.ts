@@ -23,3 +23,9 @@ export async function verifyPassword(password: string, stored: string): Promise<
 /** A hash to verify against when the email is unknown, so timing doesn't reveal which emails exist. */
 export const DUMMY_HASH =
   "scrypt$00000000000000000000000000000000$" + "00".repeat(64);
+
+/** The server's words for each password rule a new password breaks (see passwordProblem in @routenorth/shared). */
+export const PROBLEM_TEXT = {
+  short: "use at least 10 characters", long: "use at most 200 characters", common: "that password is too common, choose another",
+  repeated: "avoid repeated characters", personal: "do not use your name, email or company in the password",
+} as const;

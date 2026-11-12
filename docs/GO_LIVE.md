@@ -12,6 +12,7 @@ Host the database, API, ingest service and Traccar in a Canadian region (data re
 | --- | --- | --- |
 | API | `APP_DATABASE_URL` (or `DATABASE_URL`), `JWT_SECRET` (32+ characters), **`ENCRYPTION_KEY`** (32+ characters, different from `JWT_SECRET`), `PORT` | Required. In production the API refuses to start without its own `ENCRYPTION_KEY`; it protects stored two-factor seeds and GPS provider logins. To rotate it, move the old value to `ENCRYPTION_KEY_PREVIOUS` and set the new one; old values keep reading. Before this release, values were protected with `JWT_SECRET`: set `ENCRYPTION_KEY_PREVIOUS` to the old `JWT_SECRET` once so they still read, or have people re-enter them. |
 | API | `PUBLIC_WEB_URL`, `WEB_ORIGIN` | Used for links in emails and for cross-origin access. |
+| API behind a load balancer | **`TRUST_PROXY`** | Set it to the number of proxies in front of the API (usually `1`), or their addresses or ranges (`10.0.0.0/8`). Without it, rate limits, the IP allow list and the audit log see the balancer's address for everyone. `true` is refused, because it would let anyone choose their own address. |
 | Ingest | `APP_DATABASE_URL`, `REDIS_URL`, `PORT`, **`INGEST_TOKEN`**, `ENCRYPTION_KEY` (same value as the API) | With `NODE_ENV=production` the ingest service refuses to start without `INGEST_TOKEN`. Outside production, without it, it accepts unauthenticated requests and the JSON batch endpoint is off. GPS provider pulls need `ENCRYPTION_KEY` in production. |
 | Web | the API address used by `apps/web/src/lib/session.ts` | Set before building. |
 
@@ -77,3 +78,9 @@ Order should follow what the first pilot customers ask for.
 ## Known dependency advisories
 
 `pnpm audit` still lists advisories in `vitest` and its `tinypool` and `@vitest/mocker` dependencies. They are test-only tools and never ship to a server or browser. The runtime advisories (multer, postcss, maplibre-gl) are fixed: maplibre-gl is on 6.x, and multer and postcss are pinned through `pnpm.overrides` in the root `package.json`.
+
+## Security headers
+
+The web app sends a Content-Security-Policy, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` and, in production, HSTS (`apps/web/next.config.mjs`). Only the pages that can be embedded (`/track`, `/shared`, `/book`, `/j`, `/status`) may be shown inside another site's frame. `connect-src` names `NEXT_PUBLIC_API_URL` and its live-update socket, so set that variable at build time. The API sends `nosniff`, a deny-all CSP, `X-Frame-Options: DENY` and, in production, HSTS.
+
+Webhook, Slack and Teams addresses are resolved before each call. A name that points at a private network is refused, and redirects are not followed.
