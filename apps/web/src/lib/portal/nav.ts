@@ -18,7 +18,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
   { href: "/owner/reports", label: "Reports", icon: BarChart3, perms: ["reports.view"], keywords: "catalog builder scheduled exports" },
   { href: "/owner/start", label: "Get started", icon: Rocket, perms: ["settings.manage", "fleet.manage", "integrations.manage"], keywords: "start guide setup data trackers import first run" },
   { href: "/owner/settings", label: "Settings", icon: Settings, perms: ["settings.manage", "users.view", "audit.view", "alerts.view"], keywords: "team roles alerts integrations audit log billing",
-    children: [{ href: "/owner/settings", label: "Team and roles" }, { href: "/owner/alerts", label: "Alerts inbox", perms: ["alerts.view"] }, { href: "/owner/settings/alerts", label: "Alert settings", perms: ["alerts.manage"] }, { href: "/owner/settings/data-sources", label: "Data sources", perms: ["settings.manage", "fleet.manage", "integrations.manage"] }, { href: "/owner/settings/audit", label: "Audit log", perms: ["audit.view"] }] },
+    children: [{ href: "/owner/settings", label: "Team and roles" }, { href: "/owner/alerts", label: "Alerts inbox", perms: ["alerts.view"] }, { href: "/owner/settings/alerts", label: "Alert settings", perms: ["alerts.manage"] }, { href: "/owner/settings/connect-gps", label: "Connect your GPS", perms: ["settings.manage", "fleet.manage", "integrations.manage", "api.manage"] }, { href: "/owner/settings/data-sources", label: "Data sources", perms: ["settings.manage", "fleet.manage", "integrations.manage"] }, { href: "/owner/settings/audit", label: "Audit log", perms: ["audit.view"] }] },
 ];
 
 export function portalActive(href: string, pathname: string): boolean {

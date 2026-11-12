@@ -18,6 +18,14 @@ Built and tested in the repository (API tests, shared tests, a desktop and 390 p
 
 - **One real tracker, one real email, real road times, real phones.** These need hardware, accounts or servers outside this repository. Nothing was run against them. `docs/GO_LIVE.md` says how to do each and how to tell it worked.
 - **A single shell.** The Owner Portal and the older app are still two shells. They are linked by shared menu entries and role homes, not merged.
-- **Phone pass on every Owner Portal table.** Only the shell and the new pages were checked at 390 px; wide tables were not turned into cards.
+- **Phone pass on every Owner Portal table.** Checked on 2026-11-12: every Owner Portal list page plus the vehicle, driver and report-builder pages, signed in as the demo owner at 390 px, have no page-level sideways scroll (lists switch to cards on phones). Detail tabs, pay-run pages and dialogs were not each opened, and no real phone was used.
 - **Partner feeds** (certified ELD, fuel-card and toll feeds, live accounting sync, card payments) are listed as "Not built" on the Data sources page, not faked.
 - **Pilot owners** to try the guided start: none identified.
+
+## Added after the "software, not hardware" direction
+
+| Item | State |
+| --- | --- |
+| Per-company GPS keys and feed endpoints (`/ingest/feed`, `/ingest/feed/traccar`) | Built and tested (ingest 31, API 475 tests) and checked end to end against a running ingest service with a stand-in sender. Not tried with a real provider. |
+| Connect your GPS page (`/owner/settings/connect-gps`) | Built. Make and switch off keys, copy-paste setup for a web push and for Traccar, new devices, one click to make vehicles. Checked in a browser at 390 px and desktop. |
+| Provider API connectors (Samsara, Geotab, Motive and similar) | Not built. Each needs a customer's credentials to test. |

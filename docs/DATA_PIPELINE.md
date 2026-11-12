@@ -7,6 +7,7 @@ This is the path one position takes, what is checked on the way, where each valu
 | Source | How it arrives | Notes |
 | --- | --- | --- |
 | Hardware trackers (Teltonika, Queclink, Concox and the other 200+ protocols Traccar decodes) | Tracker → Traccar server → `POST /ingest/traccar` on the ingest service (Traccar's "forward" feature) | Traccar owns the radio protocols and keeps a raw copy. The device is registered in RouteNorth under its IMEI (Trackers page). |
+| A company's own GPS provider, its own Traccar server, or a gateway (the main route: RouteNorth is software, the customer keeps its hardware and provider) | The provider or server pushes to the ingest service with a per-company key: `POST /ingest/feed` (JSON batch, key in `Authorization: Bearer rn_gps_…`) or `POST /ingest/feed/traccar?key=rn_gps_…` (Traccar's forward feature) | Keys are made on Settings > Connect your GPS and are scoped to one company, so data can only land in that company. Devices are created on first sight (source `feed`, at most 1,000 per company) and then put on vehicles from the same page. Rate limit: 600 requests a minute per key. A revoked key stops within about 30 seconds. |
 | Phone apps, vendor APIs, gateways | `POST /ingest/positions` with a JSON batch | Needs `INGEST_TOKEN` (Bearer header). Devices are registered with source `api`. |
 | Driver phone (PWA) | Reports through the API while a shift or route is active | Foreground only; browsers do not allow reliable background tracking. A native app is not built. |
 | Simulator | Same JSON as Traccar's forward | For demos and tests only. |
@@ -64,6 +65,7 @@ Positions are personal information when they can be tied to a driver. Retention 
 
 ## 6. Not built, or not verified
 
+- Connectors that pull from a provider's own API (Samsara, Geotab, Motive and similar) are not built. Providers that can forward to a web address or a Traccar-style server work today; the formats were tested with stand-in senders, not a real provider.
 - Real trackers and a real Traccar server have not been connected in testing; only the simulator and recorded payload shapes were.
 - Timescale compression and PostGIS branches are written but were not run in the development sandbox.
 - A certified ELD (Canada and US) is integrated through a certified provider in a later phase, not built here.

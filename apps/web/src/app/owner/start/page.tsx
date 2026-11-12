@@ -16,7 +16,13 @@ interface Path { id: string; title: string; blurb: string; icon: typeof Radio; s
 const sourceState = (d: Result, id: string) => d.sources.find((s) => s.id === id)?.state ?? "not_connected";
 
 const PATHS: Path[] = [
-  { id: "trackers", title: "I have GPS trackers", blurb: "Best for trucks and buses. Positions arrive on their own once the tracker is registered.", icon: Radio,
+  { id: "provider", title: "I already use a GPS provider", blurb: "Keep your trackers and provider. They send positions to RouteNorth with a key; nothing to buy from us.", icon: Radio,
+    steps: (d) => [
+      { title: "Make a key and give it to your provider", detail: "One key per provider or server. The page shows the address to send to, for a web address push or for a Traccar server.", href: "/owner/settings/connect-gps", cta: "Connect your GPS", done: sourceState(d, "gps-feed") !== "not_connected" },
+      { title: "Wait for the first position", detail: "New devices show up on the Connect page within seconds of the first position.", href: "/owner/settings/connect-gps", cta: "Open Connect your GPS", done: sourceState(d, "gps-feed") === "live" },
+      { title: "Put each device on a vehicle", detail: "Make a vehicle for each new device, or match them to vehicles you already have. Then they show on the map and in reports.", href: "/owner/vehicles", cta: "Open vehicles", done: d.totals.vehicles > 0 && sourceState(d, "gps-feed") === "live" },
+    ] },
+  { id: "trackers", title: "I have GPS trackers", blurb: "Trackers that report straight to a Traccar server you run. Positions arrive on their own once the tracker is registered.", icon: Radio,
     steps: (d) => [
       { title: "Add your vehicles", detail: "One at a time, or import a CSV from the vehicles page.", href: "/owner/vehicles", cta: "Open vehicles", done: d.totals.vehicles > 0 },
       { title: "Register each tracker", detail: "Enter the tracker's ID (its IMEI) and choose its vehicle. A tracker nobody registered is counted and ignored, so nothing from another company can land here.", href: "/devices", cta: "Open trackers", done: sourceState(d, "trackers") !== "not_connected" },
