@@ -46,6 +46,33 @@ async function lookup(pool: pg.Pool, source: string, externalId: string): Promis
   return value;
 }
 
+/** Most devices one company's feed may create by itself. Past this, new ids are dropped until someone cleans up. */
+export const MAX_FEED_DEVICES = 1000;
+
+/**
+ * Devices that arrive through a company's own key. The key already says which company the data belongs to, so the
+ * device is found (or created) inside that company only; "truck 12" of two companies never meets.
+ */
+async function lookupFeed(pool: pg.Pool, orgId: string, externalId: string): Promise<Cached | null> {
+  const key = `feed\u0000${orgId}\u0000${externalId}`;
+  const exp = registryExpiry.get(key) ?? 0;
+  if (registry.has(key) && exp > Date.now()) return registry.get(key) ?? null;
+  const deviceId = await withOrg(pool, orgId, async (c) => {
+    const found = await c.query<{ id: string }>("SELECT id FROM devices WHERE source = 'feed' AND external_id = $1", [externalId]);
+    if (found.rows[0]) return found.rows[0].id;
+    const n = (await c.query<{ n: number }>("SELECT count(*)::int AS n FROM devices WHERE source = 'feed'")).rows[0]!.n;
+    if (n >= MAX_FEED_DEVICES) return null;
+    const made = await c.query<{ id: string }>(
+      "INSERT INTO devices (org_id, source, external_id) VALUES ($1, 'feed', $2) ON CONFLICT (org_id, external_id) WHERE source = 'feed' DO UPDATE SET external_id = EXCLUDED.external_id RETURNING id", [orgId, externalId]);
+    return made.rows[0]!.id;
+  });
+  const value = deviceId ? { deviceId, orgId } : null;
+  if (registry.size > 50_000) clearDeviceCache();
+  registry.set(key, value);
+  registryExpiry.set(key, Date.now() + (value ? POSITIVE_TTL_MS : NEGATIVE_TTL_MS));
+  return value;
+}
+
 /** Consecutive impossible-jump rejections per device. In memory on purpose: it only matters within a drive. */
 const jumpStreaks = new Map<string, number>();
 
@@ -54,10 +81,10 @@ const sensorValues = (f: Reading) => [f.altitude, f.hdop, f.satellites, f.batter
 
 /**
  * The whole pipeline for one reading of a registered device: assess it, then write history, the live
- * marker and any device events in a single transaction. Unknown devices are dropped.
+ * marker and any device events in a single transaction. Unknown devices are dropped, except through a company's own feed key (`feedOrgId`), which registers them for that company.
  */
-export async function ingestReading(pool: pg.Pool, source: string, fix: Reading, now: Date = new Date()): Promise<Outcome> {
-  const dev = await lookup(pool, source, fix.externalId);
+export async function ingestReading(pool: pg.Pool, source: string, fix: Reading, now: Date = new Date(), feedOrgId?: string): Promise<Outcome> {
+  const dev = feedOrgId ? await lookupFeed(pool, feedOrgId, fix.externalId) : await lookup(pool, source, fix.externalId);
   if (!dev) return { kind: "unknown_device" };
   const { deviceId, orgId } = dev;
 

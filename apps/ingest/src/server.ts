@@ -6,6 +6,7 @@ import { normalizeTraccar, type TraccarForward } from "./traccar.js";
 import { normalizeGeneric, type GenericBatch } from "./generic.js";
 import { updateGeofences } from "./geofence.js";
 import { updateRouteProgress } from "./progress.js";
+import { authenticateFeedKey, keyFromRequest, withinRate } from "./feed.js";
 import { countOutcome, flushCounters, ingestReading, outcomeKey, type Outcome } from "./store.js";
 
 
@@ -59,6 +60,37 @@ const server = createServer(async (req, res) => {
       return send(res, 200, [...metrics.entries()].map(([k, v]) => (k.includes("{") ? `${k} ${v}` : `${k} ${v}`)).join("\n") + "\n");
     }
     if (req.method !== "POST") return send(res, 404);
+
+    // A company's own GPS feed: its provider, its own Traccar server or a gateway pushes with a per-company key.
+    if (url.pathname === "/ingest/feed" || url.pathname === "/ingest/feed/traccar") {
+      const feed = await authenticateFeedKey(pool, keyFromRequest(req.headers.authorization, url.searchParams.get("key")));
+      if (!feed) { bump("routenorth_ingest_unauthorized_total"); return send(res, 401, "a valid GPS key is needed"); }
+      if (!withinRate(feed.keyId)) { bump("routenorth_ingest_rate_limited_total"); return send(res, 429, "too many requests; send batches of up to 500 positions"); }
+      if (url.pathname === "/ingest/feed/traccar") {
+        // Traccar's "forward" feature, pointed at this address with ?key=... on the end.
+        const raw = await readBody(req, 64_000);
+        if (raw == null) return send(res, 413);
+        const fix = normalizeTraccar(JSON.parse(raw) as TraccarForward);
+        if (!fix) { bump("routenorth_ingest_unusable_total"); return send(res, 202, "ignored"); }
+        const o = await ingestReading(pool, "feed", fix, new Date(), feed.orgId);
+        await afterIngest("feed", o);
+        return send(res, o.kind === "stored" ? 200 : 202, o.kind === "stored" ? "stored" : "ignored");
+      }
+      const raw = await readBody(req, 1_000_000);
+      if (raw == null) return send(res, 413);
+      const parsed = normalizeGeneric(JSON.parse(raw) as GenericBatch);
+      if (parsed.error) return send(res, 400, JSON.stringify({ error: parsed.error }), "application/json");
+      parsed.readings.sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
+      const tally: Record<string, number> = { unusable: parsed.unusable };
+      for (const r of parsed.readings) {
+        const o = await ingestReading(pool, "feed", r, new Date(), feed.orgId);
+        await afterIngest("feed", o);
+        const k = o.kind === "unknown_device" ? "device_limit" : outcomeKey(o);
+        tally[k] = (tally[k] ?? 0) + 1;
+      }
+      return send(res, 200, JSON.stringify({ received: parsed.readings.length + parsed.unusable, outcomes: tally }), "application/json");
+    }
+
     if (!authorized(req, url)) { bump("routenorth_ingest_unauthorized_total"); return send(res, 401); }
 
     if (url.pathname === "/ingest/traccar") {

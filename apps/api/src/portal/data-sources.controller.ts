@@ -73,7 +73,7 @@ export class PortalDataSourcesController {
         `SELECT count(*) FILTER (WHERE status = 'failed')::int AS failed, count(*) FILTER (WHERE status = 'sent')::int AS sent, max(at) FILTER (WHERE status = 'sent') AS last
          FROM customer_notifications WHERE channel = 'sms' AND at > now() - interval '7 days'`);
       const keys = await one(
-        `SELECT count(*) FILTER (WHERE kind = 'api' AND revoked_at IS NULL)::int AS api, count(*) FILTER (WHERE kind IN ('feed','inbound') AND revoked_at IS NULL)::int AS feeds,
+        `SELECT count(*) FILTER (WHERE kind = 'api' AND revoked_at IS NULL)::int AS api, count(*) FILTER (WHERE kind IN ('feed','inbound') AND revoked_at IS NULL)::int AS feeds, count(*) FILTER (WHERE kind = 'gps' AND revoked_at IS NULL)::int AS gps,
                 max(last_used_at) FILTER (WHERE kind = 'api') AS api_last
          FROM api_keys`);
       const totals = await one(`SELECT (SELECT count(*)::int FROM vehicles WHERE archived_at IS NULL AND status NOT IN ('sold','retired')) AS vehicles, (SELECT count(*)::int FROM driver_profiles WHERE archived_at IS NULL) AS drivers, (SELECT count(*)::int FROM jobs) AS orders`);
@@ -84,7 +84,8 @@ export class PortalDataSourcesController {
     const add = (s: DataSource) => sources.push(s);
 
     // ---- positions
-    const trackers = d.devices.filter((x: any) => x.source !== "api" && x.source !== "simulator");
+    const trackers = d.devices.filter((x: any) => x.source !== "api" && x.source !== "simulator" && x.source !== "feed");
+    const feedDevices = d.devices.filter((x: any) => x.source === "feed");
     const sim = d.devices.filter((x: any) => x.source === "simulator");
     const phones = d.devices.filter((x: any) => x.source === "api");
     const newest = (rows: any[]) => iso(rows.map((r) => r.last_seen).filter(Boolean).sort().at(-1));
@@ -102,6 +103,14 @@ export class PortalDataSourcesController {
         summary: `${trackers.length} tracker${trackers.length === 1 ? "" : "s"}, last position ${ago(trackLast, now)}${silent ? `, ${silent} silent` : ""}${acceptedPct != null ? `, ${acceptedPct}% of readings accepted this week` : ""}.`,
         lastDataAt: trackLast, next: state === "live" && !silent ? null : { label: "Check trackers", href: "/devices" }, needs: [], canTest: false });
     }
+    const feedLast = newest(feedDevices);
+    const feedKeys = d.keys.gps as number;
+    add({ id: "gps-feed", name: "Your existing GPS provider or Traccar server", group: "positions",
+      state: !feedKeys && !feedDevices.length ? "not_connected" : !feedDevices.length ? "quiet" : (ageMin(feedLast, now) ?? 9e9) > 60 ? "problem" : "live",
+      summary: !feedKeys && !feedDevices.length ? "No GPS feed is connected. Keep the trackers and provider you already use and have them send positions to RouteNorth."
+        : !feedDevices.length ? "A key is ready but nothing has arrived yet. Check the address and key in your provider's settings."
+        : `${feedDevices.length} device${feedDevices.length === 1 ? "" : "s"} sending through your feed, last position ${ago(feedLast, now)}.`,
+      lastDataAt: feedLast, next: { label: feedKeys || feedDevices.length ? "Open Connect your GPS" : "Connect your GPS", href: "/owner/settings/connect-gps" }, needs: process.env.INGEST_PUBLIC_URL ? [] : ["INGEST_PUBLIC_URL (on the API)"], canTest: false });
     add({ id: "phone-feed", name: "Phone apps and vendor feeds", group: "positions",
       state: !phones.length ? "not_connected" : (ageMin(newest(phones), now) ?? 9e9) > 60 ? "quiet" : "live",
       summary: phones.length ? `${phones.length} feed device${phones.length === 1 ? "" : "s"}, last position ${ago(newest(phones), now)}.` : "No device is sending through the JSON feed yet.",

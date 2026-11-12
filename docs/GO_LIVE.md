@@ -17,6 +17,17 @@ Host the database, API, ingest service and Traccar in a Canadian region (data re
 
 Worked when: **Data sources** loads and every row has an honest state (most will say "not connected" or "needs setup").
 
+## 2a. Customers who already have a GPS provider (the usual case)
+
+RouteNorth is software, not hardware: a customer keeps its trackers and its provider.
+
+1. Set `INGEST_PUBLIC_URL` on the API to the public HTTPS address of the ingest service, so the Connect page shows the right address.
+2. The owner opens **Settings > Connect your GPS** and makes a key for the provider.
+3. The owner (or the provider) sends positions to the address shown: a JSON push to `/ingest/feed`, or Traccar's forward feature pointed at `/ingest/feed/traccar?key=...`.
+4. Each device appears on the Connect page on its first position. **Make a vehicle for each** creates vehicles named after the device ids, or the Trackers page matches devices to vehicles the customer already has.
+
+Worked when: the page lists the device with a recent position, Data sources shows "Your existing GPS provider" as Live, and the vehicle is on the live map. Not verified: any real provider. If a provider has only its own API and cannot forward, nothing works yet; that connector has to be built.
+
 ## 2. One real tracker (the step that matters most)
 
 Path: tracker, then your Traccar server, then `POST /ingest/traccar` on the ingest service. Details of everything the ingest service checks on the way are in `docs/DATA_PIPELINE.md`.
