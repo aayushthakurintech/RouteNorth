@@ -1,12 +1,12 @@
 import "reflect-metadata";
 import type { INestApplication } from "@nestjs/common";
-import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
 import { migrate, pg, withOrg } from "@routenorth/db";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import WebSocket from "ws";
 import { AppModule } from "./app.module.js";
+import { configureApp } from "./configure.js";
 import { MemoryPositionBus } from "./live/position-bus.js";
 import { hashPassword } from "./passwords.js";
 
@@ -35,6 +35,7 @@ suite("API", () => {
         CREATE ROLE routenorth_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS;
       END IF; END $$;`);
     await migrate(ADMIN_URL!);
+    await admin.query("ALTER ROLE routenorth_app PASSWORD 'app'"); // `pnpm seed` may have set another password
     await admin.query("GRANT USAGE ON SCHEMA public TO routenorth_app");
     await admin.query("GRANT ALL ON ALL TABLES IN SCHEMA public TO routenorth_app");
     const u = new URL(ADMIN_URL!);
@@ -82,7 +83,7 @@ suite("API", () => {
       imports: [AppModule.register({ pool: app, bus, jwtSecret: SECRET })],
     }).compile();
     nest = mod.createNestApplication();
-    nest.useWebSocketAdapter(new WsAdapter(nest));
+    configureApp(nest);
     await nest.listen(0);
     port = (nest.getHttpServer().address() as { port: number }).port;
   });
@@ -365,6 +366,132 @@ suite("API", () => {
       await expect(
         admin.query("INSERT INTO routes (org_id, name, route_date, vehicle_id) VALUES ($1,'x','2026-11-08',$2)", [orgA, bVehicle]),
       ).rejects.toThrow(/foreign key/);
+    });
+  });
+
+  describe("users and driver actions", () => {
+    let owner = "";
+    let driver = "";
+    let otherDriver = "";
+    let driverId = "";
+    let routeId = "";
+    let stopIds: string[] = [];
+    const call = async (method: "get" | "post" | "put" | "patch" | "delete", path: string, token: string, body?: object) => {
+      const r = request(nest.getHttpServer())[method](path).set("Authorization", `Bearer ${token}`);
+      return body ? r.send(body) : r;
+    };
+    const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto" }).format(new Date());
+    const jpeg = (n = 200) => Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(n, 1)]);
+    const put = (path: string, token: string, body: Buffer, type = "image/jpeg") =>
+      request(nest.getHttpServer()).put(path).set("Authorization", `Bearer ${token}`).set("Content-Type", type).send(body);
+    const U = (id: string) => crypto.randomUUID();
+
+    beforeAll(async () => {
+      owner = (await login("a@example.com")).body.token;
+      const made = await call("post", "/users", owner, { email: "driver1@example.com", password: "pw-correct-horse", role: "driver", locale: "fr" });
+      expect(made.status).toBe(201);
+      driverId = made.body.id;
+      await call("post", "/users", owner, { email: "driver2@example.com", password: "pw-correct-horse", role: "driver" });
+      driver = (await login("driver1@example.com")).body.token;
+      otherDriver = (await login("driver2@example.com")).body.token;
+      const route = (await call("post", "/routes", owner, {
+        name: "Driver run", date: today(), driverId,
+        stops: [{ name: "S1", lat: 43.65, lng: -79.38 }, { name: "S2", lat: 43.66, lng: -79.39 }],
+      })).body;
+      routeId = route.id;
+      stopIds = route.stops.map((s: { id: string }) => s.id);
+    });
+
+    it("lets owners create users and rejects bad input", async () => {
+      expect((await call("post", "/users", owner, { email: "bad", password: "pw-correct-horse", role: "driver" })).status).toBe(400);
+      expect((await call("post", "/users", owner, { email: "x@example.com", password: "short", role: "driver" })).status).toBe(400);
+      expect((await call("post", "/users", owner, { email: "x@example.com", password: "pw-correct-horse", role: "owner" })).status).toBe(400);
+      expect((await call("post", "/users", owner, { email: "DRIVER1@example.com", password: "pw-correct-horse", role: "driver" })).status).toBe(409);
+      expect((await call("post", "/users", driver, { email: "y@example.com", password: "pw-correct-horse", role: "driver" })).status).toBe(403);
+      const drivers = await call("get", "/users?role=driver", owner);
+      expect(drivers.body.map((u: { email: string }) => u.email)).toEqual(["driver1@example.com", "driver2@example.com"]);
+      expect((await call("get", "/users", driver)).status).toBe(403);
+    });
+
+    it("shows a driver only their own routes for today", async () => {
+      const mine = await call("get", "/driver/routes", driver);
+      expect(mine.status).toBe(200);
+      expect(mine.body).toHaveLength(1);
+      expect(mine.body[0].stops.map((s: { name: string }) => s.name)).toEqual(["S1", "S2"]);
+      expect(mine.body[0].stops[0].proofCount).toBe(0);
+      expect((await call("get", "/driver/routes", otherDriver)).body).toEqual([]);
+    });
+
+    it("records arrival and completion, stamps times once, and updates the route", async () => {
+      const t1 = new Date(Date.now() - 600_000).toISOString();
+      const arrived = await call("post", `/driver/stops/${stopIds[0]}/status`, driver, { status: "arrived", occurredAt: t1 });
+      expect(arrived.status).toBe(201);
+      expect(arrived.body.stop.arrivedAt).toBe(t1);
+      expect(arrived.body.routeStatus).toBe("in_progress");
+
+      const done = await call("post", `/driver/stops/${stopIds[0]}/status`, driver, {
+        status: "done", occurredAt: new Date(Date.now() - 300_000).toISOString(), notes: "Left at door", recipientName: "J. Smith",
+      });
+      expect(done.body.stop).toMatchObject({ status: "done", arrivedAt: t1, driverNotes: "Left at door", recipientName: "J. Smith" });
+
+      // A late replay of "arrived" must not undo the finished stop or change its time.
+      const replay = await call("post", `/driver/stops/${stopIds[0]}/status`, driver, { status: "arrived", occurredAt: new Date().toISOString() });
+      expect(replay.body.stop.status).toBe("done");
+      expect(replay.body.stop.arrivedAt).toBe(t1);
+
+      const failed = await call("post", `/driver/stops/${stopIds[1]}/status`, driver, { status: "failed", reason: "Nobody home" });
+      expect(failed.body.stop).toMatchObject({ status: "failed", failureReason: "Nobody home" });
+      expect(failed.body.routeStatus).toBe("completed");
+
+      // Undo puts the route back in progress.
+      const undo = await call("post", `/driver/stops/${stopIds[1]}/status`, driver, { status: "pending" });
+      expect(undo.body.stop).toMatchObject({ status: "pending", failureReason: null, arrivedAt: null });
+      expect(undo.body.routeStatus).toBe("in_progress");
+    });
+
+    it("rejects other drivers, bad statuses and implausible times", async () => {
+      expect((await call("post", `/driver/stops/${stopIds[0]}/status`, otherDriver, { status: "done" })).status).toBe(404);
+      expect((await call("post", `/driver/stops/${stopIds[0]}/status`, driver, { status: "teleported" })).status).toBe(400);
+      expect((await call("post", `/driver/stops/${stopIds[0]}/status`, driver, { status: "done", occurredAt: new Date(Date.now() + 3_600_000).toISOString() })).status).toBe(400);
+      expect((await call("post", `/driver/stops/${stopIds[0]}/status`, driver, { status: "done", occurredAt: "2020-01-01T00:00:00Z" })).status).toBe(400);
+      expect((await call("post", `/driver/stops/${stopIds[0]}/status`, owner, { status: "done" })).status).toBe(404); // not the route's driver
+    });
+
+    it("stores proofs idempotently and serves them only to the right people", async () => {
+      const cid = U("a");
+      const up = await put(`/driver/stops/${stopIds[0]}/proofs/${cid}?kind=photo&lat=43.65&lng=-79.38`, driver, jpeg());
+      expect(up.status).toBe(200);
+      expect(up.body).toMatchObject({ kind: "photo", duplicate: false });
+      const again = await put(`/driver/stops/${stopIds[0]}/proofs/${cid}?kind=photo`, driver, jpeg());
+      expect(again.body).toMatchObject({ id: up.body.id, duplicate: true });
+      const sig = await put(`/driver/stops/${stopIds[0]}/proofs/${U("b")}?kind=signature`, driver, Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(50)]), "image/png");
+      expect(sig.status).toBe(200);
+
+      const list = await call("get", `/stops/${stopIds[0]}/proofs`, owner);
+      expect(list.body.map((p: { kind: string }) => p.kind).sort()).toEqual(["photo", "signature"]);
+      const file = await request(nest.getHttpServer()).get(`/proofs/${up.body.id}`).set("Authorization", `Bearer ${owner}`).buffer(true).parse((res, cb) => {
+        const chunks: Buffer[] = []; res.on("data", (d: Buffer) => chunks.push(d)); res.on("end", () => cb(null, Buffer.concat(chunks)));
+      });
+      expect(file.status).toBe(200);
+      expect(file.headers["content-type"]).toContain("image/jpeg");
+      expect(file.headers["x-content-type-options"]).toBe("nosniff");
+      expect((file.body as Buffer).length).toBe(204);
+
+      expect((await call("get", `/proofs/${up.body.id}`, driver)).status).toBe(200);
+      expect((await call("get", `/proofs/${up.body.id}`, otherDriver)).status).toBe(404);
+      const outsider = (await login("dispatch-b@example.com")).body.token;
+      expect((await call("get", `/proofs/${up.body.id}`, outsider)).status).toBe(404);
+      expect((await call("get", `/stops/${stopIds[0]}/proofs`, outsider)).status).toBe(404);
+    });
+
+    it("validates proof uploads", async () => {
+      const base = `/driver/stops/${stopIds[0]}/proofs`;
+      expect((await put(`${base}/${U("c")}?kind=photo`, driver, jpeg(), "text/plain")).status).toBe(415);
+      expect((await put(`${base}/${U("d")}?kind=photo`, driver, Buffer.from("not an image at all"))).status).toBe(400);
+      expect((await put(`${base}/${U("e")}?kind=selfie`, driver, jpeg())).status).toBe(400);
+      expect((await put(`${base}/${U("f")}?kind=photo`, driver, jpeg(7 * 1024 * 1024))).status).toBe(413);
+      expect((await put(`${base}/not-a-uuid?kind=photo`, driver, jpeg())).status).toBe(400);
+      expect((await put(`${base}/${U("g")}?kind=photo`, otherDriver, jpeg())).status).toBe(404);
     });
   });
 });

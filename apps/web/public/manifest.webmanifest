@@ -1,0 +1,12 @@
+{
+  "name": "RouteNorth Driver",
+  "short_name": "RouteNorth",
+  "description": "Today's stops, navigation and proof of delivery",
+  "start_url": "/driver",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e3a8a",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

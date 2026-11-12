@@ -25,6 +25,7 @@ export default function LivePage() {
   useEffect(() => {
     const s = loadSession();
     if (!s) router.replace("/login");
+    else if (s.role === "driver") router.replace("/driver");
     else setToken(s.token);
     setChecked(true);
   }, [router]);

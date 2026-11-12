@@ -7,14 +7,31 @@ import { initialState, step, type SimState, type SimVehicle } from "./vehicle.js
  *   TRACCAR_URL  default http://localhost:5055
  *   TICK_SECONDS default 5   (how often a fix is sent)
  *   SPEEDUP      default 1   (simulated seconds per real second)
+ *   INGEST_URL   if set (e.g. http://localhost:4100), send straight to the ingest service in
+ *                Traccar's forward format instead of going through Traccar (no Traccar needed)
  */
 const traccar = process.env.TRACCAR_URL ?? "http://localhost:5055";
 const tick = Number(process.env.TICK_SECONDS ?? 5);
 const speedup = Number(process.env.SPEEDUP ?? 1);
+const ingest = process.env.INGEST_URL;
 
 const states = new Map<string, SimState>(DEFAULT_FLEET.map((v) => [v.id, initialState(v)]));
 
 async function send(v: SimVehicle, s: SimState): Promise<void> {
+  if (ingest) {
+    const res = await fetch(`${ingest}/ingest/traccar`, {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        device: { uniqueId: v.id },
+        position: {
+          fixTime: new Date().toISOString(), latitude: s.position.lat, longitude: s.position.lng, valid: true,
+          speed: s.speedKmh / 1.852, course: s.heading, attributes: { ignition: true, totalDistance: s.odometer },
+        },
+      }),
+    });
+    if (!res.ok) console.error(`${v.id}: ingest replied ${res.status}`);
+    return;
+  }
   const q = new URLSearchParams({
     id: v.id,
     lat: s.position.lat.toFixed(6),
@@ -29,7 +46,7 @@ async function send(v: SimVehicle, s: SimState): Promise<void> {
   if (!res.ok) console.error(`${v.id}: traccar replied ${res.status}`);
 }
 
-console.log(`simulating ${DEFAULT_FLEET.length} vehicles -> ${traccar} every ${tick}s (x${speedup})`);
+console.log(`simulating ${DEFAULT_FLEET.length} vehicles -> ${ingest ?? traccar} every ${tick}s (x${speedup})`);
 setInterval(() => {
   for (const v of DEFAULT_FLEET) {
     const next = step(v, states.get(v.id)!, tick * speedup);

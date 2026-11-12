@@ -1,4 +1,4 @@
-import { pg, withOrg } from "@routenorth/db";
+import { pg, recomputeRouteStatus, withOrg } from "@routenorth/db";
 import { estimateEtas, evaluateStop, type StopState, type StopStatus } from "@routenorth/shared";
 import type { StoredPosition } from "./store.js";
 
@@ -75,13 +75,7 @@ export async function updateRouteProgress(pool: pg.Pool, p: StoredPosition): Pro
       }
 
       // 3. route status
-      const finished = states.every((s) => s.status === "done" || s.status === "failed" || s.status === "skipped");
-      const started = states.some((s) => s.status !== "pending");
-      if (states.length > 0 && finished) {
-        await c.query("UPDATE routes SET status='completed', completed_at=$2, started_at=coalesce(started_at,$2) WHERE id=$1", [route.id, p.time]);
-      } else if (started && route.status === "planned") {
-        await c.query("UPDATE routes SET status='in_progress', started_at=$2 WHERE id=$1", [route.id, p.time]);
-      }
+      await recomputeRouteStatus(c, route.id, p.time);
     }
   });
   return events;

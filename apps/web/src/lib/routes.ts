@@ -12,7 +12,7 @@ export interface RouteStop {
 }
 
 export interface RouteDetail {
-  id: string; name: string; date: string; status: string; vehicleId: string | null;
+  id: string; name: string; date: string; status: string; vehicleId: string | null; driverId: string | null;
   startedAt: string | null; completedAt: string | null; stops: RouteStop[];
 }
 
