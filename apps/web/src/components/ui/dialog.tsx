@@ -57,6 +57,7 @@ function DialogContent({
 }) {
   return (
     <DialogPortal data-slot="dialog-portal">
+      <div className="portal-root contents">
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
@@ -77,6 +78,7 @@ function DialogContent({
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
+      </div>
     </DialogPortal>
   )
 }
