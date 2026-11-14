@@ -1,6 +1,6 @@
 import { BadRequestException, Body, Controller, Get, Inject, Patch, Post, Put, Req, UnauthorizedException, UseGuards } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
-import { LOCALES, homePath, resolveFlags } from "@routenorth/shared";
+import { LOCALES, homeForEntitlements, homePath, resolveFlags } from "@routenorth/shared";
 import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
 import { hashPassword, verifyPassword } from "../passwords.js";
 import { PG_POOL } from "../tokens.js";
@@ -33,7 +33,10 @@ export class MeController {
         perms,
         flags: resolveFlags(orgId, settings.featureFlags),
         security: { twoFactor: !!sec?.on, mustSetUpTwoFactor: settings.twoFactorRequired && !sec?.on && !["driver", "customer"].includes(u.role) },
-        home: homePath(u.role, req.perms ?? new Set()),
+        home: homeForEntitlements(homePath(u.role, req.perms ?? new Set()), req.entitlements ?? { restricted: false, sections: [] }),
+        // What RouteNorth gave this company. The web app hides what is not included; the API refuses it either way.
+        entitlements: req.entitlements ?? null,
+        impersonation: req.impersonation ? { reason: req.impersonation.reason, expiresAt: req.impersonation.expiresAt, by: req.impersonation.adminName } : null,
         org: { ...o, settings: publicSettings(o.settings) },
         prefs,
       };

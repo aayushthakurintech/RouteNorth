@@ -2,6 +2,7 @@ import {
   BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Inject, NotFoundException,
   Param, Patch, Post, Query, Req, UseGuards,
 } from "@nestjs/common";
+import { assertWithinLimit } from "../admin/limits.js";
 import { pg, withOrg } from "@routenorth/db";
 import { LOCALES } from "@routenorth/shared";
 import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
@@ -54,13 +55,14 @@ export class UsersController {
     const customRoleId = body.customRoleId ? parseUuid(String(body.customRoleId)) : null;
     const hash = await hashPassword(body.password);
     try {
-      const rows = await withOrg(this.pool, orgId, (c) =>
-        c.query(
+      const rows = await withOrg(this.pool, orgId, async (c) => {
+        await assertWithinLimit(c, orgId, "users");
+        return c.query(
           `INSERT INTO users (org_id, email, password_hash, role, locale, display_name, custom_role_id) VALUES ($1,$2,$3,$4,$5,$6,$7)
            RETURNING id, email, display_name AS "displayName", role, locale, custom_role_id AS "customRoleId"`,
           [orgId, body.email, hash, body.role, locale, typeof body.displayName === "string" ? body.displayName.trim() || null : null, customRoleId],
-        ),
-      );
+        );
+      });
       return rows.rows[0];
     } catch (e) {
       const code = (e as { code?: string }).code;

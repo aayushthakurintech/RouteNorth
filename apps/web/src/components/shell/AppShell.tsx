@@ -6,8 +6,10 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { LOCALES, LOCALE_NAMES, type Locale } from "@routenorth/shared";
+import { LOCALES, LOCALE_NAMES, pageAllowed, type Locale } from "@routenorth/shared";
 import { ErrorState, SkeletonList } from "@/components/ui/primitives";
+import { NotIncluded, StaffViewBar, SuspendedState } from "./PlanGate";
+import { ApiError } from "@/lib/api";
 import { useCrumbs } from "@/lib/breadcrumbs";
 import { useI18n } from "@/lib/i18n-context";
 import { useMe } from "@/lib/me-context";
@@ -73,7 +75,8 @@ export function AppShell({ children, flush, topSlot }: { children: ReactNode; fl
   useEffect(() => { if (me?.security?.mustSetUpTwoFactor && pathname !== "/settings/security") router.replace("/settings/security"); }, [me, pathname, router]);
   // Signing out also ends the token on the server, so a copied token stops working.
   const signOut = useCallback(() => { void apiSend("POST", "/auth/logout").catch(() => {}).finally(() => { saveSession(null); router.replace("/login"); }); }, [router]);
-  const nav = useMemo(() => visibleNav(can).filter((n) => !(n.href === "/assistant" && me?.flags?.assistant === false)), [can, me]);
+  // A page also has to be in the company's plan: the menu hides what the plan leaves out, and the server refuses it either way.
+  const nav = useMemo(() => visibleNav(can).filter((n) => !(n.href === "/assistant" && me?.flags?.assistant === false) && (!me?.entitlements || pageAllowed(me.entitlements, n.href))), [can, me]);
   const approvals = useApi<{ pending: number }>(can("reports.view") ? "/approvals/count" : null, { intervalMs: 60_000 });
   const inbox = useApi<{ drivers: number; customers: number; help: number }>(can("routes.dispatch") || can("customers.manage") ? "/messages/unread" : null, { intervalMs: 30_000 });
   const badges = { approvals: approvals.data?.pending ?? 0, inbox: (inbox.data?.drivers ?? 0) + (inbox.data?.customers ?? 0) + (inbox.data?.help ?? 0) };
@@ -135,6 +138,7 @@ export function AppShell({ children, flush, topSlot }: { children: ReactNode; fl
   if (loading) {
     return <div className="content" style={{ maxWidth: 720, margin: "10vh auto" }}><SkeletonList rows={4} h={48} /></div>;
   }
+  if (error instanceof ApiError && error.code === "account_suspended") return <SuspendedState onSignOut={signOut} />;
   if (error || !me) {
     return <div style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }}><ErrorState error={error} onRetry={reload} /></div>;
   }
@@ -143,6 +147,7 @@ export function AppShell({ children, flush, topSlot }: { children: ReactNode; fl
 
   return (
     <div className="app" data-collapsed={collapsed} data-open={open}>
+      {me.impersonation && <StaffViewBar info={me.impersonation} />}
       <a className="skip-link" href="#main">{t("skipToContent")}</a>
       <nav className="sidenav" aria-label={t("mainNav")}>
         <Link href="/live" className="brand">
@@ -235,7 +240,7 @@ export function AppShell({ children, flush, topSlot }: { children: ReactNode; fl
         </div>
       </header>
 
-      <main id="main" className={`main ${flush ? "flush" : ""}`} tabIndex={-1}>{flush ? children : <PageTransition id={pathname}>{children}</PageTransition>}</main>
+      <main id="main" className={`main ${flush ? "flush" : ""}`} tabIndex={-1}>{me.entitlements && !pageAllowed(me.entitlements, pathname) ? <NotIncluded pathname={pathname} /> : flush ? children : <PageTransition id={pathname}>{children}</PageTransition>}</main>
 
       <CommandPalette open={palette} onClose={() => setPalette(false)} commands={commands} onNavigate={go} />
       <ShortcutsSheet open={help} onClose={() => setHelp(false)} />

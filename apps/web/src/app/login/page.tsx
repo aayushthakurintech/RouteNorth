@@ -7,7 +7,7 @@ import { PasswordField } from "@/components/auth/PasswordField";
 import { useI18n } from "@/lib/i18n-context";
 import { API_URL, saveSession } from "@/lib/session";
 
-type LoginError = "loginFailed" | "loginUnreachable" | "loginServerError" | "mfa_wrong" | "mfa_locked" | "mfa_expired" | "au_rate";
+type LoginError = "suspended" | "loginFailed" | "loginUnreachable" | "loginServerError" | "mfa_wrong" | "mfa_locked" | "mfa_expired" | "au_rate";
 
 function LoginForm() {
   const { t, setLocale } = useI18n();
@@ -35,7 +35,7 @@ function LoginForm() {
         // Only a 401 means the credentials were wrong; anything else is a server problem.
         if (res.status === 429) setError(second ? "mfa_locked" : "au_rate");
         else if (second) setError(res.status === 401 ? "mfa_wrong" : "loginServerError");
-        else setError(res.status === 401 ? "loginFailed" : "loginServerError");
+        else setError(res.status === 401 ? "loginFailed" : res.status === 403 ? "suspended" : "loginServerError");
         if (second && res.status === 401 && (await res.clone().json().catch(() => null))?.message?.includes("expired")) { setError("mfa_expired"); setChallenge(null); setCode(""); }
         return;
       }
@@ -76,7 +76,7 @@ function LoginForm() {
             <div className="auth-row"><span /><Link href="/forgot">{t("au_forgot")}</Link></div>
           </>
         )}
-        {error && <p role="alert" className="error">{t(error)}</p>}
+        {error && <p role="alert" className="error">{error === "suspended" ? "This account is paused. Please contact RouteNorth support." : t(error)}</p>}
         <button type="submit" disabled={busy}>{challenge !== null ? t("mfa_verify") : t("signIn")}</button>
         {challenge !== null && <button type="button" className="link" onClick={() => { setChallenge(null); setCode(""); setError(null); }}>{t("mfa_back")}</button>}
       </form>

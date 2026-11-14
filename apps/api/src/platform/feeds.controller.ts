@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Header, Inject, Optional, Param, Post, Query, Req, Res, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Body, Controller, Get, Header, Inject, Optional, Param, Post, Query, Req, Res, UnauthorizedException } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
 import { buildIcs, parseEmailJob, type IcsEvent } from "@routenorth/shared";
 import { AnalyticsService } from "../analytics/analytics.service.js";
@@ -22,6 +22,11 @@ async function keyFrom(pool: pg.Pool, req: AuthedRequest, query: string | undefi
   if (!isKeyToken(token)) throw new UnauthorizedException("a valid key is needed");
   const k = (await pool.query<Found>("SELECT * FROM find_api_key($1)", [hashKey(token)])).rows[0];
   if (!k || !kinds.includes(k.kind)) throw new UnauthorizedException("a valid key is needed");
+  // These routes do not pass through AuthGuard, so the company's status and sections are checked here too.
+  const gate = (await withOrg(pool, k.org_id, (c) => c.query<{ status: string; sections: string[] | null }>(
+    "SELECT o.status, e.sections FROM organizations o LEFT JOIN org_entitlements e ON e.org_id = o.id WHERE o.id = $1", [k.org_id]))).rows[0];
+  if (!gate || gate.status === "suspended") throw new ForbiddenException({ message: "this account is suspended, contact RouteNorth", code: "account_suspended" });
+  if (gate.sections && !gate.sections.includes("integrations")) throw new ForbiddenException({ message: "this part of RouteNorth is not included in your plan", code: "section_not_included", section: "integrations" });
   void withOrg(pool, k.org_id, (c) => c.query("UPDATE api_keys SET last_used_at = now() WHERE id = $1", [k.key_id])).catch(() => {});
   return k;
 }

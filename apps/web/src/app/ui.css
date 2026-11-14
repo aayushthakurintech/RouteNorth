@@ -624,3 +624,16 @@ input[type="date"] { min-width: 150px; }
 /* Quiet top bar controls: the date range sits beside search, not over it. */
 .top-range button { white-space: nowrap; }
 @media (max-width: 860px) { .top-range { display: none; } }
+
+/* Admin console: the same frame as the product, marked so staff never mistake it for a client's view. */
+.app[data-admin] .topbar { border-top: 3px solid var(--amber); }
+.app[data-admin] .sidenav .brand-name { overflow: visible; }
+.app[data-admin] .tabs { gap: 6px; }
+.app[data-admin] .tab { padding: 8px 14px; }
+.app[data-admin] .sidenav .brand-name::after { content: "Admin"; margin-inline-start: 8px; font: 700 10px/1 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: var(--amber); color: #1b1300; vertical-align: middle; }
+/* Staff "view as client": a bar that cannot be missed, above everything. */
+.staff-view-bar { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: 60; height: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0 12px; background: var(--amber); color: #1b1300; font: 600 13px/1.2 var(--font-ui); box-shadow: 0 1px 0 rgb(0 0 0 / .15); }
+.staff-view-bar button { border: 1px solid #1b1300; background: transparent; color: inherit; border-radius: 6px; padding: 3px 10px; font: 700 12px/1.2 var(--font-ui); cursor: pointer; }
+.staff-view-bar button:hover { background: #1b1300; color: var(--amber); }
+body[data-staff-view] .app { height: calc(100dvh - 40px); margin-block-start: 40px; }
+@media (max-width: 640px) { .staff-view-bar { height: auto; min-height: 40px; padding-block: 6px; flex-wrap: wrap; } }

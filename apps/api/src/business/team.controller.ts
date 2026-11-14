@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
+import { assertWithinLimit } from "../admin/limits.js";
 import {
   BadRequestException, Body, ConflictException, Controller, Delete, ForbiddenException, Get, HttpCode, Inject, NotFoundException, Param, Patch, Post, Put, Req, UseGuards,
 } from "@nestjs/common";
@@ -199,6 +200,7 @@ export class PublicInviteController {
       // Take the invitation first so a double click cannot make two accounts.
       const taken = await c.query("UPDATE invites SET accepted_at = now() WHERE id = $1 AND accepted_at IS NULL AND revoked_at IS NULL AND expires_at > now()", [f.invite_id]);
       if (!taken.rowCount) throw new NotFoundException("this invitation is no longer open");
+      await assertWithinLimit(c, f.org_id, "users");
       let u;
       try {
         u = (await c.query(`INSERT INTO users (org_id, email, password_hash, role, locale, display_name) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, role, locale`, [f.org_id, f.email, hash, f.role, locale, name])).rows[0];

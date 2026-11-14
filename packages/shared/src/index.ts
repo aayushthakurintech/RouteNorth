@@ -26,3 +26,5 @@ export * from "./password.js";
 export * from "./legal.js";
 export * from "./connectors.js";
 export * from "./connections.js";
+export * from "./entitlements.js";
+export * from "./platform-admin.js";
