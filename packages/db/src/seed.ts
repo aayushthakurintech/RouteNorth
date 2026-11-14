@@ -1,4 +1,5 @@
 import { randomBytes, scryptSync } from "node:crypto";
+import { ensureAppRole } from "./app-role.js";
 import { seedHistory } from "./history.js";
 import { migrate, pg } from "./index.js";
 
@@ -25,16 +26,7 @@ await migrate(url);
 const pool = new pg.Pool({ connectionString: url });
 const q = (text: string, params: unknown[] = []) => pool.query(text, params);
 
-await q(`DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'routenorth_app') THEN
-    CREATE ROLE routenorth_app LOGIN;
-  END IF;
-END $$`);
-await q(`ALTER ROLE routenorth_app PASSWORD '${appPassword.replace(/'/g, "''")}'`);
-await q("GRANT USAGE ON SCHEMA public TO routenorth_app");
-await q("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO routenorth_app");
-await q("GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO routenorth_app");
-await q("GRANT EXECUTE ON FUNCTION resolve_device(text, text), find_login(text), all_org_ids(), due_provider_connections(int) TO routenorth_app");
+await ensureAppRole(pool, appPassword);
 
 let org = (await q("SELECT id FROM organizations WHERE name = 'Demo Fleet Co'")).rows[0]?.id as string | undefined;
 if (!org) {
