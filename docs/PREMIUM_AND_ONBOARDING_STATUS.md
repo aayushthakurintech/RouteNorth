@@ -49,6 +49,8 @@ Not assessed, worth a follow-up: whether the Geotab server setting an owner ente
 - `pnpm build`: passes (7 packages).
 - Browser checks with Chromium (Playwright): dashboard, Vehicles, Connections and the Add vehicle flow at 1440 and 390 wide; sideways-overflow scan of 22 pages at 390.
 
+Pilot checklist, what is wired versus not, and the Canadian legal summary: [PILOT_AND_LEGAL.md](PILOT_AND_LEGAL.md).
+
 ## Still to do before a paying customer
 
 Real-hardware test with at least one Teltonika or Queclink tracker through a Traccar host; a Geotab demo database and a Samsara sandbox token to test the pull path; a redesign of the Live map and Dispatch screens; phone date-range control; translations of the owner pages; the items in [GO_LIVE.md](GO_LIVE.md) (hosting, backups, monitoring) that are still open.
