@@ -6,7 +6,7 @@ Order matters: do 1 and 2 first. Steps 3 to 5 each stand alone.
 
 ## 1. Run it somewhere real
 
-On a new database run `DATABASE_URL=<admin url> APP_DB_PASSWORD=<password> pnpm provision` first: it applies the migrations and creates the `routenorth_app` role with the grants the sign-up, invite, password-reset and GPS-key endpoints need (no demo data; do not run `pnpm seed` on a real server). The full hosting steps and a client hand-over checklist are in `docs/PILOT_READINESS.md`.
+On a new database run `DATABASE_URL=<admin url> APP_DB_PASSWORD=<password> pnpm provision` first: it applies the migrations and creates the `routenorth_app` role with the grants the sign-up, invite, password-reset and GPS-key endpoints need (no demo data; do not run `pnpm seed` on a real server). The full hosting steps and a client hand-over checklist are in `docs/PILOT_READINESS.md`. A ready-made Docker setup for a Canadian server (Azure Toronto) is in `docs/DEPLOY_CANADA.md` and `deploy/`.
 
 Host the database, API, ingest service and Traccar in a Canadian region (data residency is a selling point; see `docs/COMPLIANCE_PLAN.md`). Backups and the settings that matter in production are in `docs/OPERATIONS.md`.
 

@@ -1,0 +1,142 @@
+# RouteNorth on one Linux server (a Canadian-region VM): web, API, ingest, Redis, Postgres and Caddy for HTTPS.
+#
+#   cp deploy/.env.example deploy/.env      # then fill it in
+#   docker compose --env-file deploy/.env -f deploy/docker-compose.yml --profile bundled-db up -d --build
+#
+# Leave out "--profile bundled-db" when DATABASE_URL points at a managed database instead.
+name: routenorth
+
+# Every service runs the same image. Only "api" builds it; the others reuse it.
+x-app: &app
+  image: routenorth:local
+  pull_policy: never
+  restart: unless-stopped
+
+x-db-urls: &db-urls
+  # Admin URL: only for migrations and a few cross-company jobs. App URL: what the API and ingest use (row-level security applies).
+  DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/routenorth}
+  APP_DATABASE_URL: ${APP_DATABASE_URL:-postgresql://routenorth_app:${APP_DB_PASSWORD}@db:5432/routenorth}
+
+services:
+  db:
+    profiles: [bundled-db]
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: routenorth
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d routenorth"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+
+  # Runs once at every start: applies migrations and gives routenorth_app the grants it needs. Safe to repeat.
+  provision:
+    <<: *app
+    restart: "no"
+    command: ["node", "packages/db/dist/provision.js"]
+    environment:
+      <<: *db-urls
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
+
+  api:
+    <<: *app
+    build:
+      context: ..
+      args:
+        NEXT_PUBLIC_API_URL: https://${API_DOMAIN}
+        NEXT_PUBLIC_SITE_URL: https://${APP_DOMAIN}
+        NEXT_PUBLIC_COMPANY_NAME: ${COMPANY_NAME:-}
+        NEXT_PUBLIC_PRIVACY_EMAIL: ${PRIVACY_EMAIL:-}
+        NEXT_PUBLIC_SUPPORT_EMAIL: ${SUPPORT_EMAIL:-}
+        NEXT_PUBLIC_GOVERNING_PROVINCE: ${GOVERNING_PROVINCE:-Ontario}
+    command: ["node", "apps/api/dist/main.js"]
+    environment:
+      <<: *db-urls
+      ADMIN_DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/routenorth}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      PORT: "4000"
+      WEB_ORIGIN: https://${APP_DOMAIN}
+      PUBLIC_WEB_URL: https://${APP_DOMAIN}
+      INGEST_PUBLIC_URL: https://${INGEST_DOMAIN}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      SUPPORT_EMAIL: ${SUPPORT_EMAIL:-}
+    depends_on:
+      provision:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+    healthcheck:
+      # Any HTTP answer (even 401 or 404) means the server is up.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/').then(()=>process.exit(0),()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ingest:
+    <<: *app
+    command: ["node", "apps/ingest/dist/server.js"]
+    environment:
+      <<: *db-urls
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      INGEST_TOKEN: ${INGEST_TOKEN}
+      PORT: "4100"
+    depends_on:
+      provision:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4100/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    <<: *app
+    working_dir: /app/apps/web
+    command: ["node", "node_modules/next/dist/bin/next", "start", "-p", "3000"]
+    depends_on:
+      - api
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+      INGEST_DOMAIN: ${INGEST_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+    depends_on:
+      - web
+      - api
+      - ingest
+
+volumes:
+  dbdata:
+  redisdata:
+  caddydata:

@@ -2,6 +2,8 @@
 
 Checked on 2026-11-14 against `main` at `dfc1f5b`, plus the grant fix in this change. `main` has since gained vehicle onboarding with a provider vehicle picker, an admin console and `docs/PILOT_AND_LEGAL.md` (PRs 13 and 15); this branch was merged with it and the full test suite re-run. Anything I describe as untested stays untested. For the legal side (PIPEDA, Law 25, breach reporting, contracts) and what to ask a client for, read `docs/PILOT_AND_LEGAL.md` alongside this page. Written for Aayush. It answers three questions: is the app compatible with what a pilot client needs, who could be asked to test it, and the exact steps to host it and give a client access.
 
+> **Update 2026-11-15:** the hosting steps below (3 to 8) now have a built and tested Docker version in `docs/DEPLOY_CANADA.md` and `deploy/`; use that. Candidate testers are in `docs/PILOT_PROSPECTS.md`.
+
 ## 1. Verdict
 
 **The app is ready for a supervised pilot with one friendly client who already has GPS data. It is not ready for a municipality's formal evaluation, and it has no features specific to garbage trucks or snow plows yet.**
