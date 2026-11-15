@@ -1,4 +1,5 @@
 import { randomBytes, scryptSync } from "node:crypto";
+import { seedDemoBusiness } from "./demo-business.js";
 import { seedHistory } from "./history.js";
 import { migrate, pg } from "./index.js";
 
@@ -80,6 +81,8 @@ if (process.env.SEED_HISTORY !== "0") {
   const h = await seedHistory(pool, org);
   if (h.positions) console.log(`created ${h.positions.toLocaleString("en-CA")} demo positions and ${h.events} tracker alarms (14 days)`);
 }
+
+if (process.env.SEED_HISTORY !== "0") await seedDemoBusiness(pool, org, hash(demoPassword));
 
 console.log(`
 Demo logins (password: ${demoPassword})

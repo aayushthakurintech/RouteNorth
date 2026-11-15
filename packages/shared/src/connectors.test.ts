@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { backoffMs, checkProvider, clearConnectorSessions, ConnectorError, geotabReading, isGeotabServer, pullProvider, samsaraReadings, type FetchLike } from "./connectors.js";
+import { backoffMs, checkProvider, listProviderDevices, clearConnectorSessions, ConnectorError, geotabReading, isGeotabServer, pullProvider, samsaraReadings, type FetchLike } from "./connectors.js";
 
 /** A fake provider: records each request and answers from a queue. */
 function fake(answers: { status?: number; body: unknown }[]) {
@@ -129,5 +129,32 @@ describe("backoff", () => {
     expect(backoffMs(3, false)).toBe(240_000);
     expect(backoffMs(20, false)).toBe(1_800_000);
     expect(backoffMs(1, true)).toBe(3_600_000);
+  });
+});
+
+describe("listProviderDevices", () => {
+  it("lists Geotab devices after signing in", async () => {
+    const { fetchFn, calls } = fake([auth, { body: { result: [
+      { id: "b1", name: "Truck 7", serialNumber: "G9ABC123", vehicleIdentificationNumber: "1FUJA6CK12LJ12345", licensePlate: "ABC 123" },
+      { id: "b2", name: "", serialNumber: "", },
+      { name: "no id" },
+    ] } }]);
+    const r = await listProviderDevices(geotab, fetchFn);
+    expect(calls[1]!.body).toMatchObject({ method: "Get", params: { typeName: "Device", credentials: { sessionId: "s1" } } });
+    expect(r).toEqual([
+      { id: "b1", name: "Truck 7", serial: "G9ABC123", vin: "1FUJA6CK12LJ12345", plate: "ABC 123" },
+      { id: "b2", name: "b2", serial: null, vin: null, plate: null },
+    ]);
+  });
+  it("lists Samsara vehicles across pages and explains a refused token", async () => {
+    const { fetchFn, calls } = fake([
+      { body: { data: [{ id: "111", name: "Bus 3", serial: "G7XX", vin: "V1", licensePlate: "P1" }], pagination: { hasNextPage: true, endCursor: "c1" } } },
+      { body: { data: [{ id: "222", name: "Bus 4" }], pagination: { hasNextPage: false } } },
+    ]);
+    const r = await listProviderDevices({ provider: "samsara", settings: { region: "us" }, secret: "tok" }, fetchFn);
+    expect(calls[1]!.url).toContain("after=c1");
+    expect(r.map((x) => x.id)).toEqual(["111", "222"]);
+    const bad = fake([{ status: 401, body: {} }]);
+    await expect(listProviderDevices({ provider: "samsara", settings: { region: "us" }, secret: "x" }, bad.fetchFn)).rejects.toMatchObject({ auth: true });
   });
 });

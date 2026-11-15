@@ -5,7 +5,9 @@ import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
 import { auditChange } from "../audit/domain-audit.js";
 import { parseBody } from "../resources/engine.js";
 import type { ResourceDef } from "../resources/defs.js";
-import { PG_POOL } from "../tokens.js";
+import { JWT_SECRET, PG_POOL } from "../tokens.js";
+import { attachTracker, checkTracker, readInput, type TrackerInput } from "./connections.service.js";
+import { PortalConnectionsController, limitChecks } from "./connections.controller.js";
 import { body as asBody, companyFormat, regionScope, requireAny, uuid } from "./common.js";
 import { archiveChild, colList, createChild, listChild, updateChild, type ChildDef } from "./crud.js";
 import { shiftDay, sumMoney, vehicleMoney } from "./money-rules.js";
@@ -30,7 +32,7 @@ function strip<T extends Record<string, unknown>>(req: AuthedRequest, row: T): T
 @Controller("portal/vehicles")
 @UseGuards(AuthGuard)
 export class PortalVehiclesController {
-  constructor(@Inject(PG_POOL) private readonly pool: pg.Pool) {}
+  constructor(@Inject(PG_POOL) private readonly pool: pg.Pool, @Inject(JWT_SECRET) private readonly secret: string) {}
 
   private async ctx(c: pg.PoolClient): Promise<Ctx> {
     const f = await companyFormat(c);
@@ -138,12 +140,29 @@ export class PortalVehiclesController {
     return id;
   }
 
+  /**
+   * A new vehicle. With a `tracker` in the body ({ method, trackerId, providerConnectionId? }) the tracker is checked and
+   * linked in the same step, so a vehicle is never left half set up: if the tracker is refused nothing is saved.
+   */
   @Post()
   async create(@Req() req: AuthedRequest, @Body() raw: unknown) {
     const orgId = this.write(req);
-    const v = parseBody({ fields: VEHICLE_FIELDS } as unknown as ResourceDef, raw, true);
+    const { tracker, ...fields } = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+    let input: TrackerInput | null = null;
+    if (tracker != null) {
+      requireAny(req, "fleet.manage");
+      limitChecks(`${orgId}:${req.session!.userId}`);
+      input = readInput(tracker);
+      const check = await checkTracker({ pool: this.pool, orgId, secret: this.secret, fetchFn: PortalConnectionsController.fetchFn }, input);
+      if (!check.canRegister) throw new BadRequestException({ message: check.problems[0] ?? "This tracker cannot be saved.", code: "tracker", problems: check.problems });
+    }
+    const v = parseBody({ fields: VEHICLE_FIELDS } as unknown as ResourceDef, fields, true);
     return withOrg(this.pool, orgId, async (c) => {
       const id = await this.insertVehicle(c, req, v);
+      if (input) {
+        const userId = /^[0-9a-f-]{36}$/.test(req.session!.userId) ? req.session!.userId : null;
+        await attachTracker(c, { pool: this.pool, orgId, secret: this.secret, fetchFn: PortalConnectionsController.fetchFn, userId }, id, input);
+      }
       return (await loadVehicles(c, await this.ctx(c), { id }))[0];
     });
   }

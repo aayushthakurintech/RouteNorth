@@ -24,6 +24,7 @@ function PopoverContent({
 }: React.ComponentProps<typeof PopoverPrimitive.Content>) {
   return (
     <PopoverPrimitive.Portal>
+      <div className="portal-root contents">
       <PopoverPrimitive.Content
         data-slot="popover-content"
         align={align}
@@ -34,6 +35,7 @@ function PopoverContent({
         )}
         {...props}
       />
+      </div>
     </PopoverPrimitive.Portal>
   )
 }

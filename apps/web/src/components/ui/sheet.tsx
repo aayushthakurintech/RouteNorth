@@ -55,6 +55,7 @@ function SheetContent({
 }) {
   return (
     <SheetPortal>
+      <div className="portal-root contents">
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
@@ -80,6 +81,7 @@ function SheetContent({
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Content>
+      </div>
     </SheetPortal>
   )
 }
