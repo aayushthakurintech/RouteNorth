@@ -49,16 +49,16 @@ function Overview({ d }: { d: Dash }) {
   const fmt = useFmt(); const o = d.overview; const p = o.previous; const money = d.access.money;
   const vs = d.previous ? `vs ${fmt.date(d.previous.from)} to ${fmt.date(d.previous.to)}` : undefined;
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {money && <>
-        <StatCard label="Revenue" value={fmt.money(o.revenueCents)} href="/owner/finance" delta={change(o.revenueCents, p?.revenueCents)} hint={p ? vs : `${o.trips ?? 0} trips`} />
-        <StatCard label="Driver pay" value={fmt.money(o.driverPayCents)} href="/owner/pay-rates" delta={change(o.driverPayCents, p?.driverPayCents)} deltaGoodWhen="down" hint={p ? vs : undefined} />
-        <StatCard label="Car costs" value={fmt.money(o.vehicleCostsCents)} href="/owner/finance/expenses" delta={change(o.vehicleCostsCents, p?.vehicleCostsCents)} deltaGoodWhen="down" hint={p ? vs : "Fuel, repairs, insurance, loans, tires, fines"} />
-        <StatCard label="Profit" value={fmt.money(o.profitCents)} href="/owner/finance/profit-loss" delta={change(o.profitCents, p?.profitCents)} hint={o.marginPct == null ? "No revenue yet" : `${fmt.pct(o.marginPct, 1)} of revenue`} />
-        <StatCard label="Trips" value={fmt.num(o.trips)} href="/owner/trips" delta={change(o.trips, p?.trips)} hint={p ? vs : undefined} />
+        <StatCard label="Revenue" value={fmt.money(o.revenueCents)} count={{ value: o.revenueCents ?? 0, format: fmt.money }} href="/owner/finance" delta={change(o.revenueCents, p?.revenueCents)} hint={p ? vs : `${o.trips ?? 0} trips`} />
+        <StatCard label="Driver pay" value={fmt.money(o.driverPayCents)} count={{ value: o.driverPayCents ?? 0, format: fmt.money }} href="/owner/pay-rates" delta={change(o.driverPayCents, p?.driverPayCents)} deltaGoodWhen="down" hint={p ? vs : undefined} />
+        <StatCard label="Car costs" value={fmt.money(o.vehicleCostsCents)} count={{ value: o.vehicleCostsCents ?? 0, format: fmt.money }} href="/owner/finance/expenses" delta={change(o.vehicleCostsCents, p?.vehicleCostsCents)} deltaGoodWhen="down" hint={p ? vs : "Fuel, repairs, insurance, loans, tires, fines"} />
+        <StatCard label="Profit" value={fmt.money(o.profitCents)} count={{ value: o.profitCents ?? 0, format: fmt.money }} hero href="/owner/finance/profit-loss" delta={change(o.profitCents, p?.profitCents)} hint={o.marginPct == null ? "No revenue yet" : `${fmt.pct(o.marginPct, 1)} of revenue`} />
+        <StatCard label="Trips" value={fmt.num(o.trips)} count={{ value: o.trips ?? 0, format: fmt.num }} href="/owner/trips" delta={change(o.trips, p?.trips)} hint={p ? vs : undefined} />
       </>}
       <StatCard label="On-time" value={o.onTimePct == null ? "—" : `${o.onTimePct}%`} href="/owner/trips" delta={change(o.onTimePct, p?.onTimePct)} hint={o.onTimePct == null ? "No trips with a promised time yet" : p ? vs : "Trips that arrived by the promised time"} />
-      {d.access.fleet && <StatCard label="Active cars" value={fmt.num(o.activeCars)} href="/owner/vehicles" hint="Active or on a trip" />}
+      {d.access.fleet && <StatCard label="Active vehicles" value={fmt.num(o.activeCars)} href="/owner/vehicles" hint="Active or on a trip" />}
       {d.access.drivers && <StatCard label="Active drivers" value={fmt.num(o.activeDrivers)} href="/owner/drivers" hint="Active or on a trip" />}
     </div>
   );
@@ -82,7 +82,7 @@ function Fleet({ f }: { f: NonNullable<Dash["fleet"]> }) {
   const fmt = useFmt();
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Cars" value={fmt.num(f.total)} href="/owner/vehicles" hint={Object.entries(f.byStatus).map(([k, v]) => `${v} ${k.replace("_", " ")}`).join(", ")} />
         <StatCard label="Utilization" value={f.utilizationPct == null ? "—" : `${f.utilizationPct}%`} hint={f.utilizationFormula} />
         <StatCard label="Service due" value={fmt.num(f.dueForService)} href="/owner/vehicles?view=service" hint={`${f.overdueService} overdue`} />
@@ -101,7 +101,7 @@ function Drivers({ d }: { d: NonNullable<Dash["drivers"]> }) {
   const fmt = useFmt();
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Drivers" value={fmt.num(Object.values(d.byStatus).reduce((a, b) => a + b, 0))} href="/owner/drivers" hint={Object.entries(d.byStatus).map(([k, v]) => `${v} ${k.replace("_", " ")}`).join(", ")} />
         <StatCard label="Average safety score" value={d.averageScore == null ? "—" : String(d.averageScore)} hint="Out of 100" />
         <StatCard label="Hours worked" value={fmt.num(d.hoursWorked, 1)} hint={`${fmt.num(d.overtimeHours, 1)} h overtime`} />
@@ -118,7 +118,7 @@ function Drivers({ d }: { d: NonNullable<Dash["drivers"]> }) {
 
 function Live({ l }: { l: NonNullable<Dash["live"]> }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <StatCard label="Moving now" value={l.moving} href="/live" hint="Seen in the last 10 minutes" />
       <StatCard label="Parked" value={l.parked} href="/live" />
       <StatCard label="Not reporting" value={l.offline} href="/live" hint="No position for 10 minutes" />

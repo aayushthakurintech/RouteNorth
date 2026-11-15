@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CountUp } from "@/components/motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBreadcrumbs, type Crumb } from "@/lib/breadcrumbs";
 import { cn } from "@/lib/utils";
@@ -12,10 +13,10 @@ import { cn } from "@/lib/utils";
 export function PageHeader({ title, description, actions, crumbs }: { title: ReactNode; description?: ReactNode; actions?: ReactNode; crumbs?: Crumb[] }) {
   useBreadcrumbs(crumbs ?? []);
   return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+    <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="truncate text-2xl font-semibold tracking-tight">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+        <h1 className="font-display truncate text-[28px] leading-tight font-extrabold tracking-[-0.03em]">{title}</h1>
+        {description && <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
@@ -46,12 +47,19 @@ export function StatusBadge({ tone = "neutral", children, className }: { tone?: 
 }
 
 /** A dashboard number. Click-through: pass `href` and the number opens the rows behind it (spec rule 4). */
-export function StatCard({ label, value, hint, href, delta, deltaGoodWhen = "up", loading }: { label: string; value: ReactNode; hint?: ReactNode; href?: string; delta?: number | null; deltaGoodWhen?: "up" | "down"; loading?: boolean }) {
+export function StatCard({ label, value, hint, href, delta, deltaGoodWhen = "up", loading, count, hero }: {
+  label: string; value: ReactNode; hint?: ReactNode; href?: string; delta?: number | null; deltaGoodWhen?: "up" | "down"; loading?: boolean;
+  /** Count the number up once when it scrolls into view. `value` is still what is shown if motion is reduced or the number is not numeric. */
+  count?: { value: number; format: (n: number) => string };
+  /** The one number on the page that matters most: ink tile, amber rule. Use once per page. */
+  hero?: boolean;
+}) {
   const inner = (
-    <Card className={cn("h-full gap-2 py-4 transition-colors", href && "hover:border-primary")}>
-      <CardHeader className="px-4"><CardDescription>{label}</CardDescription><CardTitle className="text-2xl tabular-nums">{loading ? <Skeleton className="h-8 w-24" /> : value}</CardTitle></CardHeader>
+    <Card className={cn("relative h-full gap-3 overflow-hidden py-4 transition-[border-color,transform] duration-200", href && "hover:border-primary hover:-translate-y-px", hero && "border-transparent bg-[var(--nav-bg)] text-white hover:border-[var(--amber)]")}>
+      {hero && <span aria-hidden className="absolute inset-y-0 start-0 w-1 bg-[var(--amber)]" />}
+      <CardHeader className="px-4"><CardDescription className={cn("text-[13px]", hero && "text-white/70")}>{label}</CardDescription><CardTitle className={cn("font-display leading-none font-extrabold tracking-[-0.03em] tabular-nums", "text-[22px] sm:text-[30px]")}>{loading ? <Skeleton className="h-8 w-24" /> : count ? <CountUp value={count.value} format={count.format} /> : value}</CardTitle></CardHeader>
       {(hint || delta != null) && (
-        <CardContent className="flex items-center gap-2 px-4 text-xs text-muted-foreground">
+        <CardContent className={cn("flex items-center gap-2 px-4 text-xs", hero ? "text-white/70" : "text-muted-foreground")}>
           {delta != null && (
             <span className={cn("inline-flex items-center gap-0.5 font-medium", delta === 0 ? "" : (delta > 0) === (deltaGoodWhen === "up") ? "text-ok" : "text-destructive")}>
               {delta === 0 ? <Minus className="size-3" /> : delta > 0 ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}{Math.abs(delta).toFixed(1)}%

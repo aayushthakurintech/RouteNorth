@@ -113,4 +113,18 @@ suite("storeFix", () => {
     clearDeviceCache();
     expect((await ingestReading(app, "traccar", fix("2026-11-02T12:30:00Z", 44.002), NOW)).kind).toBe("stored");
   });
+  it("remembers the exact ID of an unregistered tracker so an owner can be told we heard it", async () => {
+    clearDeviceCache();
+    const o = await ingestReading(app, "traccar", fix("2026-11-02T12:40:00Z", 44.003, { externalId: "UNSEEN-IMEI-9" }), NOW);
+    expect(o).toEqual({ kind: "unknown_device", externalId: "UNSEEN-IMEI-9" });
+    countOutcome("traccar", o);
+    // an ID made up by a feed is never recorded (feeds make their own devices)
+    countOutcome("feed", { kind: "unknown_device", externalId: "feed-only" });
+    await flushCounters(app);
+    const heard = (await app.query("SELECT n FROM heard_from_unregistered('traccar', 'UNSEEN-IMEI-9')")).rows;
+    expect(heard).toHaveLength(1);
+    expect(Number(heard[0].n)).toBe(1);
+    expect((await app.query("SELECT 1 FROM heard_from_unregistered('traccar', 'feed-only')")).rowCount).toBe(0);
+    expect((await app.query("SELECT 1 FROM heard_from_unregistered('api', 'UNSEEN-IMEI-9')")).rowCount).toBe(0);
+  });
 });

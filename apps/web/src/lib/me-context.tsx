@@ -1,5 +1,5 @@
 "use client";
-import type { Permission } from "@routenorth/shared";
+import type { Permission, SectionId } from "@routenorth/shared";
 import { configureBasemap } from "@/lib/basemap";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { apiGet, apiSend, Unauthorized } from "./api";
@@ -17,6 +17,10 @@ export interface Me {
     settings: { idleThresholdMin: number; speedLimitKmh: number; trackOnlyDuringShift: boolean; defaultMapProvider: string; currency: string; taxRatePct: number; featureFlags: Record<string, boolean>; platform?: { mapKey: string; mapTileUrl: string; analyticsOptOut: boolean }; billing?: { province: string } };
   };
   prefs: Prefs;
+  /** Which sections this company has. `restricted: false` means everything (the usual case). */
+  entitlements?: { restricted: boolean; sections: SectionId[]; limits: { vehicles: number | null; users: number | null } } | null;
+  /** Present only while RouteNorth staff are looking at this account through a read-only "view as client". */
+  impersonation?: { reason: string; expiresAt: string; by: string } | null;
 }
 
 export interface Favorite { href: string; label: string }

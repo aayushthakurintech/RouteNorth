@@ -1,4 +1,5 @@
 import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Inject, NotFoundException, Param, Post, Req, UseGuards } from "@nestjs/common";
+import { assertWithinLimit } from "../admin/limits.js";
 import { pg, withOrg } from "@routenorth/db";
 import { AuthGuard, requireAny, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
 import { parseUuid } from "../history/range.js";
@@ -81,6 +82,7 @@ export class PortalGpsConnectController {
       const waiting = (await c.query<{ id: string; external_id: string }>(
         `SELECT id, external_id FROM devices WHERE source = 'feed' AND vehicle_id IS NULL AND ($1::uuid[] IS NULL OR id = ANY($1)) ORDER BY external_id LIMIT 500`, [ids])).rows;
       let created = 0;
+      await assertWithinLimit(c, orgId, "vehicles", waiting.length);
       for (const dev of waiting) {
         const v = await c.query<{ id: string }>("INSERT INTO vehicles (org_id, name, kind) VALUES ($1,$2,$3) RETURNING id", [orgId, dev.external_id.slice(0, 80), kind]);
         await c.query("UPDATE devices SET vehicle_id = $2 WHERE id = $1", [dev.id, v.rows[0]!.id]);

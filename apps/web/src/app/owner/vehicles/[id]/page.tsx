@@ -1,9 +1,10 @@
 "use client";
 import { AlertTriangle, Archive, ArchiveRestore, Camera, CheckCircle2, Pencil, Tag } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ConnectionPanel } from "@/components/connections/ConnectionPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,6 +42,7 @@ const dollars = (c: number | null | undefined) => (c == null ? "" : (c / 100).to
 /** One car: summary on top, then a tab for each part of its life. */
 export default function VehicleProfile() {
   const { id } = useParams<{ id: string }>();
+  const initialTab = useSearchParams().get("tab") ?? "overview";
   const router = useRouter();
   const fmt = useFmt();
   const { can } = useMe();
@@ -80,9 +82,9 @@ export default function VehicleProfile() {
             </div>
           )}
 
-          <Tabs defaultValue="overview" className="space-y-4">
+          <Tabs defaultValue={initialTab} className="space-y-4">
             <TabsList className="h-auto flex-wrap justify-start">
-              {([["overview", "Overview"], ["papers", "Papers"], ["service", "Service"], ["fuel", "Fuel"], ["checks", "Inspections"], ["incidents", "Incidents"], ["drivers", "Drivers"], ...(costs ? [["money", "Money"]] : []), ["trips", "Trips"], ["live", "Tracking"], ["activity", "Activity"]] as [string, string][]).map(([k, l]) => <TabsTrigger key={k} value={k}>{l}</TabsTrigger>)}
+              {([["overview", "Overview"], ["papers", "Papers"], ["service", "Service"], ["fuel", "Fuel"], ["checks", "Inspections"], ["incidents", "Incidents"], ["drivers", "Drivers"], ...(costs ? [["money", "Money"]] : []), ["trips", "Trips"], ["tracker", "Tracker"], ["activity", "Activity"]] as [string, string][]).map(([k, l]) => <TabsTrigger key={k} value={k}>{l}</TabsTrigger>)}
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4"><Overview v={v} fmt={fmt} write={write} base={base} reload={api.reload} /></TabsContent>
@@ -136,7 +138,7 @@ export default function VehicleProfile() {
             <TabsContent value="drivers"><Assignments base={base} id={id} v={v} fmt={fmt} write={write || can("vehicles.assign")} onChange={api.reload} /></TabsContent>
             {costs && <TabsContent value="money"><Money base={base} fmt={fmt} /></TabsContent>}
             <TabsContent value="trips"><Trips base={base} fmt={fmt} costs={costs} /></TabsContent>
-            <TabsContent value="live"><Tracking base={base} fmt={fmt} /></TabsContent>
+            <TabsContent value="tracker" className="space-y-8"><ConnectionPanel vehicleId={id} canManage={can("fleet.manage")} onChanged={api.reload} /><Tracking base={base} fmt={fmt} /></TabsContent>
             <TabsContent value="activity"><Activity base={base} fmt={fmt} write={write || can("fleet.manage")} /></TabsContent>
           </Tabs>
 
@@ -307,7 +309,7 @@ function Tracking({ base, fmt }: { base: string; fmt: Fmt }) {
   const api = useApi<Tracking>(`${base}/tracking`, { intervalMs: 30_000 });
   return (
     <Async state={api}>{() => { const t = api.data!; return !t.device ? (
-      <p className="text-sm text-muted-foreground">No tracker is linked to this car yet. Add a device under Settings, then live position, geofence events and trip replay appear here.</p>
+      <p className="text-sm text-muted-foreground">Once a tracker is connected above, its live position, geofence events and trip replay appear here.</p>
     ) : (
       <div className="space-y-3 text-sm">
         <div className="grid gap-3 sm:grid-cols-3">

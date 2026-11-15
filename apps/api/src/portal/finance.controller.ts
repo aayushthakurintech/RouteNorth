@@ -1,6 +1,6 @@
 import { BadRequestException, Body, ConflictException, Controller, Get, HttpCode, Inject, NotFoundException, Param, Patch, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
-import { dayNumber, parseCents, type Permission } from "@routenorth/shared";
+import { LIVE_WITHIN_MIN, dayNumber, parseCents, type Permission } from "@routenorth/shared";
 import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
 import { auditChange } from "../audit/domain-audit.js";
 import { PG_POOL } from "../tokens.js";
@@ -120,6 +120,16 @@ export class PortalDashboardController {
       add("rate_cards", 2, "Rate card changes waiting for approval", (await c.query(`SELECT count(*)::int AS n FROM change_requests WHERE status = 'pending' AND entity = 'rate_versions'`)).rows[0].n, "/owner/pay-rates", "Approve or send back");
     }
     add("inspections", 1, "Failed inspections not signed off", (await c.query(`SELECT count(DISTINCT vehicle_id)::int AS n FROM inspections WHERE archived_at IS NULL AND defects AND signed_off_at IS NULL`)).rows[0].n, "/owner/vehicles?view=failed-inspection", "Open cars");
+    if (can(req, "vehicles.manage", "fleet.manage", "fleet.view")) {
+      // Connection health, with the same 15-minute rule the Connections page uses.
+      const conn = (await c.query(
+        `SELECT count(*) FILTER (WHERE NOT EXISTS (SELECT 1 FROM devices d WHERE d.vehicle_id = v.id))::int AS no_tracker,
+                count(*) FILTER (WHERE NOT EXISTS (SELECT 1 FROM devices d JOIN latest_positions lp ON lp.device_id = d.id WHERE d.vehicle_id = v.id AND lp.time > now() - make_interval(mins => $1))
+                                  AND EXISTS (SELECT 1 FROM devices d JOIN latest_positions lp ON lp.device_id = d.id WHERE d.vehicle_id = v.id))::int AS quiet
+         FROM vehicles v WHERE v.archived_at IS NULL`, [LIVE_WITHIN_MIN])).rows[0];
+      add("trackers_quiet", 2, "Vehicles whose tracker has stopped reporting", conn.quiet, "/owner/connections", "See what to check");
+      add("no_tracker", 3, "Vehicles with no tracker connected", conn.no_tracker, "/owner/connections", "Add a tracker");
+    }
     const stuckDays = (await loadSettings(c)).stuckOnboardingDays;
     add("onboarding", 3, `Drivers stuck in onboarding for ${stuckDays}+ days`, drivers.filter((d) => d.status === "onboarding" && Date.now() - Date.parse(d.createdAt) > stuckDays * 86_400_000).length, "/owner/drivers?view=onboarding", "Open drivers");
     if (can(req, "finance.view", "vehicles.costs")) {

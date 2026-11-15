@@ -9,7 +9,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable, type BuiltInView, type Col, type FilterDef } from "@/components/portal/data-table";
-import { RecordDialog } from "@/components/portal/field-form";
+import { AddVehicleFlow } from "@/components/connections/AddVehicleFlow";
+import { StatusPill } from "@/components/connections/parts";
+import type { ConnOverview } from "@/lib/portal/connections";
 import { PageHeader, StatusBadge } from "@/components/portal/parts";
 import { apiSend } from "@/lib/api";
 import { parseCsvText } from "@/lib/csv-parse";
@@ -38,6 +40,8 @@ export default function VehiclesPage() {
   const [archived, setArchived] = useState(false);
   const api = useApi<VehicleRowT[]>(`/portal/vehicles${archived ? "?archived=1" : ""}`);
   const meta = useApi<Meta>("/portal/vehicles/meta");
+  const conns = useApi<ConnOverview>("/portal/connections/overview", { intervalMs: 30_000 });
+  const connBy = useMemo(() => new Map((conns.data?.vehicles ?? []).map((c) => [c.vehicleId, c])), [conns.data]);
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
   const [assign, setAssign] = useState<VehicleRowT[] | null>(null);
@@ -47,9 +51,10 @@ export default function VehiclesPage() {
   const write = can("vehicles.manage");
 
   const columns = useMemo<Col<VehicleRowT>[]>(() => [
-    { id: "name", accessorKey: "name", header: "Car", cell: ({ row: { original: r } }) => (
+    { id: "name", accessorKey: "name", header: "Vehicle", cell: ({ row: { original: r } }) => (
       <Link href={`/owner/vehicles/${r.id}`} className="font-medium hover:underline" onClick={(e) => e.stopPropagation()}>{r.name}<span className="block text-xs font-normal text-muted-foreground">{[r.year, r.make, r.model].filter(Boolean).join(" ") || r.kind}</span></Link>
-    ), meta: { label: "Car", csv: (r) => r.name } },
+    ), meta: { label: "Vehicle", csv: (r) => r.name } },
+    { id: "tracker", accessorFn: (r) => connBy.get(r.id)?.status.state ?? "", header: "Tracker", cell: ({ row: { original: r } }) => { const c = connBy.get(r.id); return c ? <Link href={`/owner/vehicles/${r.id}?tab=tracker`} onClick={(e) => e.stopPropagation()}><StatusPill state={c.status.state} /></Link> : <span className="text-muted-foreground">–</span>; }, meta: { label: "Tracker", csv: (r) => connBy.get(r.id)?.status.title ?? "" } },
     { id: "plate", accessorKey: "plate", header: "Plate", cell: ({ row }) => row.original.plate ?? "—", meta: { label: "Plate" } },
     { id: "status", accessorKey: "status", header: "Status", cell: ({ row: { original: r } }) => (
       <span title={r.blockedReasons.join("; ") || undefined}><StatusBadge tone={STATUS_TONE[r.status] ?? "neutral"}>{STATUS_LABEL[r.status] ?? r.status}</StatusBadge>{r.blockedReasons.length > 0 && r.status !== "out_of_service" && r.status !== "in_service" && <StatusBadge tone="bad" className="ml-1">Blocked</StatusBadge>}</span>
@@ -60,7 +65,7 @@ export default function VehiclesPage() {
     { id: "docs", accessorFn: (r) => r.docs.expired * 100 + r.docs.expiring, header: "Papers", cell: ({ row: { original: r } }) => r.docs.expired ? <StatusBadge tone="bad">{r.docs.expired} expired</StatusBadge> : r.docs.expiring ? <StatusBadge tone="warn">{r.docs.expiring} expiring</StatusBadge> : <span className="text-muted-foreground">OK</span>, meta: { label: "Papers", csv: (r) => (r.docs.expired ? `${r.docs.expired} expired` : r.docs.expiring ? `${r.docs.expiring} expiring` : "OK") } },
     { id: "activity", accessorKey: "lastActivity", header: "Last active", cell: ({ row }) => fmt.date(row.original.lastActivity), meta: { label: "Last active", csv: (r) => r.lastActivity ?? "", xtype: "date" } },
     ...(costs ? [{ id: "profit", accessorKey: "monthProfitCents", header: "Profit this month", cell: ({ row: { original: r } }) => <span className={(r.monthProfitCents ?? 0) < 0 ? "text-destructive" : undefined}>{fmt.money(r.monthProfitCents)}</span>, meta: { label: "Profit this month", align: "end", csv: (r: VehicleRowT) => plainMoney(r.monthProfitCents), xtype: "num" } } as Col<VehicleRowT>] : []),
-  ], [fmt, costs]);
+  ], [fmt, costs, connBy]);
 
   const filters: FilterDef<VehicleRowT>[] = [
     { id: "status", label: "Status", options: Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label })), get: (r) => r.status },
@@ -73,6 +78,7 @@ export default function VehiclesPage() {
     { id: "attention", name: "Needs attention", predicate: (r) => r.blockedReasons.length > 0 || r.service.state === "overdue" || r.docs.expired > 0 },
     { id: "service", name: "Service due", predicate: (r) => r.service.state === "overdue" || r.service.state === "due_soon" },
     { id: "docs", name: "Papers expiring", predicate: (r) => r.docs.expired > 0 || r.docs.expiring > 0 },
+    { id: "notracker", name: "No tracker", predicate: (r) => !connBy.get(r.id)?.device && r.status !== "sold" && r.status !== "archived" },
     { id: "nodriver", name: "No driver", predicate: (r) => !r.currentDriverId && r.status !== "sold" && r.status !== "archived" },
   ];
 
@@ -111,10 +117,9 @@ export default function VehiclesPage() {
             <div className="mt-1 text-sm text-muted-foreground">{r.plate ?? "No plate"} · {r.currentDriverName ?? "No driver"} · {fmt.num(r.odometerKm)} km</div>
           </Link>
         )}
-        empty={{ title: archived ? "No archived cars" : "No vehicles yet", description: "Add your first car, or import a list from a spreadsheet.", action: write ? <Button size="sm" onClick={() => setAdding(true)}><Car className="size-4" /> Add vehicle</Button> : undefined }} />
+        empty={{ title: archived ? "No archived cars" : "No vehicles yet", description: "Add your first vehicle with its tracker ID, or import a list from a spreadsheet.", action: write ? <Button size="sm" onClick={() => setAdding(true)}><Car className="size-4" /> Add vehicle</Button> : undefined }} />
 
-      <RecordDialog open={adding} onOpenChange={setAdding} title="Add vehicle" description="Only the nickname and type are needed. Everything else can be filled in later." fields={VEHICLE_FORM} record={{ status: "active", kind: "truck" }}
-        method="POST" path="/portal/vehicles" onDone={(r) => router.push(`/owner/vehicles/${(r as { id: string }).id}`)} />
+      <AddVehicleFlow open={adding} onOpenChange={setAdding} onDone={(id) => { api.reload(); conns.reload(); router.push(`/owner/vehicles/${id}`); }} />
       <ImportDialog open={importing} onOpenChange={setImporting} onDone={api.reload} />
       <AssignDialog rows={assign} drivers={meta.data?.drivers ?? []} onClose={() => setAssign(null)} onRun={(driverId, kind, startAt) => { void bulk("assign_driver", assign!.map((r) => r.id), { driverId, kind, startAt }); setAssign(null); }} />
       <TextDialog open={!!noteFor} title="Add a note to the selected cars" label="Note" onClose={() => setNoteFor(null)} onSubmit={(text) => { void bulk("note", noteFor!.map((r) => r.id), { text }); setNoteFor(null); }} />
