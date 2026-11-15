@@ -230,3 +230,63 @@ export function backoffMs(failures: number, auth: boolean): number {
   if (auth) return 3_600_000;
   return Math.min(30 * 60_000, 60_000 * 2 ** Math.max(0, failures - 1));
 }
+
+// ---------------------------------------------------------------- listing a provider's vehicles (for choosing one)
+
+export interface ProviderDevice {
+  /** The id used to link the vehicle: Geotab's device id, or Samsara's vehicle id. */
+  id: string;
+  name: string;
+  serial: string | null;
+  vin: string | null;
+  plate: string | null;
+}
+
+/**
+ * The vehicles in a company's provider account, so the owner can pick one instead of finding an id by hand.
+ * Geotab: `Get` of `Device`. Samsara: `GET /fleet/vehicles`. Plain responses in, plain list out; at most 1000 rows.
+ */
+export async function listProviderDevices(input: Omit<PullInput, "cursor">, fetchFn: FetchLike): Promise<ProviderDevice[]> {
+  const out: ProviderDevice[] = [];
+  const nz = (v: unknown) => { const s = str(v).trim(); return s || null; };
+  if (input.provider === "geotab") {
+    const s = geotabSettings(input.settings);
+    if (typeof s === "string") throw new ConnectorError(s, true);
+    const run = async (session: GeotabSession) => (await geotabCall(fetchFn, session.server, "Get", { typeName: "Device", resultsLimit: 1000, credentials: session.credentials })) as unknown[];
+    let session = await geotabSession(fetchFn, s, input.secret);
+    let rows: unknown[];
+    try { rows = await run(session); } catch (e) {
+      if (!(e instanceof ConnectorError && e.auth)) throw e;
+      session = await geotabSession(fetchFn, s, input.secret, true);
+      rows = await run(session);
+    }
+    for (const r of Array.isArray(rows) ? rows : []) {
+      const d = r as { id?: unknown; name?: unknown; serialNumber?: unknown; vehicleIdentificationNumber?: unknown; licensePlate?: unknown };
+      const id = str(d.id);
+      if (id) out.push({ id, name: str(d.name) || id, serial: nz(d.serialNumber), vin: nz(d.vehicleIdentificationNumber), plate: nz(d.licensePlate) });
+    }
+    return out;
+  }
+  const s = samsaraSettings(input.settings);
+  if (typeof s === "string") throw new ConnectorError(s, true);
+  let after = "";
+  for (let page = 0; page < 4 && out.length < 1000; page++) {
+    let res;
+    try {
+      res = await fetchFn(`${samsaraHost(s)}/fleet/vehicles?limit=512${after ? `&after=${encodeURIComponent(after)}` : ""}`, { method: "GET", headers: { authorization: `Bearer ${input.secret}`, accept: "application/json" }, signal: AbortSignal.timeout(30_000) });
+    } catch {
+      throw new ConnectorError("could not reach Samsara");
+    }
+    if (res.status === 401 || res.status === 403) throw new ConnectorError("Samsara refused the API token: check it has read access to vehicles", true);
+    if (!res.ok) throw new ConnectorError(`Samsara answered ${res.status}`);
+    const body = (await res.json()) as { data?: unknown[]; pagination?: { hasNextPage?: unknown; endCursor?: unknown } };
+    for (const r of Array.isArray(body.data) ? body.data : []) {
+      const v = r as { id?: unknown; name?: unknown; serial?: unknown; vin?: unknown; licensePlate?: unknown };
+      const id = str(v.id);
+      if (id) out.push({ id, name: str(v.name) || id, serial: nz(v.serial), vin: nz(v.vin), plate: nz(v.licensePlate) });
+    }
+    if (body.pagination?.hasNextPage !== true || !str(body.pagination?.endCursor)) break;
+    after = str(body.pagination.endCursor);
+  }
+  return out;
+}

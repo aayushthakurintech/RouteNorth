@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { I18nProvider } from "@/lib/i18n-context";
 import { THEME_BOOT_SCRIPT, ThemeProvider } from "@/lib/theme-context";
 import { ToastProvider } from "@/lib/toast";
+import { MotionProvider } from "@/components/motion";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,7 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <I18nProvider>
           <ThemeProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <MotionProvider><ToastProvider>{children}</ToastProvider></MotionProvider>
           </ThemeProvider>
         </I18nProvider>
       </body>

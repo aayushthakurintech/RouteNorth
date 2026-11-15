@@ -6,19 +6,23 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { LOCALES, LOCALE_NAMES, type Locale, type MessageKey } from "@routenorth/shared";
+import { LOCALES, LOCALE_NAMES, pageAllowed, type Locale } from "@routenorth/shared";
 import { ErrorState, SkeletonList } from "@/components/ui/primitives";
+import { NotIncluded, StaffViewBar, SuspendedState } from "./PlanGate";
+import { ApiError } from "@/lib/api";
 import { useCrumbs } from "@/lib/breadcrumbs";
 import { useI18n } from "@/lib/i18n-context";
 import { useMe } from "@/lib/me-context";
 import { useApi } from "@/lib/use-api";
-import { isActive, visibleNav } from "@/lib/nav";
+import { isActive, navText, NAV_SECTIONS, sectionItems, visibleNav } from "@/lib/nav";
 import { FeedbackDialog } from "@/components/support/FeedbackDialog";
 import { apiSend } from "@/lib/api";
 import { track } from "@/lib/usage";
 import { loadSession, saveSession } from "@/lib/session";
 import { useTheme, type MotionMode, type ThemeMode } from "@/lib/theme-context";
 import { RELEASE_NOTES } from "@/lib/whats-new";
+import { LogoMark } from "@/components/Logo";
+import { SPRING, motion as fm, PageTransition } from "@/components/motion";
 import { CommandPalette, type Command } from "./CommandPalette";
 import { ProductTour, SetupChecklist, ShortcutsSheet, WhatsNew } from "./Onboarding";
 
@@ -28,7 +32,7 @@ const THEMES: { mode: ThemeMode; key: "themeLight" | "themeDark" | "themeAuto" |
 ];
 
 /** Sidebar, top bar, command palette, shortcuts, onboarding. Wraps every signed-in page. */
-export function AppShell({ children, flush }: { children: ReactNode; flush?: boolean }) {
+export function AppShell({ children, flush, topSlot }: { children: ReactNode; flush?: boolean; /** Page-family controls shown left of search (the Owner Portal's date range). */ topSlot?: ReactNode }) {
   const { t, locale, setLocale } = useI18n();
   const { me, loading, error, can, prefs, setPrefs, reload } = useMe();
   const { mode, setMode, motion, setMotion } = useTheme();
@@ -71,7 +75,8 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
   useEffect(() => { if (me?.security?.mustSetUpTwoFactor && pathname !== "/settings/security") router.replace("/settings/security"); }, [me, pathname, router]);
   // Signing out also ends the token on the server, so a copied token stops working.
   const signOut = useCallback(() => { void apiSend("POST", "/auth/logout").catch(() => {}).finally(() => { saveSession(null); router.replace("/login"); }); }, [router]);
-  const nav = useMemo(() => visibleNav(can).filter((n) => !(n.href === "/assistant" && me?.flags?.assistant === false)), [can, me]);
+  // A page also has to be in the company's plan: the menu hides what the plan leaves out, and the server refuses it either way.
+  const nav = useMemo(() => visibleNav(can).filter((n) => !(n.href === "/assistant" && me?.flags?.assistant === false) && (!me?.entitlements || pageAllowed(me.entitlements, n.href))), [can, me]);
   const approvals = useApi<{ pending: number }>(can("reports.view") ? "/approvals/count" : null, { intervalMs: 60_000 });
   const inbox = useApi<{ drivers: number; customers: number; help: number }>(can("routes.dispatch") || can("customers.manage") ? "/messages/unread" : null, { intervalMs: 30_000 });
   const badges = { approvals: approvals.data?.pending ?? 0, inbox: (inbox.data?.drivers ?? 0) + (inbox.data?.customers ?? 0) + (inbox.data?.help ?? 0) };
@@ -112,11 +117,11 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
   const brandName = me?.org.brandName || "RouteNorth";
   const favorites = prefs.favorites ?? [];
   const pinned = favorites.some((f) => f.href === pathname);
-  const pageLabel = crumbs.at(-1)?.label ?? (nav.find((n) => isActive(n.href, pathname)) ? t(nav.find((n) => isActive(n.href, pathname))!.label) : "");
+  const pageLabel = crumbs.at(-1)?.label ?? (nav.find((n) => isActive(n.href, pathname)) ? navText(nav.find((n) => isActive(n.href, pathname))!, t) : "");
   const unread = RELEASE_NOTES[0] && prefs.whatsNewSeen !== RELEASE_NOTES[0].id;
 
   const commands: Command[] = useMemo(() => {
-    const pages: Command[] = nav.map((n) => ({ id: `page:${n.href}`, label: t(n.label), group: "jumpTo", keywords: n.keywords, icon: <n.icon size={16} aria-hidden />, run: () => go(n.href, t(n.label)) }));
+    const pages: Command[] = nav.map((n) => ({ id: `page:${n.href}`, label: navText(n, t), group: "jumpTo", keywords: n.keywords, icon: <n.icon size={16} aria-hidden />, run: () => go(n.href, navText(n, t)) }));
     const actions: Command[] = [
       { id: "act:theme", label: `${t("theme")}: ${t("themeDark")} / ${t("themeLight")}`, group: "actions", keywords: "dark light mode sombre clair theme", icon: <Moon size={16} />, run: cycleTheme },
       { id: "act:nav", label: collapsed ? t("expandNav") : t("collapseNav"), group: "actions", icon: <ChevronsLeft size={16} />, run: () => setPrefs({ navCollapsed: !collapsed }) },
@@ -133,24 +138,20 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
   if (loading) {
     return <div className="content" style={{ maxWidth: 720, margin: "10vh auto" }}><SkeletonList rows={4} h={48} /></div>;
   }
+  if (error instanceof ApiError && error.code === "account_suspended") return <SuspendedState onSignOut={signOut} />;
   if (error || !me) {
     return <div style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }}><ErrorState error={error} onRetry={reload} /></div>;
   }
 
-  const sections = [
-    { id: "main", label: null as MessageKey | null, items: nav.filter((n) => n.group === "main") },
-    { id: "fleet", label: "navFleet" as MessageKey, items: nav.filter((n) => n.group === "fleet") },
-    { id: "admin", label: "settings" as MessageKey, items: nav.filter((n) => n.group === "admin") },
-  ];
+  const sections = NAV_SECTIONS.map((s) => ({ ...s, items: sectionItems(nav, s.id) }));
 
   return (
     <div className="app" data-collapsed={collapsed} data-open={open}>
+      {me.impersonation && <StaffViewBar info={me.impersonation} />}
       <a className="skip-link" href="#main">{t("skipToContent")}</a>
       <nav className="sidenav" aria-label={t("mainNav")}>
         <Link href="/live" className="brand">
-          <span className="brand-mark" aria-hidden>
-            {me.org.logoDataUrl ? <img src={me.org.logoDataUrl} alt="" /> : <svg width="18" height="18" viewBox="0 0 18 18"><path d="M4 15V3l10 12V3" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-          </span>
+          {me.org.logoDataUrl ? <span className="brand-mark" aria-hidden><img src={me.org.logoDataUrl} alt="" /></span> : <LogoMark size={30} />}
           <span className="brand-name">{brandName}</span>
         </Link>
         {favorites.length > 0 && (
@@ -163,10 +164,11 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
         )}
         {sections.map((s) => s.items.length > 0 && (
           <div className="nav-group" key={s.id}>
-            {s.label && <span className="nav-label">{t(s.label)}</span>}
+            {s.label && <span className="nav-label">{s.label}</span>}
             {s.items.map((n) => (
-              <Link key={n.href} href={n.href} className="nav-item" aria-current={isActive(n.href, pathname) ? "page" : undefined} title={collapsed ? t(n.label) : undefined}>
-                <n.icon size={18} aria-hidden /><span className="nav-text">{t(n.label)}</span>
+              <Link key={n.href} href={n.href} className="nav-item" aria-current={isActive(n.href, pathname) ? "page" : undefined} title={collapsed ? navText(n, t) : undefined}>
+                {isActive(n.href, pathname) && <fm.span layoutId="nav-active" className="nav-active" transition={SPRING} />}
+                <n.icon size={18} aria-hidden /><span className="nav-text">{navText(n, t)}</span>
                 {n.badge && badges[n.badge] > 0 && <span className="nav-badge" aria-label={t("navBadge", { n: badges[n.badge] })}>{badges[n.badge] > 99 ? "99+" : badges[n.badge]}</span>}
               </Link>
             ))}
@@ -191,6 +193,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
           )) : pageLabel ? <span aria-current="page">{pageLabel}</span> : null}
         </nav>
         <div className="top-actions">
+          {topSlot}
           <button type="button" className="search-trigger" onClick={() => setPalette(true)}>
             <Search size={16} aria-hidden /><span className="label">{t("search")}</span><span className="kbd">Ctrl K</span>
           </button>
@@ -237,7 +240,7 @@ export function AppShell({ children, flush }: { children: ReactNode; flush?: boo
         </div>
       </header>
 
-      <main id="main" className={`main ${flush ? "flush" : ""}`} tabIndex={-1}>{children}</main>
+      <main id="main" className={`main ${flush ? "flush" : ""}`} tabIndex={-1}>{me.entitlements && !pageAllowed(me.entitlements, pathname) ? <NotIncluded pathname={pathname} /> : flush ? children : <PageTransition id={pathname}>{children}</PageTransition>}</main>
 
       <CommandPalette open={palette} onClose={() => setPalette(false)} commands={commands} onNavigate={go} />
       <ShortcutsSheet open={help} onClose={() => setHelp(false)} />

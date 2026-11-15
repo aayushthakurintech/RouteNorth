@@ -6,12 +6,14 @@ export interface Session {
   role: string;
   /** The sign-in this token belongs to (a row in user_sessions). Older tokens have none. */
   sid?: string;
+  /** Set when RouteNorth staff are viewing this account read-only: the id of the platform_impersonations row. */
+  imp?: string;
 }
 
 const enc = (secret: string) => new TextEncoder().encode(secret);
 
 export async function signSession(secret: string, s: Session, expiresIn = "12h"): Promise<string> {
-  return new SignJWT({ org: s.orgId, role: s.role, ...(s.sid ? { sid: s.sid } : {}) })
+  return new SignJWT({ org: s.orgId, role: s.role, ...(s.sid ? { sid: s.sid } : {}), ...(s.imp ? { imp: s.imp } : {}) })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(s.userId)
     .setIssuedAt()
@@ -24,7 +26,7 @@ export async function verifySession(secret: string, token: string): Promise<Sess
   try {
     const { payload } = await jwtVerify(token, enc(secret), { algorithms: ["HS256"] });
     if (!payload.sub || typeof payload.org !== "string" || typeof payload.role !== "string" || payload.mfa) return null;
-    return { userId: payload.sub, orgId: payload.org, role: payload.role, ...(typeof payload.sid === "string" ? { sid: payload.sid } : {}) };
+    return { userId: payload.sub, orgId: payload.org, role: payload.role, ...(typeof payload.sid === "string" ? { sid: payload.sid } : {}), ...(typeof payload.imp === "string" ? { imp: payload.imp } : {}) };
   } catch {
     return null;
   }

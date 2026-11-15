@@ -63,8 +63,13 @@ import { PortalAlertsController } from "./portal/alerts.controller.js";
 import { PortalDataSourcesController } from "./portal/data-sources.controller.js";
 import { PortalGpsConnectController } from "./portal/gps-connect.controller.js";
 import { PortalProviderConnectionsController } from "./portal/provider-connections.controller.js";
+import { PortalConnectionsController } from "./portal/connections.controller.js";
 import { PortalReportsController } from "./portal/reports.controller.js";
 import { ErrorLogFilter } from "./ops/errors.js";
+import { AdminController } from "./admin/admin.controller.js";
+import { PlatformAudit } from "./admin/platform-audit.js";
+import { PlatformGuard } from "./admin/platform-auth.js";
+import { PlatformAuth } from "./admin/platform-login.js";
 
 export interface AppOptions {
   pool: pg.Pool;
@@ -85,7 +90,7 @@ export class AppModule {
   static register(opts: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, AccountController, VehiclesController, DevicesController, TelematicsController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController, AutomationController, WebhooksController, ApprovalsController, PublicJobController, DriverExtrasController, MessagesController, HelpRequestsController, TimesheetsController, ExpensesController, PortalController, InvoicesController, MessageDefaultsController, AiController, OptimizeController, SafetyController, PlatformController, FeedsController, InboundController, DocsController, TeamsController, InvitesController, PublicInviteController, CommentsController, NotificationsController, TasksController, ScheduleController, BillingController, SecurityController, SupportController, PublicSupportController, OpsController, PortalExportController, PortalAccessController, PortalVehiclesController, PortalFleetController, PortalDriversController, PortalPayController, PortalTripsController, PortalPayoutsController, PortalMyPayController, PortalDashboardController, PortalFinanceController, PortalReportsController, PortalAlertsController, PortalDataSourcesController, PortalGpsConnectController, PortalProviderConnectionsController],
+      controllers: [AuthController, AccountController, VehiclesController, DevicesController, TelematicsController, HistoryController, RoutesController, DriverController, ProofsController, UsersController, MeController, OrgController, RolesController, SearchController, AuditController, ResourcesController, PlanController, DispatchController, GeocodeController, AttachmentsController, RoutePlanningController, FleetController, ShareController, PublicTrackController, LiveExtrasController, AnalyticsController, ReportsController, PublicReportController, AlertsController, PublicFeedbackController, AutomationController, WebhooksController, ApprovalsController, PublicJobController, DriverExtrasController, MessagesController, HelpRequestsController, TimesheetsController, ExpensesController, PortalController, InvoicesController, MessageDefaultsController, AiController, OptimizeController, SafetyController, PlatformController, FeedsController, InboundController, DocsController, TeamsController, InvitesController, PublicInviteController, CommentsController, NotificationsController, TasksController, ScheduleController, BillingController, SecurityController, SupportController, PublicSupportController, OpsController, PortalExportController, PortalAccessController, PortalVehiclesController, PortalFleetController, PortalDriversController, PortalPayController, PortalTripsController, PortalPayoutsController, PortalMyPayController, PortalDashboardController, PortalFinanceController, PortalReportsController, PortalAlertsController, PortalDataSourcesController, PortalGpsConnectController, PortalProviderConnectionsController, PortalConnectionsController, AdminController],
       providers: [
         { provide: PG_POOL, useValue: opts.pool },
         { provide: POSITION_BUS, useValue: opts.bus },
@@ -95,6 +100,9 @@ export class AppModule {
         { provide: WEATHER, useValue: opts.weather ?? null },
         { provide: NOTIFY, useValue: opts.notify ?? { fetch } },
         AuthGuard,
+        PlatformGuard,
+        PlatformAudit,
+        PlatformAuth,
         AnalyticsService,
         AuditService,
         { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },

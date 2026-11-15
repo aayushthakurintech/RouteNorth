@@ -53,6 +53,7 @@ function AlertDialogContent({
 }) {
   return (
     <AlertDialogPortal>
+      <div className="portal-root contents">
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
         data-slot="alert-dialog-content"
@@ -63,6 +64,7 @@ function AlertDialogContent({
         )}
         {...props}
       />
+      </div>
     </AlertDialogPortal>
   )
 }

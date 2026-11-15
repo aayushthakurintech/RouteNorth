@@ -7,16 +7,16 @@ import { useMe } from "@/lib/me-context";
 import { useToast } from "@/lib/toast";
 import { useApi } from "@/lib/use-api";
 
-interface OrgFull { retentionDays: number; settings: { trackOnlyDuringShift: boolean; sessionHours: number; ipAllowList: string[]; platform: { analyticsOptOut: boolean }; privacy: { messageRetentionDays: number } } }
+interface OrgFull { retentionDays: number; settings: { trackOnlyDuringShift: boolean; sessionHours: number; ipAllowList: string[]; platform: { analyticsOptOut: boolean }; privacy: { messageRetentionDays: number; staffAccess?: boolean } } }
 
 /** Driver privacy, how long data is kept, who may sign in from where, and product analytics. */
 export function PrivacyTab() {
   const { t } = useI18n(); const { toast } = useToast(); const { reload } = useMe();
   const org = useApi<OrgFull>("/org");
-  const [f, setF] = useState<{ shift: boolean; days: string; msgDays: string; opt: boolean; hours: string; ips: string } | null>(null);
+  const [f, setF] = useState<{ shift: boolean; days: string; msgDays: string; opt: boolean; hours: string; ips: string; staff: boolean } | null>(null);
   useEffect(() => {
     const o = org.data;
-    if (o) setF({ shift: o.settings.trackOnlyDuringShift, days: String(o.retentionDays), msgDays: String(o.settings.privacy.messageRetentionDays), opt: o.settings.platform.analyticsOptOut, hours: String(o.settings.sessionHours), ips: o.settings.ipAllowList.join(", ") });
+    if (o) setF({ shift: o.settings.trackOnlyDuringShift, days: String(o.retentionDays), msgDays: String(o.settings.privacy.messageRetentionDays), opt: o.settings.platform.analyticsOptOut, hours: String(o.settings.sessionHours), ips: o.settings.ipAllowList.join(", "), staff: o.settings.privacy.staffAccess !== false });
   }, [org.data]);
   if (org.error && !org.loaded) return <ErrorState error={org.error} onRetry={org.reload} />;
   if (!f) return <SkeletonList rows={4} />;
@@ -27,7 +27,7 @@ export function PrivacyTab() {
         retentionDays: Number(f!.days),
         settings: {
           trackOnlyDuringShift: f!.shift, sessionHours: Number(f!.hours), ipAllowList: f!.ips.split(/[,\s]+/).filter(Boolean),
-          platform: { analyticsOptOut: f!.opt }, privacy: { messageRetentionDays: Number(f!.msgDays) },
+          platform: { analyticsOptOut: f!.opt }, privacy: { messageRetentionDays: Number(f!.msgDays), staffAccess: f!.staff },
         },
       });
       toast(t("settingsSaved")); org.reload(); reload();
@@ -52,6 +52,10 @@ export function PrivacyTab() {
       <fieldset className="stack"><legend>{t("sx_priv_analytics")}</legend>
         <label className="check"><input type="checkbox" className="switch" checked={f.opt} onChange={(e) => set({ opt: e.target.checked })} /> {t("sx_priv_optout")}</label>
         <p className="meta">{t("sx_priv_analytics_note")}</p>
+      </fieldset>
+      <fieldset className="stack"><legend>RouteNorth staff access</legend>
+        <label className="check"><input type="checkbox" className="switch" checked={f.staff} onChange={(e) => set({ staff: e.target.checked })} /> Let RouteNorth support look at our account to help us, when we ask</label>
+        <p className="meta">When on, a support person can open a read-only view of your account for up to 30 minutes. They must write down why, a banner shows on screen, and every view appears in your audit log. They can never change anything, and credentials, exports and API keys stay hidden. Turn it off if your contract or policy does not allow it; support then has to work from screen shares.</p>
       </fieldset>
       <div><button type="submit" className="btn">{t("saveSettings")}</button></div>
     </form>

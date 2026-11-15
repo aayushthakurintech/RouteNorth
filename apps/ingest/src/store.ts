@@ -14,7 +14,7 @@ export interface StoredPosition {
 }
 
 export type Outcome =
-  | { kind: "unknown_device" }
+  | { kind: "unknown_device"; externalId?: string }
   | { kind: "stored"; position: StoredPosition; flags: Flag[]; events: number }
   | { kind: "latest_only" | "history_only" | "duplicate"; orgId: string; flags: Flag[] }
   | { kind: "rejected"; reason: RejectReason; orgId: string };
@@ -85,7 +85,7 @@ const sensorValues = (f: Reading) => [f.altitude, f.hdop, f.satellites, f.batter
  */
 export async function ingestReading(pool: pg.Pool, source: string, fix: Reading, now: Date = new Date(), feedOrgId?: string): Promise<Outcome> {
   const dev = feedOrgId ? await lookupFeed(pool, feedOrgId, fix.externalId) : await lookup(pool, source, fix.externalId);
-  if (!dev) return { kind: "unknown_device" };
+  if (!dev) return { kind: "unknown_device", externalId: fix.externalId };
   const { deviceId, orgId } = dev;
 
   return withOrg(pool, orgId, async (c): Promise<Outcome> => {
@@ -167,9 +167,22 @@ export async function storeFix(pool: pg.Pool, source: string, fix: NormalizedFix
 
 const tally = new Map<string, number>(); // `${orgId}|${outcome}` → n
 const unknownTally = new Map<string, number>(); // source → n
+/** `${source}\u0000${externalId}` → n. Lets an owner be told "a tracker with this ID reached us". Capped per flush. */
+const unknownIds = new Map<string, number>();
+const MAX_UNKNOWN_IDS_PER_FLUSH = 500;
+let lastPurge = 0;
 
 export function countOutcome(source: string, o: Outcome) {
-  if (o.kind === "unknown_device") { unknownTally.set(source, (unknownTally.get(source) ?? 0) + 1); return; }
+  if (o.kind === "unknown_device") {
+    unknownTally.set(source, (unknownTally.get(source) ?? 0) + 1);
+    // Company feeds create their own devices, so only the shared sources (a tracker via Traccar, the batch endpoint) can be unknown.
+    const id = o.externalId;
+    if (id && id.length <= 80 && source !== "feed") {
+      const key = `${source}\u0000${id}`;
+      if (unknownIds.has(key) || unknownIds.size < MAX_UNKNOWN_IDS_PER_FLUSH) unknownIds.set(key, (unknownIds.get(key) ?? 0) + 1);
+    }
+    return;
+  }
   const k = `${o.kind === "stored" ? o.position.orgId : o.orgId}|${outcomeKey(o)}`;
   tally.set(k, (tally.get(k) ?? 0) + 1);
 }
@@ -178,7 +191,8 @@ export function countOutcome(source: string, o: Outcome) {
 export async function flushCounters(pool: pg.Pool): Promise<void> {
   const rows = [...tally.entries()];
   const unknown = [...unknownTally.entries()];
-  tally.clear(); unknownTally.clear();
+  const ids = [...unknownIds.entries()];
+  tally.clear(); unknownTally.clear(); unknownIds.clear();
   const byOrg = new Map<string, [string, number][]>();
   for (const [k, n] of rows) {
     const [org, outcome] = k.split("|") as [string, string];
@@ -193,6 +207,12 @@ export async function flushCounters(pool: pg.Pool): Promise<void> {
       }
     }).catch((err) => console.error("counter flush failed", err));
   }
+  for (const [key, n] of ids) {
+    const [source, externalId] = key.split("\u0000") as [string, string];
+    await pool.query(
+      "SELECT record_unregistered($1, $2, $3)", [source, externalId, n]).catch((err) => console.error("unknown id flush failed", err));
+  }
+  if (ids.length && Date.now() - lastPurge > 60_000) { lastPurge = Date.now(); await pool.query("SELECT purge_heard_unregistered()").catch(() => {}); }
   for (const [source, n] of unknown) {
     await pool.query(
       `INSERT INTO ingest_unknown (day, source, n) VALUES ((now() AT TIME ZONE 'UTC')::date, $1, $2)

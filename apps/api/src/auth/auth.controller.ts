@@ -8,10 +8,12 @@ import { decryptSecret } from "../security/secrets.js";
 import { hashRecovery, matchStep } from "../security/totp.js";
 import { Req } from "@nestjs/common";
 import { AuditService } from "../audit/audit.service.js";
-import { effectivePermissions, homePath } from "@routenorth/shared";
+import { effectivePermissions, homeForEntitlements, homePath, resolveEntitlements } from "@routenorth/shared";
 import { withOrg } from "@routenorth/db";
 import { withDefaults } from "../org/settings.js";
 import type { AuthedRequest } from "./auth.guard.js";
+import { PlatformAuth } from "../admin/platform-login.js";
+import { ipAllowed } from "./ip.js";
 
 @Controller("auth")
 export class AuthController {
@@ -21,6 +23,7 @@ export class AuthController {
     @Inject(PG_POOL) private readonly pool: pg.Pool,
     @Inject(JWT_SECRET) private readonly secret: string,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(PlatformAuth) private readonly staff: PlatformAuth,
   ) {}
 
   @Post("login")
@@ -29,6 +32,9 @@ export class AuthController {
     if (typeof body?.email !== "string" || typeof body?.password !== "string") {
       throw new BadRequestException("email and password are required");
     }
+    // The same form signs in clients and RouteNorth staff. Staff accounts live in their own table and always need a second factor.
+    const staffAnswer = await this.staff.login(body.email, body.password, req);
+    if (staffAnswer) return staffAnswer;
     const found = await this.pool.query<{
       user_id: string; org_id: string; password_hash: string; role: string; locale: string; disabled: boolean;
     }>("SELECT * FROM find_login($1)", [body.email]);
@@ -40,8 +46,12 @@ export class AuthController {
     }
 
     // Organization-wide sign-in rules.
-    const org = (await withOrg(this.pool, user.org_id, (c) => c.query("SELECT settings FROM organizations WHERE id = $1", [user.org_id]))).rows[0];
+    const org = (await withOrg(this.pool, user.org_id, (c) => c.query("SELECT settings, status FROM organizations WHERE id = $1", [user.org_id]))).rows[0];
     const settings = withDefaults(org?.settings);
+    if (org?.status === "suspended") {
+      await this.audit.record({ orgId: user.org_id, actorId: user.user_id, actorLabel: String(body.email).toLowerCase(), action: "auth.login.suspended", entity: "auth", method: "POST", path: "/auth/login", status: 403, ip: req.ip ?? null });
+      throw new ForbiddenException({ message: "this account is suspended, contact RouteNorth", code: "account_suspended" });
+    }
     if (settings.ipAllowList.length > 0 && !ipAllowed(req.ip ?? "", settings.ipAllowList)) {
       await this.audit.record({ orgId: user.org_id, actorId: user.user_id, actorLabel: String(body.email).toLowerCase(), action: "auth.login.blocked_ip", entity: "auth", method: "POST", path: "/auth/login", status: 403, ip: req.ip ?? null });
       throw new ForbiddenException("sign-in is not allowed from this network");
@@ -58,7 +68,11 @@ export class AuthController {
   async mfa(@Body() body: { challenge?: unknown; code?: unknown }, @Req() req: AuthedRequest) {
     if (typeof body?.challenge !== "string" || typeof body?.code !== "string") throw new BadRequestException("challenge and code are required");
     const ch = await verifyChallenge(this.secret, body.challenge);
-    if (!ch) throw new UnauthorizedException("the sign-in expired, start again");
+    if (!ch) {
+      const staffAnswer = await this.staff.mfa(body.challenge, body.code, req);
+      if (staffAnswer) return staffAnswer;
+      throw new UnauthorizedException("the sign-in expired, start again");
+    }
     const lock = this.fails.get(ch.userId);
     if (lock && lock.n >= 5 && lock.until > Date.now()) throw new HttpException("too many wrong codes, wait a few minutes", 429);
     const row = (await withOrg(this.pool, ch.orgId, (c) => c.query<{ totp_secret: string | null; recovery_hashes: string[]; last_step: string | null; email: string; role: string; locale: string; disabled: boolean }>(
@@ -95,6 +109,7 @@ export class AuthController {
   async logout(@Req() req: AuthedRequest) {
     const h = req.headers.authorization;
     const sess = typeof h === "string" && h.startsWith("Bearer ") ? await verifySession(this.secret, h.slice(7)) : null;
+    if (sess?.imp) await this.staff.endImpersonation(sess.imp, "client side");
     if (sess?.sid) await withOrg(this.pool, sess.orgId, (c) => c.query("UPDATE user_sessions SET revoked_at = now() WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL", [sess.sid, sess.userId]));
     return { ok: true };
   }
@@ -102,22 +117,11 @@ export class AuthController {
   private async finish(user: { user_id: string; org_id: string; role: string; locale: string }, hours: number, req: AuthedRequest, label: string) {
     const token = await startSession(this.pool, this.secret, { userId: user.user_id, orgId: user.org_id, role: user.role }, hours, req);
     await this.audit.record({ orgId: user.org_id, actorId: user.user_id, actorLabel: label, action: "auth.login", entity: "auth", method: "POST", path: "/auth/login", status: 200, ip: req.ip ?? null });
-    return { token, user: { id: user.user_id, orgId: user.org_id, role: user.role, locale: user.locale, home: homePath(user.role, effectivePermissions(user.role)) } };
+    // Send people to a page their company actually has, in case staff limited it to a few sections.
+    const ent = (await withOrg(this.pool, user.org_id, (c) => c.query<{ sections: string[]; limits: unknown }>("SELECT sections, limits FROM org_entitlements WHERE org_id = $1", [user.org_id]))).rows[0];
+    const home = homeForEntitlements(homePath(user.role, effectivePermissions(user.role)), resolveEntitlements(ent ?? null));
+    return { token, user: { id: user.user_id, orgId: user.org_id, role: user.role, locale: user.locale, home } };
   }
 }
 
-/** True when `ip` matches an entry of the list: an exact address or an IPv4 CIDR range. */
-export function ipAllowed(ip: string, list: string[]): boolean {
-  const addr = ip.replace(/^::ffff:/, "");
-  const toInt = (a: string) => a.split(".").reduce((n, p) => (n << 8) + Number(p), 0) >>> 0;
-  const v4 = /^\d{1,3}(\.\d{1,3}){3}$/;
-  return list.some((entry) => {
-    if (entry === addr) return true;
-    const [base, bits] = entry.split("/");
-    if (!bits || !v4.test(base!) || !v4.test(addr)) return false;
-    const n = Number(bits);
-    if (!(n >= 0 && n <= 32)) return false;
-    const mask = n === 0 ? 0 : (~0 << (32 - n)) >>> 0;
-    return (toInt(addr) & mask) === (toInt(base!) & mask);
-  });
-}
+export { ipAllowed } from "./ip.js";

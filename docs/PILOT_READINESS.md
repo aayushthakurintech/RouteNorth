@@ -1,6 +1,6 @@
 # Pilot readiness: is the app ready for a real client, and how to get one running
 
-Checked on 2026-11-14 against `main` at `dfc1f5b` (plus the grant fix in this change). Written for Aayush. It answers three questions: is the app compatible with what a pilot client needs, who could be asked to test it, and the exact steps to host it and give a client access.
+Checked on 2026-11-14 against `main` at `dfc1f5b`, plus the grant fix in this change. `main` has since gained vehicle onboarding with a provider vehicle picker, an admin console and `docs/PILOT_AND_LEGAL.md` (PRs 13 and 15); this branch was merged with it and the full test suite re-run. Anything I describe as untested stays untested. For the legal side (PIPEDA, Law 25, breach reporting, contracts) and what to ask a client for, read `docs/PILOT_AND_LEGAL.md` alongside this page. Written for Aayush. It answers three questions: is the app compatible with what a pilot client needs, who could be asked to test it, and the exact steps to host it and give a client access.
 
 ## 1. Verdict
 
@@ -20,8 +20,8 @@ What that means in plain terms:
 | --- | --- | --- |
 | A tracker that Traccar supports, or their own Traccar server | **Yes, as built** | Forward to `/ingest/feed/traccar?key=...`. Tested with a stand-in payload only. |
 | A GPS provider that can send JSON or a webhook | **Yes, as built** | `POST /ingest/feed` with a per-company key. Tested by hand here (2 positions stored). |
-| Geotab | **Built, untested with a real account** | Pull connector signs in with a MyGeotab user. Positions arrive under the Geotab device id (for example `geotab:b123`), not the vehicle's name, so an owner must match devices to vehicles by hand. Provider device names are not built. If the Geotab user has two-step sign-in turned on, the API sign-in will probably be refused; use a dedicated read-only user without it (to confirm with Geotab). |
-| Samsara | **Built, untested with a real account** | Needs an API token with read access to vehicle statistics. Same device-name gap. |
+| Geotab | **Built, untested with a real account** | Pull connector signs in with a MyGeotab user. Positions arrive under the Geotab device id (for example `geotab:b123`). Since the audit, `main` lists the provider's own vehicles on Add vehicle so an owner can pick one instead of finding an id (I did not re-test that screen against a provider). If the Geotab user has two-step sign-in turned on, the API sign-in will probably be refused; use a dedicated read-only user without it (to confirm with Geotab). |
+| Samsara | **Built, untested with a real account** | Needs an API token with read access to vehicle statistics. The same vehicle picker applies. |
 | Telus (Skyhawk, FOCUS), Verizon Connect, Motive, Fleet Complete, others | **No** | Only works if the provider can forward to a web address. A pull connector per provider is not built. |
 | Municipal bus CAD/AVL or GTFS-realtime | **No** | Not built, and not a good first target. |
 | Waste or snow data (lift sensors, spreader rate, cameras) | **No** | Those arrive through the provider's own system. Without a connector there is nowhere to send them. |
@@ -176,7 +176,7 @@ Schedule `pnpm backup` nightly, copy the file off the server and test a restore 
 3. **Connect their GPS**, by whichever route fits (Owner Portal, Settings, Connect your GPS):
    - **They have Geotab or Samsara:** choose Connect an account. For Geotab enter server (usually `my.geotab.com`), database, a dedicated user name and password. For Samsara paste an API token with read access to vehicle statistics. Positions start arriving within a minute or two. Devices appear named by provider id; match each to a vehicle on the Trackers page.
    - **Their provider can forward or push:** make a key named after the provider. Give them the address and key the page shows (`https://ingest.<your-domain>/ingest/feed` with the key as a bearer token, or `/ingest/feed/traccar?key=...` for Traccar's forward setting).
-   - **Raw trackers and no provider:** run a Traccar server (`infra/traccar/traccar.xml`), enable only the protocol the tracker uses, forward to `/ingest/feed/traccar?key=...`.
+   - **Raw trackers and no provider:** run a Traccar server (`infra/traccar/traccar.xml`), enable and open the port for the protocol the tracker uses, and forward to `/ingest/feed/traccar?key=...`. Keep `database.registerUnknown` as `true`: RouteNorth drops devices nobody registered, and setting it to `false` makes Traccar refuse every new tracker (this corrects the advice in an older version of `docs/GO_LIVE.md`; see `docs/PILOT_AND_LEGAL.md`, section 1). Someone must also set the SIM, APN and server address on each tracker by hand.
 4. On the Connect page, use **Make a vehicle for each** for any device that has no vehicle yet, then rename the vehicles.
 5. Invite the client's users from **Users** with the right role (owner, dispatcher, manager, viewer, driver). Drivers open `/driver` on a phone and add it to the home screen.
 6. Agree how you will check in: a weekly 15 minute call, and a short list of the reports they will judge it by.
@@ -199,5 +199,5 @@ Schedule `pnpm backup` nightly, copy the file off the server and test a restore 
 1. Pick a Canadian host and stand the app up with steps 1 to 9. Create your own test company and run the checks.
 2. Get one friendly client (section 3) to agree to a trial.
 3. Before they connect a real provider account, try the Geotab or Samsara connector yourself against a demo or test account if you can get one, and fix what breaks. Nothing has run against a real account.
-4. Build provider device names (so vehicles show their real names) and the first government feature the pilot needs: a stop-completion view for waste, or a service record per route for winter work.
+4. Build the first government feature the pilot needs: a stop-completion view for waste, or a service record per route for winter work.
 5. Have the legal pages reviewed before the client signs, and get cyber and professional liability insurance in place.

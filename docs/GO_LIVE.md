@@ -39,7 +39,7 @@ Path: tracker, then your Traccar server, then `POST /ingest/traccar` on the inge
 3. **Configure Traccar** (`infra/traccar/traccar.xml` is the development example):
    - Enable only the protocol port your tracker uses (the example opens `osmand` 5055 and `teltonika` 5027).
    - Forward to the ingest service with the shared secret: `forward.url` = `https://<your-ingest-host>/ingest/traccar?token=<INGEST_TOKEN>`, with `forward.json` = `true`.
-   - In production set `database.registerUnknown` to `false`. It is `true` in the example so demo devices work without registration.
+   - `database.registerUnknown` is `true` in the example so any device is accepted by Traccar, and RouteNorth then drops the IDs nobody added. **Do not set it to `false` yet:** Traccar would refuse every tracker that is not registered in Traccar's own database, and RouteNorth does not register devices there, so newly added IMEIs would never get through. Keep it `true` (and expect junk devices from internet scans in Traccar's database) until a "register in Traccar" step is built. See `docs/PILOT_AND_LEGAL.md`.
 4. **Point the tracker** at the Traccar host and port (done on the tracker with its vendor's tool or SMS commands).
 
 Worked when, within a few minutes: the vehicle appears on the live map, **Data sources** shows "GPS trackers: Live", and the Data quality card on the Trackers page shows readings accepted. If it says "problem", the page shows how long since the last position; if readings are refused, the Trackers page lists the reason (bad satellites, impossible jump, and so on).

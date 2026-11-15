@@ -1,6 +1,6 @@
 import { Controller, Get, Inject, Query, Req, UseGuards } from "@nestjs/common";
 import { pg, withOrg } from "@routenorth/db";
-import { AuthGuard, hasPerm, type AuthedRequest } from "../auth/auth.guard.js";
+import { AuthGuard, hasPerm, sectionOn, type AuthedRequest } from "../auth/auth.guard.js";
 import { PG_POOL } from "../tokens.js";
 
 export interface SearchHit {
@@ -26,19 +26,19 @@ export class SearchController {
     const like = `%${text.replace(/[\\%_]/g, "\\$&")}%`;
     const hits: SearchHit[] = [];
     await withOrg(this.pool, req.session!.orgId, async (c) => {
-      if (hasPerm(req, "fleet.view")) {
+      if (hasPerm(req, "fleet.view") && sectionOn(req, "tracking")) {
         const r = await c.query(
           `SELECT v.id, v.name, v.kind, v.plate, d.id AS device_id FROM vehicles v LEFT JOIN devices d ON d.vehicle_id = v.id
            WHERE v.name ILIKE $1 OR v.plate ILIKE $1 OR v.vin ILIKE $1 ORDER BY v.name LIMIT ${PER_GROUP}`, [like]);
         for (const v of r.rows) hits.push({ type: "vehicle", id: v.id, title: v.name, subtitle: [v.kind, v.plate].filter(Boolean).join(" · "), href: v.device_id ? `/?v=${v.device_id}` : "/" });
       }
-      if (hasPerm(req, "users.view")) {
+      if (hasPerm(req, "users.view") && sectionOn(req, "drivers")) {
         const r = await c.query(
           `SELECT id, coalesce(display_name, email) AS name, email FROM users
            WHERE role = 'driver' AND disabled_at IS NULL AND (email ILIKE $1 OR display_name ILIKE $1) ORDER BY 2 LIMIT ${PER_GROUP}`, [like]);
         for (const u of r.rows) hits.push({ type: "driver", id: u.id, title: u.name, subtitle: u.email, href: "/settings/users" });
       }
-      if (hasPerm(req, "routes.view")) {
+      if (hasPerm(req, "routes.view") && sectionOn(req, "dispatch")) {
         const rt = await c.query(
           `SELECT id, name, route_date::text AS date, status FROM routes WHERE name ILIKE $1 ORDER BY route_date DESC LIMIT ${PER_GROUP}`, [like]);
         for (const r of rt.rows) hits.push({ type: "route", id: r.id, title: r.name, subtitle: `${r.date} · ${r.status}`, href: `/routes/${r.id}` });
