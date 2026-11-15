@@ -11,6 +11,7 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "migrate": "tsc -p tsconfig.json && node dist/cli.js",
+    "provision": "tsc -p tsconfig.json && node dist/provision.js",
     "seed": "tsc -p tsconfig.json && node dist/seed.js"
   },
   "dependencies": { "pg": "^8.16.0" },

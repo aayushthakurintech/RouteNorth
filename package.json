@@ -10,6 +10,7 @@
     "typecheck": "turbo run typecheck",
     "infra:up": "docker compose up -d",
     "seed": "pnpm --filter @routenorth/db seed",
+    "provision": "pnpm --filter @routenorth/db provision",
     "dev": "node scripts/dev.mjs",
     "demo": "node scripts/dev.mjs --simulate",
     "admin:create": "pnpm --filter @routenorth/api build && pnpm --filter @routenorth/api admin:create --",
