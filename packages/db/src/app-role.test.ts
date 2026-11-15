@@ -6,6 +6,8 @@ import { migrate, pg } from "./index.js";
 const ADMIN_URL = process.env.DATABASE_URL;
 const suite = ADMIN_URL ? describe : describe.skip;
 
+// Other suites (ingest, API) connect as routenorth_app with the password "app" and only create the role when it is missing,
+// so this test must use the same password and leave it that way.
 suite("app role on a new database", () => {
   let admin: pg.Pool;
   let app: pg.Pool;
@@ -21,10 +23,10 @@ suite("app role on a new database", () => {
       IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'routenorth_app') THEN CREATE ROLE routenorth_app LOGIN; END IF;
     END $$`);
     await admin.query("REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM routenorth_app");
-    await ensureAppRole(admin, "app-role-test");
+    await ensureAppRole(admin, "app");
     const u = new URL(ADMIN_URL!);
     u.username = "routenorth_app";
-    u.password = "app-role-test";
+    u.password = "app";
     app = new pg.Pool({ connectionString: u.toString() });
   });
 
@@ -46,6 +48,6 @@ suite("app role on a new database", () => {
   });
 
   it("can be run twice", async () => {
-    await expect(ensureAppRole(admin, "app-role-test")).resolves.toBeUndefined();
+    await expect(ensureAppRole(admin, "app")).resolves.toBeUndefined();
   });
 });
