@@ -3,7 +3,7 @@ import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway } from "@nes
 import type { IncomingMessage } from "node:http";
 import type { WebSocket } from "ws";
 import { pg, withOrg } from "@routenorth/db";
-import { effectivePermissions } from "@routenorth/shared";
+import { effectivePermissions, hasSection, resolveEntitlements } from "@routenorth/shared";
 import { verifySession } from "../auth/jwt.js";
 import { JWT_SECRET, PG_POOL, POSITION_BUS } from "../tokens.js";
 import type { PositionBus } from "./position-bus.js";
@@ -32,13 +32,18 @@ export class LiveGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Only people who may see the fleet get the live stream (not drivers or customers).
     const user = (
       await withOrg(this.pool, session.orgId, (c) =>
-        c.query<{ role: string; custom: string[] | null; disabled: boolean }>(
-          `SELECT u.role, cr.permissions AS custom, (u.disabled_at IS NOT NULL) AS disabled
+        c.query<{ role: string; custom: string[] | null; disabled: boolean; org_status: string; sections: string[] | null; limits: unknown }>(
+          `SELECT u.role, cr.permissions AS custom, (u.disabled_at IS NOT NULL) AS disabled,
+                  (SELECT o.status FROM organizations o WHERE o.id = u.org_id) AS org_status,
+                  (SELECT e.sections FROM org_entitlements e WHERE e.org_id = u.org_id) AS sections,
+                  (SELECT e.limits FROM org_entitlements e WHERE e.org_id = u.org_id) AS limits
            FROM users u LEFT JOIN custom_roles cr ON cr.id = u.custom_role_id AND cr.org_id = u.org_id WHERE u.id = $1`,
           [session.userId]),
       )
     ).rows[0];
-    if (!user || user.disabled || !effectivePermissions(user.role, user.custom).has("fleet.view")) {
+    // The live stream is part of the tracking section, and is closed for a suspended company. Staff "view as" tokens are not accepted here.
+    const ent = resolveEntitlements(user?.sections ? { sections: user.sections, limits: user.limits } : null);
+    if (!user || user.disabled || session.imp || user.org_status === "suspended" || !hasSection(ent, "tracking") || !effectivePermissions(user.role, user.custom).has("fleet.view")) {
       client.close(4403, "forbidden");
       return;
     }

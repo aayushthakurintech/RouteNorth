@@ -1,4 +1,5 @@
 import { BadRequestException, Body, ConflictException, Controller, Get, HttpCode, HttpException, Inject, NotFoundException, Param, Patch, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
+import { assertWithinLimit } from "../admin/limits.js";
 import { pg, withOrg } from "@routenorth/db";
 import { checkVin, depreciationSeries, financeAccrual, keepRepairSell, licenceAllows, paybackDays, type Permission } from "@routenorth/shared";
 import { AuthGuard, type AuthedRequest } from "../auth/auth.guard.js";
@@ -125,6 +126,7 @@ export class PortalVehiclesController {
 
   private async insertVehicle(c: pg.PoolClient, req: AuthedRequest, v: Record<string, unknown>): Promise<string> {
     this.cleanVehicle(v);
+    await assertWithinLimit(c, req.session!.orgId, "vehicles");
     const dups = await this.duplicates(c, (v.plate as string) ?? null, (v.vin as string) ?? null, null);
     if (dups.length) throw new ConflictException({ message: `A car with the same ${dups[0]!.field === "plate" ? "plate" : "VIN"} already exists: ${dups[0]!.name}`, code: "duplicate", duplicates: dups });
     for (const f of VEHICLE_FIELDS) if (f.type === "ref" && v[f.key]) {

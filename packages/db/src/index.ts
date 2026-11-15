@@ -62,6 +62,26 @@ export async function withOrg<T>(
 }
 
 /**
+ * Run `fn` as RouteNorth staff: row-level security opens the staff-only tables and every client's organization row.
+ * Only the platform admin code calls this. It is deliberately a different function from withOrg so it is easy to search for.
+ */
+export async function withPlatform<T>(pool: pg.Pool, fn: (client: pg.PoolClient) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT set_config('app.platform', 'on', true)");
+    const result = await fn(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+/**
  * Move a route between planned, in_progress and completed based on its stops.
  * Shared by GPS arrival detection and manual driver actions so both agree.
  * Cancelled routes are left alone. Call inside withOrg.

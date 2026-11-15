@@ -1,6 +1,8 @@
 import {
   BadRequestException, Body, Controller, Delete, Get, Header, HttpCode, Inject, NotFoundException, Param, Patch, Post, Query, Req, Res, UseGuards,
 } from "@nestjs/common";
+import { assertWithinLimit } from "../admin/limits.js";
+import { routeAllowed } from "@routenorth/shared";
 import { pg, withOrg } from "@routenorth/db";
 import type { Response } from "express";
 import { AuthGuard, requirePerm, type AuthedRequest } from "../auth/auth.guard.js";
@@ -25,7 +27,8 @@ export class ResourcesController {
 
   @Get("_schema")
   schema(@Req() req: AuthedRequest) {
-    return RESOURCES.filter((r) => r.view.some((p) => req.perms?.has(p))).map((r) => ({
+    // Only resources whose section the company has (the same table the guard uses), so the schema never advertises what the API would refuse.
+    return RESOURCES.filter((r) => r.view.some((p) => req.perms?.has(p)) && routeAllowed(req.entitlements ?? { restricted: false, sections: [], limits: { vehicles: null, users: null } }, `/r/${r.name}`)).map((r) => ({
       name: r.name, canWrite: !!req.perms?.has(r.write),
       fields: r.fields.map((f) => ({ key: f.key, type: f.type, required: !!f.required, values: f.values, ref: f.ref, heavy: !!f.heavy, min: f.min, max: f.max })),
     }));
@@ -108,6 +111,7 @@ export class ResourcesController {
     this.runCheck(d, v, null);
     return withOrg(this.pool, orgId, async (c) => {
       await this.checkRefs(c, d, v, null);
+      if (d.name === "vehicles") await assertWithinLimit(c, orgId, "vehicles");
       const fields = d.fields.filter((f) => v[f.key] !== undefined);
       const cols = ["org_id", ...fields.map((f) => f.col)];
       const vals = [orgId, ...fields.map((f) => encode(f, v[f.key]))];
