@@ -1,0 +1,15 @@
+# Caddy gets and renews the HTTPS certificates by itself. The three names come from deploy/.env.
+{$APP_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy web:3000
+}
+
+{$API_DOMAIN} {
+	encode zstd gzip
+	# Live map WebSockets (/live) pass through the same proxy.
+	reverse_proxy api:4000
+}
+
+{$INGEST_DOMAIN} {
+	reverse_proxy ingest:4100
+}
